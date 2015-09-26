@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Canvas All Grades
+// @name        View All Grades for Student
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @include     /^https://.*\.instructure\.com/?.*/users/[0-9]+$/
 // @version     1
