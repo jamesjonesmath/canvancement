@@ -3,7 +3,7 @@ This is a user script that will show all grades for a single student. It does no
 
 ## Quick Install
 1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
-2. Install the [all-grades.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/grades/all-grades.user.js) file
+2. Install the [all-grades.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/grades/all-grades/all-grades.user.js) file
 
 ## About
 A common request in the [Canvas Community](https://community.canvaslms.com) was for the abilty to show all grades for a student. This information is available within Canvas by visiting the  `/users/*/grades`
