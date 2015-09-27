@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Canvas Roster Sorter
+// @name        Sort the Roster
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Allows sorting on any column of the Canvas Course Roster
 // @include     https://*.instructure.com/courses/*/users
