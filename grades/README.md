@@ -12,7 +12,7 @@ Known places where this button will appear include:
 ** This script will NOT show all grades for all students. It shows all grades for a single student. **
 ## Installation
 1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
-2. Download the [all-grades.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/all-grades/all-grades.user.js) file 
+2. Download the [all-grades.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/grades/all-grades.user.js) file 
 
 ## Customization
 This script will automatically run on any Canvas instance hosted at ``*.instructure.com``. If you have a custom domain, then you will need to modify the `\\ @include` line to refer to your site.
