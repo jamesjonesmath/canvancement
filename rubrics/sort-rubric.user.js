@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name        Canvas Rubric Sort
-// @namespace   https://people.richland.edu/james
+// @name        Rubric Sorter
+// @namespace   https://github.com/jamesjonesmath/canvancement
 // @description This program allows the user to sort rubric criteria
 // @include     https://*.instructure.com/courses/*/rubrics/*
 // @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
