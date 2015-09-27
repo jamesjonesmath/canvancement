@@ -37,7 +37,7 @@ Click on one of the folders to find enhancements related to that area. Sometimes
 
 While intended to be a Canvas Enhancement, it could just as well be a Canvas Advancement. Technically, it could also be a Canvas Announcement, Canvas Commencement, Canvas Denouncement, or Canvas Pronouncement, but those don't fit with its intended purpose.
 
-James Jones coined the term *Canvancement* on September 26, 2015. At the time, there was only one hit for it on Google, which was a term in a forum post in which it was impossible to tell what it meant. Strangely, the title of the page was "Which is better? Let's talk some sense into James." At first, I thought Google was trying to tell me what I was doing was stupid. But then I read the page from 2010 and decided since it was the only one on the publicly available Internet that I could lay claim to the term.
+James Jones coined the term *Canvancement* on September 26, 2015. At the time, there was only one hit for it on Google, which was a term in a forum post in which it was impossible to tell what it meant. Strangely, the title of the page was "Which is better? Let's talk some sense into James." At first, I thought Google was trying to tell me what I was doing was stupid and it even asked if I meant "Canvas Cement" instead. But then I read the page from 2010 and decided since it was the only one on the publicly available Internet that I could lay claim to the term.
 
 ## Disclaimer
 My goal is to provide working solutions that are *reasonably easy* for people to use.
