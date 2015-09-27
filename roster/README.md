@@ -1,0 +1,23 @@
+# Roster
+These items add functionality to the course Roster (People page)
+
+## Sort the Roster
+Sort the roster by clicking on the heading at the top of any column
+
+* Name: [roster/sort-roster](sort-roster/)
+* Type: [user script](../USERSCRIPTS.md)
+* Browsers: Firefox only
+
+## Download the Roster as a PDF file
+Adds a button to the Course People page download a PDF version of the roster
+
+* Name: [roster/pdf-roster](pdf-roster/)
+* Type: [user script](../USERSCRIPTS.md)
+* Browsers: Firefox only
+
+## Photo Roster
+Adds a button to the Course People page to generate a PDF file that contains the student avatars
+
+* Name: [roster/photo-roster](photo-roster/)
+* Type: [user script](../USERSCRIPTS.md)
+* Browsers: Firefox only
