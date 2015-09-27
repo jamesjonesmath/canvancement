@@ -6,7 +6,7 @@ Sort the roster by clicking on the heading at the top of any column
 
 * Name: [roster/sort-roster](sort-roster/)
 * Type: [user script](../USERSCRIPTS.md)
-* Browsers: Firefox only
+* Browsers: Firefox, Chrome
 
 ## Download the Roster as a PDF file
 Adds a button to the Course People page download a PDF version of the roster
