@@ -15,7 +15,7 @@ Known places where this button will appear include:
 * From the Course > People navigation link. Click on any student's name and then click on User Account Details. The path is `/users/*`
 * From the Manage Accounts > User Search. Search for a user and then select their name. The path is `/accounts/*/users/*`
 
-The username is not displayed on the page. In higher education, this is a good thing to help avoid FERPA violations. If you would like to add the user's name to the page, then see the [Add a student's name to their Grades page][] user script.
+The username is not displayed on the page. In higher education, this is a good thing to help avoid FERPA violations. If you would like to add the user's name to the page, then see the [Add a student's name to their Grades page]() user script.
 
 ## Customization
 This script will automatically run on any Canvas instance hosted at ``*.instructure.com``. If you have a custom domain, then you will need to modify the `\\ @include` line to refer to your site.
