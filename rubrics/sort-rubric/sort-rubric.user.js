@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Rubric Sorter
+// @name        Sort a Rubric
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description This program allows the user to sort rubric criteria
 // @include     https://*.instructure.com/courses/*/rubrics/*
