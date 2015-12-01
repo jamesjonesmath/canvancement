@@ -103,7 +103,12 @@ class CanvasDataAPI {
     }
     $host = ! empty( $opts['host'] ) ? $opts['host'] : (! empty( $u['host'] ) ? $u['host'] : $this->_api_host);
     $path = $u['path'];
-    $query = empty( $u['query'] ) ? '' : join( '&', ksort( explode( '&', $u['query'] ) ) );
+    $query = '';
+    if (! empty( $u['query'] )) {
+      $parms = explode( '&', $u['query'] );
+      ksort($parms);
+      $query = join( '&', $parms );
+    }
     $parts = array ( isset( $opts['method'] ) ? $opts['method'] : 'GET', $host, 
         isset( $opts['contentType'] ) ? $opts['contentType'] : '', 
         isset( $opts['contentMD5'] ) ? $opts['contentMD5'] : '', $path, $query, 
