@@ -6,7 +6,7 @@ This code is meant for demonstration purposes and you would want to take and inc
 
 It is a slimmed down version of the example shown by Canvas as all of the requests (so far) are GET and ContentType and ContentMD5 are not used.
 
-## CanvasData Module
+## Canvas Data API Module
 [CanvasDataAPI.pm](CanvasDataAPI.pm) is a PERL module that adds object oriented access to the Canvas API. 
 
 There are methods for each of the API endpoints. The JSON object returned from the API is converted to a PERL data structure and returned to user as a reference
