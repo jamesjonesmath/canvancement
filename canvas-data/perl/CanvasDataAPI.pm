@@ -1,7 +1,5 @@
 #!/usr/bin/perl;
-package Canvas::CanvasData;
-
-use lib '../';
+package CanvasDataAPI;
 
 use strict;
 use warnings;
