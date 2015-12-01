@@ -1,5 +1,5 @@
 # Canvas Data
-Canvas Data provides access to your Canvas data. However, the no-extra-charge (Canvas calls it free) version comes as flat files that you can download and then use.
+Canvas Data provides access to your Canvas data. The no-extra-charge (Canvas calls it free) version comes as flat files that you can download and then use.
 
 The [Canvas Data Portal](https://portal.inshosteddata.com/docs) website includes a description of the data that is available by describing the schema.
 ## Canvas Data API
