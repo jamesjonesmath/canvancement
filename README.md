@@ -26,6 +26,10 @@ Google Sheets has a programming language that is simliar to JavaScript. These sc
 Information loaded into Google Sheets must be obtained through calls to the API. This means that it will not work if the information is not exposed through the API. For example, you cannot create a Canvas rubric using a Google Sheet.
 
 The source code to the Google Sheets may be provided here, but it will often be easier to open a shared Google Sheet and then go to File > Make a Copy to create your own instance.
+### Canvas Data
+[Canvas Data](canvas-data/) provides you with access to some of your data from Canvas, but for those using the free flat-file versions instead of RedShift, it can be difficult to obtain the information. The API can help with that, but the instructions provided are unclear for many.
+
+The code here is intended to help people use the free version of Canvas Data.
 
 ## Site Navigation
 This site is laid out based on the primary functionality of the enhancement and not according to the type of enhancement.
