@@ -1,4 +1,7 @@
 # Canvas Data PHP Code
+## HMAC Signature
+The [hmac_signature.php](hmac_signature.php) file is a code snippet to show how to compute the HMAC signature needed to authenticate the API request. This is not intended to be used alone, but for the function to be included in your other source code.
+
 ## API
 The [API](api.php) code creates a new class called **CanvasDataAPI** that includes allows you to access the Canvas Data API.
 
