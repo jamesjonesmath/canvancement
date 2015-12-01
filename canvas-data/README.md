@@ -5,7 +5,7 @@ The [Canvas Data Portal](https://portal.inshosteddata.com/docs) website includes
 ## Canvas Data API
 The web interface provides you with a list of download links, which is great if you want one or two files and you want them through a machine that has a graphical interface available.
 
-I suspect that many people will want access to all of their data and they will want it without having to sit there and click all (as of November 2015) 50 files one-by-one. That's where the [Canvas Data API](https://portal.inshosteddata.com/docs/api comes in.
+I suspect that many people will want access to all of their data and they will want it without having to sit there and click all (as of November 2015) 50 files one-by-one. That's where the [Canvas Data API](https://portal.inshosteddata.com/docs/api) comes in.
 
 ### PHP
 The [PHP](php/) folder contains code that can be used with PHP to access the Canvas Data API
