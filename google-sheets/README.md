@@ -2,6 +2,7 @@
 Google Sheets are a way to pull information from Canvas and put it into a spreadsheet.
 
 ## Available Spreadsheets
+* [List Canvas Admins](list-admins) generates a list of all users with administrative rolls for your accounts, including sub-accounts. The name, login, role, subaccount name, parent account name, and root account name are returned. You can return a list of admins for the entire account, including the root account admins, or just the subaccounts.
 
 ## Code
 This folder contains the code necessary to run the Google Sheets.
