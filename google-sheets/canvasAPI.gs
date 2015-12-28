@@ -1,14 +1,14 @@
 /**
- * @fileoverview This Google Sheets script will provide Canvas API functionality for other scripts.
- * @author james@richland.edu [James Jones]
- * @license Copyright 2015 Standard ISC License
- * @OnlyCurrentDoc
- */
+* @fileoverview This Google Sheets script will provide Canvas API functionality for other scripts.
+* @author james@richland.edu [James Jones]
+* @license Copyright 2015 Standard ISC License
+* @OnlyCurrentDoc
+*/
 
 /**
- * @function This will test the API settings and try to determine the name of
- *           the user
- */
+* @function This will test the API settings and try to determine the name of
+*           the user
+*/
 function checkApiSettings() {
   var name;
   try {
@@ -18,8 +18,6 @@ function checkApiSettings() {
     }
     var ui = SpreadsheetApp.getUi();
     var profile = canvasAPI('GET /api/v1/users/self/profile');
-    Logger.log(profile);
-    Logger.log(ui);
     if (typeof profile === 'undefined') {
       var mesg = 'Unable to connect to ' + props.host;
       ui.alert('Failure', mesg, ui.ButtonSet.OK);
@@ -27,7 +25,7 @@ function checkApiSettings() {
     }
     name = profile.name ? profile.name : 'Unknown User';
     ui.alert('Success!', 'Connected to ' + props.host + ' as ' + name
-        + '\nYou may now use the API calls.', ui.ButtonSet.OK);
+             + '\nYou may now use the API calls.', ui.ButtonSet.OK);
   } catch (e) {
     Logger.log(e);
     return;
@@ -37,22 +35,21 @@ function checkApiSettings() {
 }
 
 /**
- * @function This opens the Configuration Dialog. 
- * This should be added to your menu
- */
+* @function This opens the Configuration Dialog. 
+* This should be added to your menu
+*/
 function configurationDialog() {
   var html = HtmlService.createTemplateFromFile('canvasConfig').evaluate()
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME);
-  var props = SpreadsheetApp.getUi().showModalDialog(html,
-      'Canvas API Configuration');
+  .setSandboxMode(HtmlService.SandboxMode.IFRAME);
+  var props = SpreadsheetApp.getUi().showModalDialog(html, 'Canvas API Configuration');
   return;
 }
 
 /**
- * @function Process the submission from the Configuration form
- * @param {Object}
- *          formObject - the data returned by the form submission
- */
+* @function Process the submission from the Configuration form
+* @param {Object}
+*          formObject - the data returned by the form submission
+*/
 function processConfigurationForm(formObject) {
   var host = determineCanvasHost(formObject.canvas_host);
   var token = formObject.canvas_token;
@@ -74,11 +71,11 @@ function processConfigurationForm(formObject) {
 }
 
 /**
- * @function Tries to parse the URL and determine the Canvas Host
- * @param {String}
- *          text - The value to parse
- * @returns
- */
+* @function Tries to parse the URL and determine the Canvas Host
+* @param {String}
+*          text - The value to parse
+* @returns
+*/
 function determineCanvasHost(text) {
   if (typeof text === 'undefined') {
     return false;
@@ -90,19 +87,19 @@ function determineCanvasHost(text) {
   try {
     var ui = SpreadsheetApp.getUi();
     var hostRegex = new RegExp(
-        '^(?:https:\\/\\/)?([a-z0-9][-a-z0-9]*$|[a-z0-9][-a-z0-9]*(?:\.[a-z0-9][-a-z0-9]*)+)(?:\/|$)',
-        'i');
+      '^(?:https:\/\/)?(?:([a-z0-9][-a-z0-9]*$)|(?:([a-z0-9][-a-z0-9]*(?:[.][a-z0-9][-a-z0-9]*)+)(?:\/|$)))',
+      'i');
     var match = hostRegex.exec(text);
     if (match != null) {
-      var value = match[1];
+      var value = typeof match[1] === 'undefined' ? match[2] : match[1];
       if (!/[.]/.test(value)) {
         value += '.instructure.com';
       }
       if (value != text) {
         var alertResponse = ui.alert('Notice', 'Using "' + value
-            + '" for your Canvas Hostname.\n'
-            + ' If this is not correct, then click Cancel.',
-            ui.ButtonSet.OK_CANCEL);
+                                     + '" for your Canvas Hostname.\n'
+                                     + ' If this is not correct, then click Cancel.',
+                                     ui.ButtonSet.OK_CANCEL);
         if (alertResponse == ui.Button.CANCEL) {
           text = false;
         } else {
@@ -111,11 +108,10 @@ function determineCanvasHost(text) {
       }
     } else {
       text = false;
-      ui
-          .alert(
-              'Error',
-              'Sorry, I did not understand what you entered for the Canvas Hostname',
-              ui.ButtonSet.OK);
+      ui.alert(
+        'Error',
+        'Sorry, I did not understand what you entered for the Canvas Hostname',
+        ui.ButtonSet.OK);
       throw ('Bad Hostname');
     }
   } catch (e) {
@@ -126,13 +122,13 @@ function determineCanvasHost(text) {
 }
 
 /**
- * @function This function fetches your Canvas instance and your access token.
- *           If you don't have them saved, it will prompt you for them. It uses
- *           Google's UserProperties() so it is specific to a user and a
- *           spreadsheet and sharing the spreadsheet with someone else should
- *           not transfer your credentials.
- * 
- */
+* @function This function fetches your Canvas instance and your access token.
+*           If you don't have them saved, it will prompt you for them. It uses
+*           Google's UserProperties() so it is specific to a user and a
+*           spreadsheet and sharing the spreadsheet with someone else should
+*           not transfer your credentials.
+* 
+*/
 function getApiSettings() {
   var required_properties = [ 'host', 'token' ];
   try {
@@ -166,19 +162,19 @@ function getApiSettings() {
 }
 
 /**
- * @function reset user properties
- */
+* @function reset user properties
+*/
 function resetApiSettings() {
   var userProperties = PropertiesService.getUserProperties();
   userProperties.deleteAllProperties();
 }
 
 /**
- * @function convert the parameters into a Query String
- * @param {Object}
- *          obj - the parameters to include
- * @returns {String} the query string
- */
+* @function convert the parameters into a Query String
+* @param {Object}
+*          obj - the parameters to include
+* @returns {String} the query string
+*/
 function makeQueryString(obj) {
   var q = [];
   for ( var i in obj) {
@@ -205,22 +201,22 @@ function makeQueryString(obj) {
 }
 
 /**
- * @function This function calls the CanvasAPI and returns any information as an
- *           object.
- * @param {string}
- *          endpoint - The endpoint from the Canvas API Documentation, including
- *          the GET, POST, PUT, or DELETE the /api/v1 version is optional and
- *          will add the value specified within the function as a default if not
- * @param {Object}
- *          [opts] - The parameters that need passed to the API call Variable
- *          substitution is done for values in the endpoint that begin with :
- *          SIS variables can be specified as ":sis_user_id: 123" rather than
- *          "user_id: ':sis_user_id:123'" Any other variables are added to the
- *          querystring for a GET or the payload for a PUT or POST
- * @param {Object[]}
- *          [filter] - An array containing values to return. This allows you to
- *          reduce storage by eliminating unnecessary objects
- */
+* @function This function calls the CanvasAPI and returns any information as an
+*           object.
+* @param {string}
+*          endpoint - The endpoint from the Canvas API Documentation, including
+*          the GET, POST, PUT, or DELETE the /api/v1 version is optional and
+*          will add the value specified within the function as a default if not
+* @param {Object}
+*          [opts] - The parameters that need passed to the API call Variable
+*          substitution is done for values in the endpoint that begin with :
+*          SIS variables can be specified as ":sis_user_id: 123" rather than
+*          "user_id: ':sis_user_id:123'" Any other variables are added to the
+*          querystring for a GET or the payload for a PUT or POST
+* @param {Object[]}
+*          [filter] - An array containing values to return. This allows you to
+*          reduce storage by eliminating unnecessary objects
+*/
 function canvasAPI(endpoint, opts, filter) {
   if (typeof endpoint === 'undefined') {
     return;
@@ -228,26 +224,26 @@ function canvasAPI(endpoint, opts, filter) {
   if (typeof opts === 'undefined') {
     opts = {};
   }
-
+  
   var PER_PAGE = 100;
   var API_VERSION = 1;
-
+  
   var endpointRegex = /^(GET|POST|PUT|DELETE|HEAD)\s+(.*)$/i;
   var tokenRegex = new RegExp('^:([a-z_]+)$');
   var nextLinkRegex = new RegExp('<(.*?)>; rel="next"');
   var integerRegex = new RegExp('^[0-9]+$');
-
+  
   try {
     var userProperties = getApiSettings();
     if (userProperties === false) {
       throw 'You need to specify a full set of credentials.';
     }
     var parms = { 'headers' : { 'Authorization' : 'Bearer '
-        + userProperties.token }, };
-
+                               + userProperties.token }, };
+    
     if (typeof endpoint !== 'string') {
       throw 'Endpoint specification must be a string. Received: '
-          + typeof endpoint;
+      + typeof endpoint;
     }
     var endpointMatches = endpointRegex.exec(endpoint);
     if (endpointMatches === null) {
@@ -282,7 +278,7 @@ function canvasAPI(endpoint, opts, filter) {
           }
           if (!tokenMatch) {
             throw 'Unable to find substitution for :' + matches[1] + ' in '
-                + endpointMatches[2];
+            + endpointMatches[2];
           }
         } else {
           route.push(routes[i]);
@@ -383,4 +379,3 @@ function canvasAPI(endpoint, opts, filter) {
   }
   return data;
 }
-
