@@ -2,17 +2,11 @@
 <html>
 <head>
 <base target="_top">
-<script type="text/javascript">
-    function close() {
-	google.script.host.close();
-    }
-</script>
 <style type="text/css">
 input[type="text"], input[type="password"] {
 	background-color: #ff9;
 	padding: 0.1em 0.5em 0.1em 0.5em;
 }
-
 body {
 	font-family: Arial, serif;
 }
@@ -50,8 +44,8 @@ var properties = userProperties.getProperties();
 				obtain an API access token for an account?</a>
 		</div>
 		<input type="button" value="Submit"
-			onclick="google.script.run.processConfigurationForm(this.parentNode); close();" />
-		<input type="button" value="Cancel" onclick="close();" />
+			onclick="google.script.run.processConfigurationForm(this.parentNode); google.script.host.close()" />
+		<input type="button" value="Cancel" onclick="google.script.host.close();" />
 	</form>
 </body>
 </html>
