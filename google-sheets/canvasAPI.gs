@@ -37,12 +37,12 @@ function checkApiSettings() {
 }
 
 /**
- * @function This opens the Configuration Dialog. This should be added to your
- *           menu
+ * @function This opens the Configuration Dialog. 
+ * This should be added to your menu
  */
 function configurationDialog() {
   var html = HtmlService.createTemplateFromFile('canvasConfig').evaluate()
-      .setSandboxMode(HtmlService.SandboxMode.NATIVE);
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME);
   var props = SpreadsheetApp.getUi().showModalDialog(html,
       'Canvas API Configuration');
   return;

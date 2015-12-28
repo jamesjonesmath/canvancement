@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<style type="text/css">
+body {
+	font-family: Arial, serif;
+}
+</style>
+</head>
+<body>
+	<h2>Quick Start</h2>
+	<ol>
+		<li>Choose <strong>Configure API Settings</strong> and enter your
+			Canvas Instance and your Access Token.
+		</li>
+		<li>Choose <strong>Specify Course</strong> and put in the Canvas
+			Course ID for the course to analyze.
+		</li>
+		<li>Choose <strong>Refresh All Discussions</strong> to download
+			and analyze your data. Note that this routine will erase any existing
+			data and do a complete fetch of all of the discussions.
+		</li>
+	</ol>
+	<p>
+		The <strong>Append New Discussions</strong> will fetch discussions
+		that are not already in the data table. Use this option if you want to
+		run this program multiple times throughout the term and do not want to
+		waste time re-downloading exisiting information. Note that if you
+		choose this option, then previously counted discussions will not be
+		checked for new posts.
+	</p>
+	<h2>Understanding the Report</h2>
+	<p>After counting the posts, you will have a report in the form of
+		a pivot table.</p>
+	<p>The rows will contain the names of the students and the columns
+		will contain the discussion titles. Both will be in alphabetical
+		order.</p>
+	<p>
+		By default, results are shown only for active students. You may use
+		the filters in the report dialog on the right hand side to include <em>completed</em>
+		students or <em>teacher</em> or <em>ta</em> roles.
+	</p>
+	<h2>Additional Information</h2>
+	<p>
+		For more information, visit the <a
+			href="https://github.com/jamesjonesmath/canvancement/tree/master/google-sheets/discussion-counts">Canvancement</a>
+		website
+	</p>
+</body>
+</html>

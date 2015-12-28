@@ -1,46 +1,57 @@
 <!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
 <script type="text/javascript">
-  function close() {
-    google.script.host.close();
-  }
+    function close() {
+	google.script.host.close();
+    }
 </script>
 <style type="text/css">
-	input[type="text"], input[type="password"] {
-		background-color:#ff9;
-		padding:0.1em 0.5em 0.1em 0.5em;
-	}
-	body {
-		font-family:Arial,serif;
-	}
+input[type="text"], input[type="password"] {
+	background-color: #ff9;
+	padding: 0.1em 0.5em 0.1em 0.5em;
+}
+
+body {
+	font-family: Arial, serif;
+}
 </style>
 <?
 var userProperties = PropertiesService.getUserProperties();
 var properties = userProperties.getProperties();
 ?>
-
-<form id="canvasAPIConfig">
-	<p>
-		You must authorize your account. Once you have completed this form, please try your request again.
-	</p>
-	<div>
-		<strong><label for="canvas_host">Canvas Hostname</label></strong>:
-		<input type="text" id="canvas_host" name="canvas_host" size="32" placeholder="CANVAS.instructure.com"
-		value="<?= typeof(properties.host) === 'undefined' ? '' : properties.host;
-		?>" />
-	</div>
-	<div style="font-size:80%; color:#666;">
-		This is the hostname used to access your Canvas instance.
-		It is the part immediately following the https:// in your Canvas URL.
-	</div>
-	<div style="margin-top:0.5em;">
-		<strong><label for="canvas_token">Access Token</label></strong>:
-		<input type="password" name="canvas_token" size="32" placeholder="SUPER SECRET ACCESS TOKEN"
-		value="<?= typeof(properties.token) === 'undefined' ? '' : properties.token;
-		?>" />
-	</div>
-	<div style="font-size:80%; color:#666; margin-bottom:0.5em;">
-		If you don't have an access token, then please follow the instructions in the Canvas Guides: <a href="https://community.canvaslms.com/docs/DOC-3013">How do I obtain an API access token for an account?</a>
-	</div>
-	<input type="button" value="Submit" onclick="google.script.run.processConfigurationForm(this.parentNode); close();" />
-	<input type="button" value="Cancel" onclick="close();" />
-</form>
+</head>
+<body>
+	<form id="canvasAPIConfig">
+		<p>You must authorize your account. Once you have completed this
+			form, please try your request again.</p>
+		<div>
+			<strong><label for="canvas_host">Canvas Hostname</label></strong>: <input
+				type="text" id="canvas_host" name="canvas_host" size="32"
+				placeholder="CANVAS.instructure.com"
+				value="<?= typeof(properties.host) === 'undefined' ? '' : properties.host;
+?>" />
+		</div>
+		<div style="font-size: 80%; color: #666;">This is the hostname
+			used to access your Canvas instance. It is the part immediately
+			following the https:// in your Canvas URL.</div>
+		<div style="margin-top: 0.5em;">
+			<strong><label for="canvas_token">Access Token</label></strong>: <input
+				type="password" name="canvas_token" size="32"
+				placeholder="SUPER SECRET ACCESS TOKEN"
+				value="<?= typeof(properties.token) === 'undefined' ? '' : properties.token;
+?>" />
+		</div>
+		<div style="font-size: 80%; color: #666; margin-bottom: 0.5em;">
+			If you don't have an access token, then please follow the
+			instructions in the Canvas Guides: <a
+				href="https://community.canvaslms.com/docs/DOC-3013">How do I
+				obtain an API access token for an account?</a>
+		</div>
+		<input type="button" value="Submit"
+			onclick="google.script.run.processConfigurationForm(this.parentNode); close();" />
+		<input type="button" value="Cancel" onclick="close();" />
+	</form>
+</body>
+</html>
