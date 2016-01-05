@@ -5,7 +5,7 @@
 // @include     https://*.instructure.com/courses/*/users
 // @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @require     https://cdn.rawgit.com/Mottie/tablesorter/v2.22.5/js/jquery.tablesorter.js
-// @version     1
+// @version     2
 // @grant       none
 // ==/UserScript==
 'use strict';
