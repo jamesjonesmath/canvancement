@@ -7,7 +7,7 @@
 // @require     https://cdn.rawgit.com/ryanmorr/ready/master/ready.js
 // @require     https://cdn.rawgit.com/Mottie/tablesorter/v2.22.5/js/jquery.tablesorter.js
 // @require     https://cdn.rawgit.com/henrya/js-jquery/master/BinaryTransport/jquery.binarytransport.js
-// @version     1
+// @version     2
 // @grant       GM_xmlhttpRequest
 // ==/UserScript==
 (function () {
@@ -24,7 +24,14 @@
     },
     'login': {
       'text': 'Login / SIS ID',
+      'heading': 'Login/SIS'
+    },
+    'loginid': {
+      'text': 'Login ID',
       'heading': 'Login'
+    },
+    'sisid': {
+      'text': 'SIS ID'
     },
     'section': {
       'text': 'Section',
@@ -308,7 +315,7 @@
           continue;
         }
         var info = rosterColumns[field];
-        if (typeof info.heading === 'undefined') {
+        if (typeof info.heading === 'undefined' || typeof info.col === 'undefined') {
           continue;
         }
         if (field == 'section' && omitSection) {
