@@ -7,7 +7,7 @@
 // @require     https://cdn.rawgit.com/Mottie/tablesorter/v2.22.5/js/jquery.tablesorter.js
 // @require     https://cdn.rawgit.com/bpampuch/pdfmake/master/build/pdfmake.js
 // @require     https://cdn.rawgit.com/bpampuch/pdfmake/master/build/vfs_fonts.js
-// @version     1
+// @version     2
 // @grant       none
 // ==/UserScript==
 (function () {
@@ -24,7 +24,14 @@
     },
     'login': {
       'text': 'Login / SIS ID',
+      'heading': 'Login/SIS'
+    },
+    'loginid': {
+      'text': 'Login ID',
       'heading': 'Login'
+    },
+    'sisid': {
+      'text': 'SIS ID'
     },
     'section': {
       'text': 'Section',
@@ -307,7 +314,7 @@
           continue;
         }
         var info = rosterColumns[field];
-        if (typeof info.heading === 'undefined') {
+        if (typeof info.heading === 'undefined' || typeof info.col === 'undefined') {
           continue;
         }
         if (field == 'section' && omitSection) {
