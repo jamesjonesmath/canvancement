@@ -21,7 +21,14 @@ var rosterColumns = {
   },
   'login': {
     'text': 'Login / SIS ID',
+    'heading': 'Login/SIS'
+  },
+  'loginid': {
+    'text': 'Login ID',
     'heading': 'Login'
+  },
+  'sisid': {
+    'text': 'SIS ID'
   },
   'section': {
     'text': 'Section',
