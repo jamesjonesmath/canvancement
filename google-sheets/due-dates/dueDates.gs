@@ -15,11 +15,8 @@ function onOpen() {
 }
 
 function getHeaders(mode, list) {
-  var headerList = [ 'Title', 'Due', 'Available from', 'Available until',
-                    'Show Answers', 'Hide Answers', 'Published', 'Type', 'Canvas ID' ];
-  var fieldList = [ 'title', 'due_at', 'unlock_at', 'lock_at',
-                   'show_correct_answers_at', 'hide_correct_answers_at', 'published',
-                   'type', 'id' ];
+  var headerList = [ 'Title', 'Due', 'Available from', 'Available until', 'Show Answers', 'Hide Answers', 'Published', 'Type', 'Canvas ID' ];
+  var fieldList = [ 'title', 'due_at', 'unlock_at', 'lock_at', 'show_correct_answers_at', 'hide_correct_answers_at', 'published', 'type', 'id' ];
   var typeList = [ 1, 2, 2, 2, 3, 3, 1, 11, 1 ];
   var obj = {};
   var hdr = [];
@@ -160,8 +157,8 @@ function getDataSheet(create) {
     }
     var userProperties = PropertiesService.getUserProperties();
     var courseId = userProperties.getProperty('courseid');
-    if (typeof courseId === 'undefined' || !courseId) {
-      throw 'You must specify the course ID before you can analyze the discussions.';
+    if (!courseId) {
+      throw 'You must specify the course ID before you can change the dates.';
     }
     var courseName = userProperties.getProperty('coursename') || '';
     var dsheet = ss.getSheetByName('Dates');
@@ -271,10 +268,10 @@ function formatDueDates() {
 
 function setDueDates() {
   try {
-    if (userConfiguration() === false) {
-      return;
-    }
     courseId = getCourseId();
+    if (!courseId) {
+      throw 'You must specify the course ID before you can change the dates.';
+    }
     existingData = getDueDates(courseId);
     var dsheet = getDataSheet();
     dsheet.setActiveRange(dsheet.getRange(1, 1));
@@ -362,7 +359,6 @@ function setDueDates() {
     }
     
     if (changes.length > 0) {
-      Logger.log('Making changes');
       var apicalls = {
         'assignment' : 'PUT /api/v1/courses/:course_id/assignments/:id',
         'quiz' : 'PUT /api/v1/courses/:course_id/quizzes/:id'
@@ -371,9 +367,7 @@ function setDueDates() {
         var item = changes[i];
         var type = item.type;
         delete item.type;
-        Logger.log(item);
         var result = canvasAPI(apicalls[type], item);
-        Logger.log(result);
       }
     }
     return;
