@@ -14,3 +14,12 @@ This script adds a new menu to Google Sheets called **Canvas**
 6. Choose ***Load Due Dates*** from the Canvas menu.
 7. Edit the spreadsheet to change the dates
 8. Choose ***Save Due Dates*** from the Canvas menu.
+
+## Notes
+You should be able to delete columns from the data page or reorder them. In theory, it should work. In practice, you may want to leave them alone.
+
+Feel free to sort the data in whatever order you want. The default is by due date and then assignment name.
+
+Show Answers and Hide Answers are only valid for quizzes and then only if "Show Correct Answers at" is checked inside Canvas.
+
+Do NOT delete the Due, Type, or Canvas ID columns, bad things (or perhaps nothing) will happen.
