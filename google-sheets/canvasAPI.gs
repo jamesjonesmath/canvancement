@@ -30,7 +30,6 @@ function checkApiSettings() {
     Logger.log(e);
     return;
   }
-  Logger.log('Done with checkApiSettings');
   return name;
 }
 
@@ -306,9 +305,7 @@ function canvasAPI(endpoint, opts, filter) {
         url = encodeURI(url);
       }
     } else if (parms.method == 'post' || parms.method == 'put') {
-      // Use JSON encoding.
-      parms.headers['content-type'] = 'application/json';
-      parms.payload = JSON.stringify(payload);
+      parms.payload = payload;
     }
     while (url !== null) {
       var response = UrlFetchApp.fetch(url, parms);
