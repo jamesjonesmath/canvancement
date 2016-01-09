@@ -3,6 +3,8 @@ Google Sheets are a way to pull information from Canvas and put it into a spread
 
 ## Available Spreadsheets
 * [List Canvas Admins](list-admins) generates a list of all users with administrative rolls for your accounts, including sub-accounts. The name, login, role, subaccount name, parent account name, and root account name are returned. You can return a list of admins for the entire account, including the root account admins, or just the subaccounts.
+* [Discussion Counts](discussion-counts) counts the number of posts to each discussion in a course for each student.
+* [Due Dates](due-dates) allows you to modify all of the due dates for a course from a single page.
 
 ## Code
 This folder contains the code necessary to run the Google Sheets.
