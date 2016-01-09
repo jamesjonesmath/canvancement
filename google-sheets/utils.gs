@@ -41,6 +41,7 @@ function toIso8601(datetime) {
 * @function Obtain the course ID through the UI and save it into the user properties
 */
 function getCourseDialog() {
+  var courseId;
   try {
     var ui = SpreadsheetApp.getUi();
     var settings = getApiSettings();
@@ -49,10 +50,11 @@ function getCourseDialog() {
       return false;
     }
     var userProperties = PropertiesService.getUserProperties();
-    var msg = 'Specify the Canvas Course ID for your course.\n\nYou may enter this as an integer or you may paste a URL from your course into the box.\nThe URL should look like this:\n https://' + settings.host + '/courses/123\n \n';
+    var msg = 'Specify the Canvas Course ID for your course.\n\nYou may enter this as an integer or you may paste a URL from your course into the box.\nThe URL should look like this: https://' + settings.host + '/courses/123\n \n';
     var btnset = ui.ButtonSet.OK;
-    var savedCourseId = userProperties.getProperty('courseid').trim();
-    if (typeof savedCourseId !== 'undefined') {
+    var savedCourseId = userProperties.getProperty('courseid');
+    if (savedCourseId) {
+      savedCourseId = savedCourseId.trim();
       if (/^[0-9]+$/.test(savedCourseId)) {
         var savedCourse = canvasAPI('GET /api/v1/courses/' + savedCourseId );
         if (typeof savedCourse !== 'undefined') {
@@ -66,9 +68,8 @@ function getCourseDialog() {
     }
     var response = ui.prompt('Specify Course ID', msg, btnset);
     if (response.getSelectedButton() == ui.Button.OK) {
-      var txt = response.getResponseText().trim();
+      var txt = response.getResponseText();
       txt = txt.trim();
-      var courseId;
       var courseRegex = new RegExp('^https://.*/courses/([0-9]+)','i');
       var match = courseRegex.exec(txt);
       if (match) {
@@ -104,5 +105,5 @@ function getCourseDialog() {
     Logger.log(e)
     return;
   }
-  return;
+  return courseId;
 }
