@@ -1,8 +1,8 @@
 // ==UserScript==  
 // @name        Hide some URLs
 // @namespace   https://github.com/jamesjonesmath/canvancement  
-// @description Hide the URL links within a "hide_url" class when printing a page
-// @include     https://*.instructure.com/courses/*/pages/*  
+// @description Hide the URL links within a "hide_url" class when printing from within Canvas
+// @include     https://*.instructure.com/*
 // @version     1  
 // @grant       GM_addStyle  
 // ==/UserScript==  
