@@ -3,13 +3,14 @@ When you print pages from within Canvas, any hyperlinks have their URL added aft
 
 These scripts will remove the URL from after the link when printing a document.
 
-## Hide all links
+## Hide all URLs
+This script will inject CSS onto the page to hide the URL for all links.
 
 * Name: [Hide all URLs](hide-all-urls.user.js)
 * Type: [user script](../USERSCRIPTS.md)
 * Browsers: Firefox, Chrome
 
-## Hide some links
+## Hide some URLs
 This script will print the URL for all links except for those that are inside a class of "no_print_link".
 
 * Name: [Hide specific URLs](hide-some-urls.user.js)
