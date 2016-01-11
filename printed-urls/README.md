@@ -11,7 +11,7 @@ This script will inject CSS onto the page to hide the URL for all links.
 * Browsers: Firefox, Chrome
 
 ## Hide some URLs
-This script will print the URL for all links except for those that are inside a class of "no_print_link".
+This script will print the URL for all links except for those that are inside a class of "hide_url".
 
 * Name: [Hide specific URLs](hide-some-urls.user.js)
 * Type: [user script](../USERSCRIPTS.md)
