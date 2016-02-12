@@ -12,5 +12,7 @@ An Access Report is what you get when you click on the People Navigation link in
 
 This enhancement allows you to obtain the raw data for all students in the course. You will need to manipulate the data to obtain anything useful from it.
 
+Note that the report may take a while to run, depending on the size of your class. The _Access Report Data_ button is disabled while it is running.
+
 ## Customization
 This script will automatically run on any Canvas instance hosted at ``*.instructure.com``. If you have a custom domain, then you will need to modify the `\\ @include` line to refer to your site.
