@@ -2,7 +2,7 @@
 // @name        Access Report Data
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the access report for all students
-// @include     https://richland.instructure.com/courses/*/users
+// @include     https://*.instructure.com/courses/*/users
 // @version     1
 // @grant       none
 // ==/UserScript==
