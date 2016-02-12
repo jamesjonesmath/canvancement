@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the access report for all students
 // @include     https://*.instructure.com/courses/*/users
-// @version     1
+// @version     2
 // @grant       none
 // ==/UserScript==
 (function () {
@@ -17,7 +17,7 @@
   function addAccessReportButton() {
     if ($('#jj_access_report').length == 0) {
       $('#right-side-wrapper div').append('<a id="jj_access_report" class="btn button-sidebar-wide"><i class="icon-analytics"></i> Access Report Data</a>');
-      $('#jj_access_report').click(accessReport);
+      $('#jj_access_report').one('click', accessReport);
     }
     return;
   }
@@ -131,6 +131,7 @@
         document.body.appendChild(el);
         el.click();
         document.body.removeChild(el);
+        $('#jj_access_report').one('click', accessReport);
       } 
       else {
         throw new Error(Problemcreatingreport);
