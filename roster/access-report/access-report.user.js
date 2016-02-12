@@ -2,7 +2,7 @@
 // @name        Access Report Data
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the access report for all students
-// @include     https://*.instructure.com/courses/*/users
+// @include     https://richland.instructure.com/courses/*/users
 // @version     1
 // @grant       none
 // ==/UserScript==
@@ -42,24 +42,29 @@
     return url;
   }
   function getStudents(courseId, url) {
-    pending++;
-    $.getJSON(url, function (udata, status, jqXHR) {
-      url = nextURL(jqXHR.getResponseHeader('Link'));
-      for (var i = 0; i < udata.length; i++) {
-        userData[udata[i].id] = udata[i];
-      }
-      if (url) {
-        getStudents(courseId, url);
-      }
-      pending--;
-      if (pending <= 0) {
-        getAccessReport(courseId);
-      }
-    }).fail(function () {
-      pending--;
-      alert('Failed to load list of students');
-      return;
-    });
+    try {
+      pending++;
+      $.getJSON(url, function (udata, status, jqXHR) {
+        url = nextURL(jqXHR.getResponseHeader('Link'));
+        for (var i = 0; i < udata.length; i++) {
+          userData[udata[i].id] = udata[i];
+        }
+        if (url) {
+          getStudents(courseId, url);
+        }
+        pending--;
+        if (pending <= 0) {
+          getAccessReport(courseId);
+        }
+      }).fail(function () {
+        pending--;
+        throw new Error('Failed to load list of students');
+        return;
+      });
+    } 
+    catch (e) {
+      errorHandler(e);
+    }
   }
   function getAccessReport(courseId) {
     pending = 0;
@@ -71,51 +76,68 @@
     }
   }
   function getAccesses(courseId, url) {
-    console.log(url);
-    pending++;
-    $.getJSON(url, function (adata, status, jqXHR) {
-      url = nextURL(jqXHR.getResponseHeader('Link'));
-      accessData.push.apply(accessData, adata);
-      if (url) {
-        getAccesses(courseId, url);
-      }
-      pending--;
-      if (pending <= 0) {
-        makeReport();
-      }
-    }).fail(function () {
-      pending--;
-      console.log('Some information failed to load');
-      if (pending <= 0) {
-        makeReport();
-      }
-    });
+    try {
+      pending++;
+      $.getJSON(url, function (adata, status, jqXHR) {
+        url = nextURL(jqXHR.getResponseHeader('Link'));
+        accessData.push.apply(accessData, adata);
+        if (url) {
+          getAccesses(courseId, url);
+        }
+        pending--;
+        if (pending <= 0) {
+          makeReport();
+        }
+      }).fail(function () {
+        pending--;
+        console.log('Some access report data failed to load');
+        if (pending <= 0) {
+          makeReport();
+        }
+      });
+    } 
+    catch (e) {
+      errorHandler(e);
+    }
   }
   function getCourseId() {
-    var courseRegex = new RegExp('/courses/([0-9]+)');
-    var courseId = null;
-    var matches = courseRegex.exec(window.location.href);
-    if (matches) {
-      courseId = matches[1];
+    try {
+      var courseRegex = new RegExp('/courses/([0-9]+)');
+      var courseId = null;
+      var matches = courseRegex.exec(window.location.href);
+      if (matches) {
+        courseId = matches[1];
+      } 
+      else {
+        throw new Error('Unable to detect Course ID');
+      }
+    } 
+    catch (e) {
+      errorHandler(e);
     }
     return courseId;
   }
   function makeReport() {
-    var csv = createCSV();
-    if (csv) {
-      var btoa = escape(encodeURIComponent(csv));
-      btoa = window.btoa(csv);
-      var csvData = 'data:text/csv;charset=utf-8;base64,' + btoa;
-      var el = document.createElement('a');
-      el.setAttribute('download', 'access-report.csv');
-      el.setAttribute('href', csvData);
-      el.style.display = 'none';
-      document.body.appendChild(el);
-      el.click();
-      document.body.removeChild(el);
+    try {
+      var csv = createCSV();
+      if (csv) {
+        var btoa = escape(encodeURIComponent(csv));
+        btoa = window.btoa(csv);
+        var csvData = 'data:text/csv;charset=utf-8;base64,' + btoa;
+        var el = document.createElement('a');
+        el.setAttribute('download', 'access-report.csv');
+        el.setAttribute('href', csvData);
+        el.style.display = 'none';
+        document.body.appendChild(el);
+        el.click();
+        document.body.removeChild(el);
+      } 
+      else {
+        throw new Error(Problemcreatingreport);
+      }
     } 
-    else {
-      alert('Problem creating report!');
+    catch (e) {
+      errorHandler(e);
     }
   }
   function createCSV() {
@@ -198,10 +220,12 @@
       }
     ];
     var canSIS = false;
-    for (var k = 0; k < userData.length; k++) {
-      if (typeof userData[k].sis_user_id !== 'undefined' && userData[k].sis_user_id) {
-        canSIS = true;
-        break;
+    for (var id in userData) {
+      if (userData.hasOwnProperty(id)) {
+        if (typeof userData[id].sis_user_id !== 'undefined' && userData[id].sis_user_id) {
+          canSIS = true;
+          break;
+        }
       }
     }
     var CRLF = '\r\n';
@@ -266,23 +290,32 @@
     return t;
   }
   function excelDate(timestamp) {
-    if (!timestamp) {
-      return '';
+    try {
+      if (!timestamp) {
+        return '';
+      }
+      timestamp = timestamp.replace('Z', '.000Z');
+      var dt = new Date(timestamp);
+      if (typeof dt !== 'object') {
+        return '';
+      }
+      var d = dt.getFullYear() + '-' +
+      pad(1 + dt.getMonth()) + '-' +
+      pad(dt.getDate()) + ' ' +
+      pad(dt.getHours()) + ':' +
+      pad(dt.getMinutes()) + ':' +
+      pad(dt.getSeconds());
+    } 
+    catch (e) {
+      errorHandler(e);
     }
-    timestamp = timestamp.replace('Z', '.000Z');
-    var dt = new Date(timestamp);
-    if (typeof dt !== 'object') {
-      return '';
-    }
-    var d = dt.getFullYear() + '-' +
-    pad(1 + dt.getMonth()) + '-' +
-    pad(dt.getDate()) + ' ' +
-    pad(dt.getHours()) + ':' +
-    pad(dt.getMinutes()) + ':' +
-    pad(dt.getSeconds());
     return d;
     function pad(n) {
       return n < 10 ? '0' + n : n;
     }
+  }
+  function errorHandler(e) {
+    console.log(e);
+    alert(e.message);
   }
 }) ();
