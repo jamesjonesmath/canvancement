@@ -67,7 +67,6 @@
     }
   }
   function getAccessReport(courseId) {
-    anonymizeUsers();
     pending = 0;
     for (var id in userData) {
       if (userData.hasOwnProperty(id)) {
@@ -120,6 +119,7 @@
   }
   function makeReport() {
     try {
+      anonymizeUsers();
       var csv = createCSV();
       if (csv) {
         var btoa = escape(encodeURIComponent(csv));
@@ -451,6 +451,8 @@
     ];
     var sisIds = [
     ];
+    var userNames = {
+    };
     var i = 0;
     for (var id in userData) {
       if (userData.hasOwnProperty(id)) {
@@ -468,6 +470,7 @@
           sisId = 476246 + Math.floor(10000 * Math.random());
         }
         sisIds.push(sisId);
+        userNames[userData[id].name] = name;
         userData[id] = {
           'id': newId,
           'name': name,
@@ -477,6 +480,14 @@
           'sis_login_id': login,
           'login_id': login
         };
+      }
+    }
+    for (var j = 0; j < accessData.length; j++) {
+      if (accessData[j].asset_user_access.asset_category == 'roster' && accessData[j].asset_user_access.asset_class_name == 'student_enrollment') {
+        var userName = accessData[j].asset_user_access.readable_name;
+        if (typeof userNames[userName] !== 'undefined') {
+          accessData[j].asset_user_access.readable_name = userNames[userName];
+        }
       }
     }
     function shuffle(A) {
