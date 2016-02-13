@@ -1,6 +1,6 @@
 // This function will anonymize the user list so that you can make videos
 // To use, insert into the main enclosure, I suggest at the end, right after errorHandler()
-// Then, add anonymizeUsers(); as the first line of the getAccessReport() function;
+// Then, add anonymizeUsers(); as the first line of the makeReport() function;
 // !!! This will fail if you have more users than names listed below !!!
 // The list of names came from namethingy.com
 function anonymizeUsers() {
@@ -134,6 +134,8 @@ function anonymizeUsers() {
   ];
   var sisIds = [
   ];
+  var userNames = {
+  };
   var i = 0;
   for (var id in userData) {
     if (userData.hasOwnProperty(id)) {
@@ -151,6 +153,7 @@ function anonymizeUsers() {
         sisId = 476246 + Math.floor(10000 * Math.random());
       }
       sisIds.push(sisId);
+      userNames[userData[id].name] = name;
       userData[id] = {
         'id': newId,
         'name': name,
@@ -160,6 +163,14 @@ function anonymizeUsers() {
         'sis_login_id': login,
         'login_id': login
       };
+    }
+  }
+  for (var j = 0; j < accessData.length; j++) {
+    if (accessData[j].asset_user_access.asset_category == 'roster' && accessData[j].asset_user_access.asset_class_name == 'student_enrollment') {
+      var userName = accessData[j].asset_user_access.readable_name;
+      if (typeof userNames[userName] !== 'undefined') {
+        accessData[j].asset_user_access.readable_name = userNames[userName];
+      }
     }
   }
   function shuffle(A) {
