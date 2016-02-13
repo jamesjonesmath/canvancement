@@ -16,3 +16,8 @@ Note that the report may take a while to run, depending on the size of your clas
 
 ## Customization
 This script will automatically run on any Canvas instance hosted at ``*.instructure.com``. If you have a custom domain, then you will need to modify the `\\ @include` line to refer to your site.
+
+## Anonymized Data
+There is also a version of this script that will [anonymize the user data](https://github.com/jamesjonesmath/canvancement/raw/master/roster/access-report/access-report-anonymous.user.js). This is useful if you want to make demonstration videos and not worry about FERPA violations. Note that the anonymizer routine will fail if you have more students than anonymous names provided (currently 123). Teachers who wish to analyze their classes will want to use the non-anonymized version.
+
+The participation data is not anonymized.
