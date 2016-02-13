@@ -482,11 +482,13 @@
         };
       }
     }
-    for (var j = 0; j < accessData.length; j++) {
-      if (accessData[j].asset_user_access.asset_category == 'roster' && accessData[j].asset_user_access.asset_class_name == 'student_enrollment') {
-        var userName = accessData[j].asset_user_access.readable_name;
-        if (typeof userNames[userName] !== 'undefined') {
-          accessData[j].asset_user_access.readable_name = userNames[userName];
+    for (var j in accessData) {
+      if (accessData.hasOwnProperty(j)) {
+        if (accessData[j].asset_user_access.asset_category == 'roster' && accessData[j].asset_user_access.asset_class_name == 'student_enrollment') {
+          var userName = accessData[j].asset_user_access.readable_name;
+          if (typeof userNames[userName] !== 'undefined') {
+            accessData[j].asset_user_access.readable_name = userNames[userName];
+          }
         }
       }
     }
