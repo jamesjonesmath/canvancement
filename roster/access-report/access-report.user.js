@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the access report for all students
 // @include     https://*.instructure.com/courses/*/users
-// @version     3
+// @version     4
 // @grant       none
 // ==/UserScript==
 (function () {
@@ -131,9 +131,7 @@
     try {
       var csv = createCSV();
       if (csv) {
-        var btoa = escape(encodeURIComponent(csv));
-        btoa = window.btoa(csv);
-        var csvData = 'data:text/csv;charset=utf-8;base64,' + btoa;
+        var csvData = 'data:text/csv;charset=utf-8,\ufeff' + encodeURIComponent(csv);
         var el = document.createElement('a');
         el.setAttribute('download', 'access-report.csv');
         el.setAttribute('href', csvData);
