@@ -21,3 +21,10 @@ Adds a button to the Course People page to generate a PDF file that contains the
 * Name: [roster/photo-roster](photo-roster/)
 * Type: [user script](../USERSCRIPTS.md)
 * Browsers: Firefox only
+
+## Access Report Data
+Adds a button to the Course People page to download Access Report data for all enrolled students in a course
+
+* Name: [roster/access-report](access-report/)
+* Type: [user script](../USERSCRIPTS.md)
+* Browsers: Firefox, Chrome
