@@ -23,7 +23,7 @@
   }
   function accessReport() {
     var courseId = getCourseId();
-    var url = '/api/v1/courses/' + courseId + '/users?enrollment_type[]=student&per_page=100';
+    var url = '/api/v1/courses/' + courseId + '/sections?include[]=students&per_page=100';
     pending = 0;
     getStudents(courseId, url);
   }
@@ -47,7 +47,17 @@
       $.getJSON(url, function (udata, status, jqXHR) {
         url = nextURL(jqXHR.getResponseHeader('Link'));
         for (var i = 0; i < udata.length; i++) {
-          userData[udata[i].id] = udata[i];
+          var section = udata[i];
+          if (section.students.length > 0) {
+            for (var j = 0; j < section.students.length; j++) {
+              var user = section.students[j];
+              user.section_id = section.id;
+              user.section_name = section.name;
+              user.sis_section_id = section.sis_section_id;
+              user.sis_course_id = section.sis_course_id;
+              userData[user.id] = user;
+            }
+          }
         }
         if (url) {
           getStudents(courseId, url);
@@ -209,6 +219,24 @@
       {
         'name': 'Login ID',
         'src': 'u.login_id'
+      },
+      {
+        'name': 'Section',
+        'src': 'u.section_name',
+      },
+      {
+        'name': 'Section ID',
+        'src': 'u.section_id',
+      },
+      {
+        'name': 'SIS Course ID',
+        'src': 'u.sis_course_id',
+        'sis': true
+      },
+      {
+        'name': 'SIS Section ID',
+        'src': 'u.sis_section_id',
+        'sis': true
       },
       {
         'name': 'SIS Login ID',
