@@ -296,7 +296,7 @@
           if (typeof value === 'string') {
             var quote = false;
             if (value.indexOf('"') > - 1) {
-              value = value.replace(/"/g), '""');
+              value = value.replace(/"/g, '""');
               quote = true;
             }
             if (value.indexOf(',') > - 1) {
