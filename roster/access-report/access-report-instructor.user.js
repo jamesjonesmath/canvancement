@@ -265,7 +265,6 @@
     var fieldRegex = new RegExp('^([au])[.](.*)$');
     for (var i = 0; i < accessData.length; i++) {
       item = accessData[i].asset_user_access;
-      console.log(item);
       userId = item.user_id;
       user = userData[userId];
       course = courseData[item.course_id];
