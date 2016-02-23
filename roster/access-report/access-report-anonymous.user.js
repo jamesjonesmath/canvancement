@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the access report for all students using anonymized user data
 // @include     https://*.instructure.com/courses/*/users
-// @version     4
+// @version     5
 // @grant       none
 // ==/UserScript==
 (function () {
@@ -297,7 +297,7 @@
           if (typeof value === 'string') {
             var quote = false;
             if (value.indexOf('"') > - 1) {
-              value = value.replace('"', '""');
+              value = value.replace(/"/g, '""');
               quote = true;
             }
             if (value.indexOf(',') > - 1) {
