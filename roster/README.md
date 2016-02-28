@@ -27,4 +27,4 @@ Adds a button to the Course People page to download Access Report data for all e
 
 * Name: [roster/access-report](access-report/)
 * Type: [user script](../USERSCRIPTS.md)
-* Browsers: Firefox, Chrome
+* Browsers: Firefox, Chrome, Safari
