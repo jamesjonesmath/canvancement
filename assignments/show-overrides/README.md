@@ -1,7 +1,7 @@
 # Show Override Names
 This script will show the names of the students who have received assignment overrides.
 
-This script has been tested in Firefox and Chrome.
+This script has been tested in Firefox, Chrome, and Safari. It works with Assignments, Quizzes, or Discussions that have multiple due dates.
 
 ## Quick Install
 1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
