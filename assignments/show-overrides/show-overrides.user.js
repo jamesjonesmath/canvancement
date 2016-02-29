@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Show the names of the students who have an assignment override
 // @include     /^https://.*\.instructure\.com/courses/[0-9]+/(assignments|quizzes|discussion_topics)/[0-9]+(\?|$)/
-// @version     1
+// @version     2
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -229,9 +229,11 @@
         for (j in items) {
           if (items.hasOwnProperty(j)) {
             info = items[j];
-            if (isMatch(override.due_at, info.due, override.all_day) && isMatch(override.lock_at, info.lock) && isMatch(override.unlock_at, info.unlock)) {
-              overrideNames(i, info.element);
-              delete items[j];
+            if (override.student_ids.length == info.size) {
+              if (isMatch(override.due_at, info.due, override.all_day) && isMatch(override.lock_at, info.lock) && isMatch(override.unlock_at, info.unlock)) {
+               overrideNames(i, info.element);
+               delete items[j];
+              }
             }
           }
         }
@@ -244,12 +246,14 @@
           matches = [];
           for (i = 0; i < overrides.length; i++) {
             override = overrides[i];
-            var matchingItems = 0;
-            matchingItems += (!override.due_at && info.due == '-') || (override.due_at && info.due != '-') ? 1 : 0;
-            matchingItems += (!override.lock_at && info.lock == '-') || (override.lock_at && info.lock != '-') ? 1 : 0;
-            matchingItems += (!override.unlock_at && info.unlock == '-') || (override.unlock_at && info.unlock != '-') ? 1 : 0;
-            if (matchingItems === 3) {
-              matches.push(i);
+            if (override.student_ids.length == info.size) {
+              var matchingItems = 0;
+              matchingItems += (!override.due_at && info.due == '-') || (override.due_at && info.due != '-') ? 1 : 0;
+              matchingItems += (!override.lock_at && info.lock == '-') || (override.lock_at && info.lock != '-') ? 1 : 0;
+              matchingItems += (!override.unlock_at && info.unlock == '-') || (override.unlock_at && info.unlock != '-') ? 1 : 0;
+              if (matchingItems === 3) {
+                matches.push(i);
+              }
             }
           }
           if (matches.length == 1) {
@@ -260,8 +264,7 @@
       }
       // Check for just one override left
 
-      if (overrides.length == 1 && Object.keys(items)
-        .length == 1) {
+      if (overrides.length == 1 && Object.keys(items).length == 1) {
         j = Object.keys(items)[0];
         info = items[j];
         overrideNames(0, info.element);
