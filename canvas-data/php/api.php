@@ -106,7 +106,7 @@ class CanvasDataAPI {
     $query = '';
     if (! empty( $u['query'] )) {
       $parms = explode( '&', $u['query'] );
-      ksort($parms);
+      sort($parms);
       $query = join( '&', $parms );
     }
     $parts = array ( isset( $opts['method'] ) ? $opts['method'] : 'GET', $host, 
