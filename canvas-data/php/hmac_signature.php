@@ -29,7 +29,7 @@ function hmac_signature($timestamp = NULL, $url = NULL, $secret = NULL) {
   $query = '';
   if (! empty( $u['query'] )) {
     $parms = explode( '&', $u['query'] );
-    ksort( $parms );
+    sort( $parms );
     $query = join( '&', $parms );
   }
   $parts = array ( 'GET', $host, '', '', $path, $query, $timestamp, $secret );
