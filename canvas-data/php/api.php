@@ -4,10 +4,15 @@ class CanvasDataAPI {
   private $_api_secret = NULL;
   private $_api_host = 'portal.inshosteddata.com';
   private $_account_id = 'self';
+  private $_return_json = false;
 
   public function __construct($apikey = NULL, $apisecret = NULL, $accountid = NULL, $apihost = NULL) {
-    $opt_list = array ( 'key' => '_api_key', 'secret' => '_api_secret', 
-        'account' => '_account_id', 'host' => '_api_host' );
+    $opt_list = array ( 
+        'key' => '_api_key', 
+        'secret' => '_api_secret', 
+        'account' => '_account_id', 
+        'host' => '_api_host' 
+    );
     if (empty( $apikey )) {
       return;
     }
@@ -43,8 +48,12 @@ class CanvasDataAPI {
   }
 
   protected function _check_init() {
-    $opt_list = array ( 'key' => '_api_key', 'secret' => '_api_secret', 
-        'account' => '_account_id', 'host' => '_api_host' );
+    $opt_list = array ( 
+        'key' => '_api_key', 
+        'secret' => '_api_secret', 
+        'account' => '_account_id', 
+        'host' => '_api_host' 
+    );
     $valid = TRUE;
     foreach ( $opt_list as $key => $field ) {
       if (empty( $this->{$field} )) {
@@ -106,13 +115,19 @@ class CanvasDataAPI {
     $query = '';
     if (! empty( $u['query'] )) {
       $parms = explode( '&', $u['query'] );
-      sort($parms);
+      ksort( $parms );
       $query = join( '&', $parms );
     }
-    $parts = array ( isset( $opts['method'] ) ? $opts['method'] : 'GET', $host, 
+    $parts = array ( 
+        isset( $opts['method'] ) ? $opts['method'] : 'GET', 
+        $host, 
         isset( $opts['contentType'] ) ? $opts['contentType'] : '', 
-        isset( $opts['contentMD5'] ) ? $opts['contentMD5'] : '', $path, $query, 
-        $timestamp, $this->_api_secret );
+        isset( $opts['contentMD5'] ) ? $opts['contentMD5'] : '', 
+        $path, 
+        $query, 
+        $timestamp, 
+        $this->_api_secret 
+    );
     $message = join( "\n", $parts );
     return base64_encode( hash_hmac( 'sha256', $message, $this->_api_secret, TRUE ) );
   }
@@ -133,12 +148,18 @@ class CanvasDataAPI {
     return $this->_getset( '_account_id', $opt );
   }
 
+  public function return_json($opt = NULL) {
+    return $this->_getset( '_return_json', $opt );
+  }
+
   public function execute($config = array(), $opts = array()) {
     $json = NULL;
     try {
       $this->_check_init();
       if (! is_array( $config )) {
-        $config = array ( 'route' => $config );
+        $config = array ( 
+            'route' => $config 
+        );
       }
       $route = $this->substitute( $config['route'], $opts );
       if (empty( $route )) {
@@ -176,17 +197,21 @@ class CanvasDataAPI {
       $hmac = $this->hmac_signature( $timestamp, $url, $opts );
       $http_headers = array ( 
           'Authorization: HMACAuth ' . $this->_api_key . ':' . $hmac, 
-          'Date: ' . $timestamp );
+          'Date: ' . $timestamp 
+      );
       $ch = curl_init( $url );
-      curl_setopt_array( $ch, array ( CURLOPT_HTTPHEADER => $http_headers, 
-          CURLOPT_RETURNTRANSFER => TRUE, CURLOPT_VERBOSE => FALSE, 
-          CURLOPT_HEADER => TRUE ) );
+      curl_setopt_array( $ch, array ( 
+          CURLOPT_HTTPHEADER => $http_headers, 
+          CURLOPT_RETURNTRANSFER => TRUE, 
+          CURLOPT_VERBOSE => FALSE, 
+          CURLOPT_HEADER => TRUE 
+      ) );
       $response = curl_exec( $ch );
       if ($response !== FALSE) {
         $header_size = curl_getinfo( $ch, CURLINFO_HEADER_SIZE );
         $header = substr( $response, 0, $header_size );
         $body = substr( $response, $header_size );
-        $json = json_decode( $body, TRUE );
+        $json = $this->_return_json ? $body : json_decode( $body, TRUE );
       }
       curl_close( $ch );
     } catch ( Exception $e ) {
@@ -196,8 +221,13 @@ class CanvasDataAPI {
   }
 
   public function get_dump($opts = array()) {
-    $config = array ( 'route' => 'GET /api/account/(:accountId|self)/dump', 
-        'allow' => array ( 'after', 'limit' ) );
+    $config = array ( 
+        'route' => 'GET /api/account/(:accountId|self)/dump', 
+        'allow' => array ( 
+            'after', 
+            'limit' 
+        ) 
+    );
     return $this->execute( $config, $opts );
   }
 
@@ -212,7 +242,11 @@ class CanvasDataAPI {
   public function get_file_by_table($opts = array()) {
     $config = array ( 
         'route' => 'GET /api/account/(:accountId|self)/file/byTable/:tableName', 
-        'allow' => array ( 'after', 'limit' ) );
+        'allow' => array ( 
+            'after', 
+            'limit' 
+        ) 
+    );
     return $this->execute( $config, $opts );
   }
 
