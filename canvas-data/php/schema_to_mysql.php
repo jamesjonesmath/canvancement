@@ -40,7 +40,7 @@ $cd_api_secret = isset( $_ENV['CD_API_SECRET'] ) ? $_ENV['CD_API_SECRET'] : 'ENT
  * comments: include the comments and descriptions in the SQL statements
  */
 $options = array ( 
-    'drop' => FALSE, 
+    'drop_schema' => TRUE, 
     'comments' => TRUE 
 );
 
@@ -112,7 +112,7 @@ function line($args) {
   return $t;
 }
 
-function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $options = NULL) {
+function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $opts = NULL) {
   if (empty( $cdschema )) {
     return;
   }
@@ -125,7 +125,7 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
       'guid' => 'varchar(36)', 
       'timestamp' => 'timestamp null' 
   );
-  $drop_schema = isset( $opts['drop'] ) && $opts['drop'] ? TRUE : FALSE;
+  $drop_schema = isset( $opts['drop_schema'] ) && $opts['drop_schema'] ? TRUE : FALSE;
   $add_comments = ! isset( $opts['comments'] ) || $opts['comments'] ? TRUE : FALSE;
   
   $t = '';
