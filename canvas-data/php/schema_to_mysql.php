@@ -13,7 +13,7 @@
 $schema_name = 'canvas_data';
 
 /*
- * $schema_file is the name of the schema file from the CLI tool
+ * $schema_file is the path and filename of the schema file from the CLI tool
  * If you are not using the CLI tool, then be sure to define the
  * Canvas Data API key and secret so it can download one. You will
  * also need to make sure the api.php file is in the same directory
@@ -77,16 +77,15 @@ if (! isset( $schema )) {
 
 $sql = create_mysql_schema( $schema, $schema_name, $options );
 
-if (!empty($output_filename)) {
-  $fh = fopen($output_filename, 'w');
+if (! empty( $output_filename )) {
+  $fh = fopen( $output_filename, 'w' );
   if ($fh === FALSE) {
-    die('Unable to open output ' . $output_filename . ' for writing');
+    die( 'Unable to open output ' . $output_filename . ' for writing' );
   }
-  fwrite($fh, $sql);
-  fclose($fh);
-}
-else {
-  print($sql);
+  fwrite( $fh, $sql );
+  fclose( $fh );
+} else {
+  print ($sql) ;
 }
 
 function c() {
@@ -167,7 +166,7 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
       if (isset( $table['dw_type'] ) && $table['dw_type'] == 'dimension' && $colname == 'id') {
         $columndef .= ' PRIMARY KEY';
       }
-      if (! empty( $comment )) {
+      if ($add_comments && ! empty( $comment )) {
         $columndef .= sprintf( " COMMENT '%s'", addslashes( $comment ) );
       }
       $columns[] = $columndef;
