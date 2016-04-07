@@ -31,8 +31,8 @@ $schema_file = 'schema.json';
  *
  * You can leave this part blank point $schema_file to the proper file
  */
-$cd_api_key = isset( $_ENV['CD_API_KEY'] ) ? $_ENV['CD_API_KEY'] : 'ENTER CANVAS DATA API KEY HERE';
-$cd_api_secret = isset( $_ENV['CD_API_SECRET'] ) ? $_ENV['CD_API_SECRET'] : 'ENTER CANVAS DATA API SECRET HERE';
+$cd_api_key = getenv( 'CD_API_KEY' ) !== FALSE ? getenv( 'CD_API_KEY' ) : 'ENTER CANVAS DATA API KEY HERE';
+$cd_api_secret = getenv( 'CD_API_SECRET' ) !== FALSE ? getenv( 'CD_API_SECRET' ) : 'ENTER CANVAS DATA API SECRET HERE';
 
 /*
  * $options sets values for the SQL file
@@ -52,7 +52,7 @@ $options = array (
  * No sanity checking is done on the filename, so make sure you don't clobber
  * something important.
  */
-$output_filename = 'canvas_data.sql';
+// $output_filename = 'create_canvas_data.sql';
 
 // END OF CONFIGURATION
 
