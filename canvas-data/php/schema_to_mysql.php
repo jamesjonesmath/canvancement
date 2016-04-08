@@ -135,8 +135,10 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   $t .= c( 'CREATE DATABASE IF NOT EXISTS %s', $schema_name );
   $t .= c( 'USE %s', $schema_name );
   $t .= c( 'SET NAMES utf8' );
+  $table_types = array ();
   foreach ( $cdschema['schema'] as $key => $table ) {
     $table_name = isset( $table['tableName'] ) ? $table['tableName'] : $key;
+    $table_types[$table_name] = isset( $table['incremental'] ) ? $table['incremental'] : FALSE;
     $columns = array ();
     foreach ( $table['columns'] as $colkey => $column ) {
       $colname = strtolower( $column['name'] );
@@ -184,5 +186,25 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
       $t .= c( $create );
     }
   }
+  $t .= c( 'DROP TABLE IF EXISTS versions' );
+  $create = l( 'CREATE TABLE IF NOT EXISTS versions (' );
+  $create .= l( '  table_name VARCHAR(127) PRIMARY KEY NOT NULL%s,', $add_comments ? " COMMENT 'Name of Canvas Data table'" : '' );
+  $create .= l( '  version BIGINT DEFAULT NULL%s,', $add_comments ? " COMMENT 'Latest version downloaded'" : '' );
+  $create .= l( '  incremental TINYINT DEFAULT NULL%s', $add_comments ? " COMMENT 'Incremental (1) or complete (0)?'" : '' );
+  $create .= ') ENGINE = MyISAM DEFAULT CHARSET=utf8';
+  $create .= $add_comments? ' COMMENT = "Used by import script"' : '';
+  $t .= c( $create );
+  $version_code = explode( '.', $cdschema['version'] );
+  $version = 0;
+  foreach ( $version_code as $version_part ) {
+    $version = $version * 100 + $version_part;
+  }
+  $versions = "INSERT INTO versions (table_name, incremental, version) VALUES\n";
+  foreach ( $table_types as $table_name => $incremental ) {
+    $versions .= sprintf( "  ('%s',%d,%s),\n", $table_name, $incremental ? 1 : 0, 'NULL' );
+  }
+  $versions .= sprintf( "  ('%s',%d,%d)", 'schema', - 1, $version );
+  $t .= c( $versions );
+  
   return $t;
 }
