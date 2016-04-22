@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Appends the name of the question to the Question number when viewing quiz results
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
-// @version     1
+// @version     2
 // @grant none
 // ==/UserScript==
 (function() {
@@ -43,11 +43,17 @@
   function displayQuestionNames(data) {
     try {
       var question, title;
-      for (var i = 0; i < data.length; i++) {
+      var i, j;
+      var titleRegEx = new RegExp('^Question [0-9]+$');
+      for (i = 0; i < data.length; i++) {
         if (data[i].question_name && data[i].question_name !== 'Question') {
           question = document.getElementById('question_' + data[i].id);
           title = question.querySelector('div.header span.name.question_name');
-          title.textContent += ' : ' + data[i].question_name;
+          for (j = 0; j < title.childNodes.length; j++) {
+            if (title.childNodes[j].textContent && titleRegEx.test(title.childNodes[j].textContent)) {
+              title.childNodes[j].textContent += ' : ' + data[i].question_name;
+            }
+          }
         }
       }
     } catch (e) {
