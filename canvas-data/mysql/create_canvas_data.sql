@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.9.0
+# MySQL script to create database for Canvas Data schema version 1.10.1
 DROP DATABASE IF EXISTS canvas_data;
 CREATE DATABASE IF NOT EXISTS canvas_data;
 USE canvas_data;
@@ -495,6 +495,64 @@ CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
   `most_privileged_role` VARCHAR(256),
   `least_privileged_role` VARCHAR(256)
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS file_dim;
+CREATE TABLE IF NOT EXISTS file_dim (
+  `id` BIGINT PRIMARY KEY,
+  `canvas_id` BIGINT,
+  `display_name` LONGTEXT,
+  `account_id` BIGINT,
+  `assignment_id` BIGINT,
+  `conversation_message_id` BIGINT,
+  `course_id` BIGINT,
+  `folder_id` BIGINT,
+  `group_id` BIGINT,
+  `quiz_id` BIGINT,
+  `quiz_submission_id` BIGINT,
+  `replacement_file_id` BIGINT,
+  `root_file_id` BIGINT,
+  `submission_id` BIGINT,
+  `uploader_id` BIGINT,
+  `user_id` BIGINT,
+  `owner_entity_type` ENUM('account', 'assignment', 'conversation_message', 'course', 'group', 'quiz', 'quiz_submission', 'submission', 'user'),
+  `content_type` VARCHAR(256),
+  `md5` VARCHAR(256),
+  `file_state` ENUM('available', 'broken', 'deleted', 'errored', 'hidden'),
+  `could_be_locked` ENUM('allow_locking', 'disallow_locking'),
+  `locked` ENUM('is_locked', 'is_not_locked'),
+  `lock_at` TIMESTAMP NULL,
+  `unlock_at` TIMESTAMP NULL,
+  `viewed_at` TIMESTAMP NULL,
+  `created_at` TIMESTAMP NULL,
+  `updated_at` TIMESTAMP NULL,
+  `deleted_at` TIMESTAMP NULL
+) ENGINE = MyISAM DEFAULT CHARSET=utf8;
+DROP TABLE IF EXISTS file_fact;
+CREATE TABLE IF NOT EXISTS file_fact (
+  `file_id` BIGINT,
+  `account_id` BIGINT,
+  `assignment_id` BIGINT,
+  `assignment_group_id` BIGINT,
+  `conversation_id` BIGINT,
+  `conversation_message_author_id` BIGINT,
+  `conversation_message_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_rollup_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `folder_id` BIGINT,
+  `grader_id` BIGINT,
+  `group_id` BIGINT,
+  `group_category_id` BIGINT,
+  `quiz_id` BIGINT,
+  `quiz_submission_id` BIGINT,
+  `replacement_file_id` BIGINT,
+  `root_file_id` BIGINT,
+  `sis_source_id` VARCHAR(256),
+  `submission_id` BIGINT,
+  `uploader_id` BIGINT,
+  `user_id` BIGINT,
+  `wiki_id` BIGINT,
+  `size` BIGINT
+) ENGINE = MyISAM DEFAULT CHARSET=utf8;
 DROP TABLE IF EXISTS group_dim;
 CREATE TABLE IF NOT EXISTS group_dim (
   `id` BIGINT PRIMARY KEY,
@@ -930,6 +988,8 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('enrollment_dim',0,NULL),
   ('enrollment_fact',0,NULL),
   ('enrollment_rollup_dim',0,NULL),
+  ('file_dim',0,NULL),
+  ('file_fact',0,NULL),
   ('group_dim',0,NULL),
   ('group_fact',0,NULL),
   ('group_membership_fact',0,NULL),
@@ -955,4 +1015,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,10900);
+  ('schema',-1,11001);
