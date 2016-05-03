@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.9.0
+# MySQL script to create database for Canvas Data schema version 1.10.1
 DROP DATABASE IF EXISTS canvas_data;
 CREATE DATABASE IF NOT EXISTS canvas_data;
 USE canvas_data;
@@ -74,14 +74,14 @@ CREATE TABLE IF NOT EXISTS user_dim (
   `name` VARCHAR(256) COMMENT 'Name of the user',
   `time_zone` VARCHAR(256) COMMENT 'User\'s primary timezone',
   `created_at` TIMESTAMP NULL COMMENT 'Timestamp when the user was created in the Canvas system',
-  `visibility` VARCHAR(256) COMMENT 'TBD',
+  `visibility` VARCHAR(256) COMMENT '(Deprecated) No longer used in Canvas.',
   `school_name` VARCHAR(256) COMMENT 'TBD',
   `school_position` VARCHAR(256) COMMENT 'TBD',
-  `gender` VARCHAR(256) COMMENT 'The user\'s gender.  This is an optional field and may not be entered by the user.',
-  `locale` VARCHAR(256) COMMENT 'The user\'s locale.  This is an optional field and may not be entered by the user.',
+  `gender` VARCHAR(256) COMMENT 'The user\'s gender. This is an optional field and may not be entered by the user.',
+  `locale` VARCHAR(256) COMMENT 'The user\'s locale. This is an optional field and may not be entered by the user.',
   `public` VARCHAR(256) COMMENT 'TBD',
-  `birthdate` TIMESTAMP NULL COMMENT 'The user\'s birthdate.  This is an optional field and may not be entered by the user.',
-  `country_code` VARCHAR(256) COMMENT 'The user\'s country code.  This is an optional field and may not be entered by the user.',
+  `birthdate` TIMESTAMP NULL COMMENT 'The user\'s birth date. This is an optional field and may not be entered by the user.',
+  `country_code` VARCHAR(256) COMMENT 'The user\'s country code. This is an optional field and may not be entered by the user.',
   `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating the status of the user, valid values are: creation_pending, deleted, pre_registered, registered',
   `sortable_name` VARCHAR(256) COMMENT 'Name of the user that is should be used for sorting groups of users, such as in the gradebook.'
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Attributes for users";
@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS assignment_fact (
 DROP TABLE IF EXISTS assignment_rule_dim;
 CREATE TABLE IF NOT EXISTS assignment_rule_dim (
   `assignment_id` BIGINT COMMENT 'ID of the assignment which can never be dropped from the group.',
-  `drop_rule` VARCHAR(256) COMMENT 'Denotes if the assignment can be dropped from the assignment group if the group allows dropping assignments based on certain rules. Is set to \'never_drop\' is the assignment is exempted from dropping else set to \'can_be_dropped\'.'
+  `drop_rule` VARCHAR(256) COMMENT 'Denotes if the assignment can be dropped from the assignment group if the group allows dropping assignments based on certain rules. Is set to \'never_drop\' if the assignment is exempted from dropping, else set to \'can_be_dropped\'.'
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Rules associated with an assignment.";
 DROP TABLE IF EXISTS submission_dim;
 CREATE TABLE IF NOT EXISTS submission_dim (
@@ -231,7 +231,7 @@ DROP TABLE IF EXISTS submission_comment_fact;
 CREATE TABLE IF NOT EXISTS submission_comment_fact (
   `submission_comment_id` BIGINT,
   `submission_id` BIGINT,
-  `recipient_id` BIGINT,
+  `recipient_id` BIGINT COMMENT '(Deprecated) No longer used in Canvas.',
   `author_id` BIGINT,
   `assignment_id` BIGINT COMMENT 'Foreign key to assignment dimension',
   `course_id` BIGINT COMMENT 'Foreign key to course dimension of course associated with the assignment.',
@@ -247,7 +247,7 @@ CREATE TABLE IF NOT EXISTS submission_comment_dim (
   `id` BIGINT PRIMARY KEY,
   `canvas_id` BIGINT,
   `submission_id` BIGINT,
-  `recipient_id` BIGINT,
+  `recipient_id` BIGINT COMMENT '(Deprecated) No longer used in Canvas.',
   `author_id` BIGINT,
   `assessment_request_id` BIGINT,
   `group_comment_id` VARCHAR(256),
@@ -289,7 +289,7 @@ CREATE TABLE IF NOT EXISTS communication_channel_dim (
   `canvas_id` BIGINT COMMENT 'Primary key for this communication channel in the communication_channel table.',
   `user_id` BIGINT COMMENT 'Foreign key to the user that owns this communication channel.',
   `address` VARCHAR(256) COMMENT 'Address, or path, of the communication channel. Set to \'NULL\' for push notifications.',
-  `type` VARCHAR(256) COMMENT 'Denotes the type of the path. Possible values are \'email\', \'facebook\', \'push\' (device push notifcations), \'sms\' and \'twitter\'. Defaults to \'email\'.',
+  `type` VARCHAR(256) COMMENT 'Denotes the type of the path. Possible values are \'email\', \'facebook\', \'push\' (device push notifications), \'sms\' and \'twitter\'. Defaults to \'email\'.',
   `position` INTEGER UNSIGNED COMMENT 'Position of this communication channel relative to the user\'s other channels when they are ordered.',
   `workflow_state` VARCHAR(256) COMMENT 'Current state of the communication channel. Possible values are \'unconfirmed\' and \'active\'.',
   `created_at` TIMESTAMP NULL COMMENT 'Date/Time when the quiz was created.',
@@ -297,7 +297,7 @@ CREATE TABLE IF NOT EXISTS communication_channel_dim (
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Attributes for communication channel.";
 DROP TABLE IF EXISTS communication_channel_fact;
 CREATE TABLE IF NOT EXISTS communication_channel_fact (
-  `communication_channel_id` BIGINT COMMENT 'Foreign key to the communcation channel dimension table.',
+  `communication_channel_id` BIGINT COMMENT 'Foreign key to the communication channel dimension table.',
   `user_id` BIGINT COMMENT 'Foreign key to the user that owns this communication channel.',
   `bounce_count` INTEGER UNSIGNED COMMENT 'Number of permanent bounces since the channel was last reset. If it\'s greater than 0, then no email is sent to the channel, until it is either reset by a siteadmin or it is removed and re-added by a user.'
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Measures for communication channel.";
@@ -495,6 +495,64 @@ CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
   `most_privileged_role` VARCHAR(256) COMMENT 'The most privileged role associated with the user in the course.',
   `least_privileged_role` VARCHAR(256) COMMENT 'The least privileged role associated with the user in the course.'
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Would be an empty table. Roll-up aggregating the roles held by the users in the courses they are associated with.";
+DROP TABLE IF EXISTS file_dim;
+CREATE TABLE IF NOT EXISTS file_dim (
+  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for this file.',
+  `canvas_id` BIGINT COMMENT 'Primary key for this file in the attachments table.',
+  `display_name` LONGTEXT COMMENT 'Name of this file.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account this file belongs to.',
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment this file belongs to.',
+  `conversation_message_id` BIGINT COMMENT 'Foreign key to the conversation message this file belongs to.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course this file belongs to.',
+  `folder_id` BIGINT COMMENT 'Foreign key to the folder this file belongs to.',
+  `group_id` BIGINT COMMENT 'Foreign key to the group this file belongs to.',
+  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz this file belongs to.',
+  `quiz_submission_id` BIGINT COMMENT 'Foreign key to the quiz submission this file belongs to.',
+  `replacement_file_id` BIGINT COMMENT 'ID of the overwriting file if this file is overwritten.',
+  `root_file_id` BIGINT COMMENT 'ID of the source file from which this file was copied and created. Set to \'NULL\' when this is the only copy.',
+  `submission_id` BIGINT COMMENT 'Foreign key to the submission this file belongs to.',
+  `uploader_id` BIGINT COMMENT 'Foreign key to the user who uploaded this file. Might contain users which are not in the user dimension table.',
+  `user_id` BIGINT COMMENT 'Foreign key to the user this file belongs to.',
+  `owner_entity_type` ENUM('account', 'assignment', 'conversation_message', 'course', 'group', 'quiz', 'quiz_submission', 'submission', 'user') COMMENT 'Table this file is associated with.',
+  `content_type` VARCHAR(256) COMMENT 'Contains the MIME type of this file.',
+  `md5` VARCHAR(256) COMMENT 'Contains the MD5 checksum of the contents of this file.',
+  `file_state` ENUM('available', 'broken', 'deleted', 'errored', 'hidden') COMMENT 'Denotes the current state of this file.',
+  `could_be_locked` ENUM('allow_locking', 'disallow_locking') COMMENT 'Dictates if the quiz can be locked or not.',
+  `locked` ENUM('is_locked', 'is_not_locked') COMMENT 'Denotes the current lock status of this file.',
+  `lock_at` TIMESTAMP NULL COMMENT 'Date/Time when this file is to be locked.',
+  `unlock_at` TIMESTAMP NULL COMMENT 'Date/Time when this file is to unlocked.',
+  `viewed_at` TIMESTAMP NULL COMMENT 'Date/Time when this file was last viewed.',
+  `created_at` TIMESTAMP NULL COMMENT 'Date/Time when this file was created.',
+  `updated_at` TIMESTAMP NULL COMMENT 'Date/Time when this file was last updated.',
+  `deleted_at` TIMESTAMP NULL COMMENT 'Date/Time when this file was deleted.'
+) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Attributes for files.";
+DROP TABLE IF EXISTS file_fact;
+CREATE TABLE IF NOT EXISTS file_fact (
+  `file_id` BIGINT COMMENT 'Foreign key to this file dimesion table.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account this file belongs to.',
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment, the quiz/quiz submission/submission associated with this file belongs to.',
+  `assignment_group_id` BIGINT COMMENT 'Foreign key to the assignment group, the assignment/submission associated with this file belongs to.',
+  `conversation_id` BIGINT COMMENT 'Foreign key to the conversation, the conversation message associated with this file belongs to.',
+  `conversation_message_author_id` BIGINT COMMENT 'Foreign key to the user, who authored the conversation message this file belongs to.',
+  `conversation_message_id` BIGINT COMMENT 'Foreign key to the conversation message this file belongs to.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course, the assignment/quiz/quiz submission/submission associated with this file belongs to.',
+  `enrollment_rollup_id` BIGINT COMMENT 'Foreign key to the enrollment roll-up, the quiz submission/submission associated with this file belongs to.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign Key to enrollment term, the assignment/conversation message/group/quiz/quiz submission/submission associated with this file belongs to.',
+  `folder_id` BIGINT COMMENT 'Foreign key to the folder this file belongs to.',
+  `grader_id` BIGINT COMMENT 'Foreign key to the user who graded the submission associated with this file.',
+  `group_id` BIGINT COMMENT 'Foreign key to the group this file belongs to.',
+  `group_category_id` BIGINT COMMENT '(Not implemented) Foreign key to group category the group associated with this file belongs to.',
+  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz, the quiz/quiz submission associated with this file belongs to.',
+  `quiz_submission_id` BIGINT COMMENT 'Foreign key to the quiz submission this file belongs to.',
+  `replacement_file_id` BIGINT COMMENT 'Foreign key to the file which overwrote/replaced this file. Defaults to \'NULL\' when the file was not overwritten/replaced.',
+  `root_file_id` BIGINT COMMENT 'Foreign key to the source file from which this file was copied and created. Defaults to \'NULL\' when this is the only copy.',
+  `sis_source_id` VARCHAR(256) COMMENT 'Correlated ID for the record for the course, associated with this file, in the SIS system (assuming SIS integration is configured).',
+  `submission_id` BIGINT COMMENT 'Foreign key to the submission this file belongs to.',
+  `uploader_id` BIGINT COMMENT 'Foreign key to the user who uploaded this file. Might contain users which are not in the user dimension table.',
+  `user_id` BIGINT COMMENT 'Foreign key to the user this file belongs to.',
+  `wiki_id` BIGINT COMMENT 'Foreign key to the wiki the conversation message/group/submission associated with this file belongs to.',
+  `size` BIGINT COMMENT 'Size of this file in bytes.'
+) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Measures for files.";
 DROP TABLE IF EXISTS group_dim;
 CREATE TABLE IF NOT EXISTS group_dim (
   `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the group.',
@@ -511,7 +569,7 @@ CREATE TABLE IF NOT EXISTS group_dim (
   `join_level` VARCHAR(256) COMMENT 'Permissions required to join a group. For example, it can be invitation-only or auto.',
   `default_view` VARCHAR(256) COMMENT 'Default view for groups is the feed.',
   `sis_source_id` BIGINT COMMENT 'Correlated id for the record for this group in the SIS system (assuming SIS integration is configured)',
-  `group_category_id` BIGINT COMMENT 'Foreign key to group_category_dim table.',
+  `group_category_id` BIGINT COMMENT '(Not implemented) Foreign key to group category dimension table.',
   `account_id` BIGINT COMMENT 'Parent account for this group.',
   `wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.'
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Attributes for groups in canvas. Groups contain two or more students enrolled in a particular course working on an assignment or project together.";
@@ -524,7 +582,7 @@ CREATE TABLE IF NOT EXISTS group_fact (
   `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term table for the parent course.',
   `max_membership` INTEGER UNSIGNED COMMENT 'Maximum number of users that can be accommodated in a group.',
   `storage_quota` BIGINT COMMENT 'Storage Limit allowed per group.',
-  `group_category_id` BIGINT COMMENT 'Foreign key to group_category_dim table.',
+  `group_category_id` BIGINT COMMENT '(Not implemented) Foreign key to group category dimension table.',
   `account_id` BIGINT COMMENT 'Parent account for this group.',
   `wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.'
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Measures for groups.";
@@ -859,7 +917,7 @@ CREATE TABLE IF NOT EXISTS wiki_fact (
   `account_id` BIGINT COMMENT 'Foreign key to the accounts table that this wiki belongs to. Helpful for directly finding the account associated with the wiki, irrespective of whether it belongs to a Course or a Group.',
   `root_account_id` BIGINT COMMENT 'Root account Id of the account the wiki belongs to. Foreign key to the accounts table.',
   `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term table of the course this wiki is associated with. Otherwise this is set to NULL.',
-  `group_category_id` BIGINT COMMENT 'Foreign key to the group categories table of the group this wiki is associated with. Otherwise this is set to NULL.'
+  `group_category_id` BIGINT COMMENT '(Not implemented) Foreign key to the group categories table of the group this wiki is associated with. Otherwise this is set to NULL.'
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Measures for wikis.";
 DROP TABLE IF EXISTS wiki_page_dim;
 CREATE TABLE IF NOT EXISTS wiki_page_dim (
@@ -888,8 +946,8 @@ CREATE TABLE IF NOT EXISTS wiki_page_fact (
   `account_id` BIGINT COMMENT 'Foreign key to the accounts table that this wiki page belongs to. Helpful for directly finding the account associated with the wiki page, irrespective of whether it belongs to a Course or a Group.',
   `root_account_id` BIGINT COMMENT 'Root account Id of the account the wiki belongs to. Foreign key to the accounts table.',
   `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term table of the course this wiki page is associated with. Otherwise this is set to NULL.',
-  `group_category_id` BIGINT COMMENT 'Foreign key to the group categories table of the group this wiki page is associated with. Otherwise this is set to NULL.',
-  `wiki_page_comments_count` INTEGER UNSIGNED COMMENT 'Count of number of comments per wiki page.',
+  `group_category_id` BIGINT COMMENT '(Not implemented) Foreign key to the group categories table of the group this wiki page is associated with. Otherwise this is set to NULL.',
+  `wiki_page_comments_count` INTEGER UNSIGNED COMMENT '(Deprecated) No longer used in Canvas.',
   `view_count` INTEGER UNSIGNED COMMENT 'Number of views per wiki page.'
 ) ENGINE = MyISAM DEFAULT CHARSET=utf8 COMMENT = "Measures for wiki pages.";
 DROP TABLE IF EXISTS versions;
@@ -931,6 +989,8 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('enrollment_dim',0,NULL),
   ('enrollment_fact',0,NULL),
   ('enrollment_rollup_dim',0,NULL),
+  ('file_dim',0,NULL),
+  ('file_fact',0,NULL),
   ('group_dim',0,NULL),
   ('group_fact',0,NULL),
   ('group_membership_fact',0,NULL),
@@ -956,4 +1016,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,10900);
+  ('schema',-1,11001);
