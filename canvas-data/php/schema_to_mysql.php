@@ -26,10 +26,11 @@ $schema_file = 'schema.json';
  * and do not have a schema.json file available to you, then you
  * this script will attempt to download the latest version, but it
  * needs your Canvas Data API Key and Secret to do it. You may
- * specify it in the environment variables cd_api_key and cd_api_secret
+ * specify it in the environment variables CD_API_KEY and CD_API_SECRET
  * or you may hard-code it into this file.
  *
- * You can leave this part blank point $schema_file to the proper file
+ * You can leave this part blank if you point $schema_file to the proper file.
+ * Otherwise, replace the constant at the end of each line with the appropriate value.
  */
 $cd_api_key = getenv( 'CD_API_KEY' ) !== FALSE ? getenv( 'CD_API_KEY' ) : 'ENTER CANVAS DATA API KEY HERE';
 $cd_api_secret = getenv( 'CD_API_SECRET' ) !== FALSE ? getenv( 'CD_API_SECRET' ) : 'ENTER CANVAS DATA API SECRET HERE';
@@ -62,7 +63,8 @@ if (file_exists( $schema_file )) {
   if ($contents !== FALSE) {
     $schema = json_decode( $contents, TRUE );
   }
-} else {
+}
+if (! isset( $schema )) {
   if (empty( $cd_api_key ) || empty( $cd_api_secret )) {
     die( 'Must specify Canvas Data API and Secret before running' );
   }
@@ -73,6 +75,10 @@ if (file_exists( $schema_file )) {
 
 if (! isset( $schema )) {
   die( 'Unable to obtain a Canvas Data schema' );
+}
+
+if (isset( $schema['error'] )) {
+  die( $schema['message'] );
 }
 
 $sql = create_mysql_schema( $schema, $schema_name, $options );
@@ -192,7 +198,7 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   $create .= l( '  version BIGINT DEFAULT NULL%s,', $add_comments ? " COMMENT 'Latest version downloaded'" : '' );
   $create .= l( '  incremental TINYINT DEFAULT NULL%s', $add_comments ? " COMMENT 'Incremental (1) or complete (0)?'" : '' );
   $create .= ') ENGINE = MyISAM DEFAULT CHARSET=utf8';
-  $create .= $add_comments? ' COMMENT = "Used by import script"' : '';
+  $create .= $add_comments ? ' COMMENT = "Used by import script"' : '';
   $t .= c( $create );
   $version_code = explode( '.', $cdschema['version'] );
   $version = 0;
