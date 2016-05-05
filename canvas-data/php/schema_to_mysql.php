@@ -73,7 +73,7 @@ if (! isset( $schema )) {
   $schema = $CDAPI->get_schema_latest();
 }
 
-if (! isset( $schema )) {
+if (! isset( $schema ) || ! is_array( $schema )) {
   die( 'Unable to obtain a Canvas Data schema' );
 }
 
