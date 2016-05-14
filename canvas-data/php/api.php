@@ -250,6 +250,13 @@ class CanvasDataAPI {
     return $this->execute( $config, $opts );
   }
 
+  public function get_file_sync($opts = array()) {
+    $config = array ( 
+        'route' => 'GET /api/account/(:accountId|self)/file/sync' 
+    );
+    return $this->execute( $config, $opts );
+  }
+
   public function get_schema($opts = array()) {
     return $this->execute( 'GET /api/schema', $opts );
   }
