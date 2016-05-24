@@ -153,14 +153,14 @@ do
 
     # Check to see if this is an incremental table
     partial=0
-    if [ "${incrementaltables/$tablepart}" != "${incrementaltables}" ]
+    if [ "x${incrementaltables/$tablepart}" != "x${incrementaltables}" ]
     then
       partial=1
     fi
 
     # If it is incremental or the previous file used the same table,
     # then don't truncate it first, but do an append instead
-    if [ ${partial} -eq 0 -o "${oldtable}" != "${tablepart}" ]
+    if [ ${partial} -eq 0 -a "${oldtable}" != "${tablepart}" ]
     then
 
       if [ ${verbosity} -ge 3 ]
