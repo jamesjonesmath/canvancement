@@ -290,7 +290,6 @@ requirejs(
       });
       var t = hdr.join(',') + CRLF;
       var item, user, userId, fieldInfo, value;
-      var fieldRegex = new RegExp('^([au])[.](.*)$');
       for (var i = 0; i < accessData.length; i++) {
         item = accessData[i].asset_user_access;
         userId = item.user_id;
