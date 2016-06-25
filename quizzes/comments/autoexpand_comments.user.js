@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        AutoExpand Comments
 // @namespace   https://github.com/jamesjonesmath/canvancement
-// @description Auto expands the comment boxes when there is content in them.
+// @description Expands the comment boxes when there is content in them.
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
 // @version     1
 // @grant none
@@ -15,7 +15,7 @@
       for (var i = 0; i < nodes.length; i++) {
         var t = nodes[i].querySelector('textarea');
         if (t.value.length > 0) {
-          expandComment(t, true);
+          resizeComment(t);
         }
         t.addEventListener('input', watchComment, false);
       }
@@ -24,15 +24,13 @@
     console.log(e);
   }
   function watchComment(e) {
-    if (e.target.value.length === 0) {
-      expandComment(e.target, false);
-    } else if (e.target.value.length === 1) {
-      expandComment(e.target, true);
+    if (e.target.value.length <= 1) {
+      resizeComment(e.target);
     }
   }
-  function expandComment(e, expand) {
+  function resizeComment(e) {
     var divElement = e.parentNode;
-    if (expand) {
+    if (e.value.length > 0) {
       divElement.style.display = 'block';
       e.style.width = '98%';
     } else {
