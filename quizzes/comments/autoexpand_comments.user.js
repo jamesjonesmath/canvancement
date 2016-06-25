@@ -11,7 +11,6 @@
   try {
     if (/^\/courses\/[0-9]+\/quizzes\/[0-9]+\/history$/.test(window.location.pathname)) {
       var nodes = document.querySelectorAll('div#questions > div.question_holder > div.display_question > div.quiz_comment');
-      console.log(nodes);
       for (var i = 0; i < nodes.length; i++) {
         var t = nodes[i].querySelector('textarea');
         if (t.value.length > 0) {
