@@ -3,13 +3,12 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Appends the name of the question to the Question number when viewing quiz results
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
-// @version     2
+// @version     3
 // @grant none
 // ==/UserScript==
 (function() {
   'use strict';
   fetchQuestionNames();
-
   function fetchQuestionNames() {
     try {
       var form = document.getElementById('update_history_form');
@@ -39,19 +38,21 @@
       console.log(e);
     }
   }
-
   function displayQuestionNames(data) {
     try {
-      var question, title;
-      var i, j;
+      var question, titles, title;
+      var i, j, k;
       var titleRegEx = new RegExp('^Question [0-9]+$');
       for (i = 0; i < data.length; i++) {
         if (data[i].question_name && data[i].question_name !== 'Question') {
           question = document.getElementById('question_' + data[i].id);
-          title = question.querySelector('div.header span.name.question_name');
-          for (j = 0; j < title.childNodes.length; j++) {
-            if (title.childNodes[j].textContent && titleRegEx.test(title.childNodes[j].textContent)) {
-              title.childNodes[j].textContent += ' : ' + data[i].question_name;
+          titles = question.querySelectorAll('div.header span.name.question_name');
+          for (k = 0; k < titles.length; k++) {
+            title = titles[k];
+            for (j = 0; j < title.childNodes.length; j++) {
+              if (title.childNodes[j].textContent && titleRegEx.test(title.childNodes[j].textContent)) {
+                title.childNodes[j].textContent += ' : ' + data[i].question_name;
+              }
             }
           }
         }
@@ -60,14 +61,13 @@
       console.log(e);
     }
   }
-
   function paginationUrls(jqXHR, callback) {
     var urls = null;
     try {
       var linkHeader = jqXHR.getResponseHeader('link');
       if (linkHeader) {
         var link = {};
-        var validLinks = ['current','first','next','last'];
+        var validLinks = [ 'current', 'first', 'next', 'last' ];
         var links = linkHeader.split(',');
         var urlRegex = new RegExp('<(.*)>');
         var relRegex = new RegExp('rel="([a-z]+)"');
