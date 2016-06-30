@@ -39,6 +39,7 @@ $cd_api_secret = getenv( 'CD_API_SECRET' ) !== FALSE ? getenv( 'CD_API_SECRET' )
  * $options sets values for the SQL file
  * drop: include a command to drop the database before creating the new one
  * comments: include the comments and descriptions in the SQL statements
+ * engine: override the default MySQL engine, which is InnoDB
  */
 $options = array ( 
     'drop_schema' => TRUE, 
@@ -57,7 +58,11 @@ $options = array (
 
 // END OF CONFIGURATION
 
+if (isset( $config_file ) && file_exists( $config_file )) {
+}
+
 $schema = NULL;
+$json_schema = NULL;
 if (file_exists( $schema_file )) {
   $contents = file_get_contents( $schema_file );
   if ($contents !== FALSE) {
@@ -70,7 +75,11 @@ if (! isset( $schema )) {
   }
   require (__DIR__ . '/api.php');
   $CDAPI = new CanvasDataAPI( $cd_api_key, $cd_api_secret );
-  $schema = $CDAPI->get_schema_latest();
+  $CDAPI->return_json( TRUE );
+  $json_schema = $CDAPI->get_schema_latest();
+  if (isset( $json_schema )) {
+    $schema = json_decode( $json_schema, TRUE );
+  }
 }
 
 if (! isset( $schema ) || ! is_array( $schema )) {
@@ -79,6 +88,15 @@ if (! isset( $schema ) || ! is_array( $schema )) {
 
 if (isset( $schema['error'] )) {
   die( $schema['message'] );
+}
+
+// Write the json_schema file if we had to download it
+if (isset( $json_schema ) && isset( $schema_file )) {
+  $fh = fopen( $schema_file, 'w' );
+  if ($fh !== FALSE) {
+    fwrite( $fh, $json_schema );
+    fclose( $fh );
+  }
 }
 
 $sql = create_mysql_schema( $schema, $schema_name, $options );
@@ -128,22 +146,28 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
       'double precision' => 'double', 
       'text' => 'longtext', 
       'guid' => 'varchar(36)', 
-      'timestamp' => 'timestamp null' 
+      'timestamp' => 'datetime' 
   );
   $drop_schema = isset( $opts['drop_schema'] ) && $opts['drop_schema'] ? TRUE : FALSE;
   $add_comments = ! isset( $opts['comments'] ) || $opts['comments'] ? TRUE : FALSE;
+  $mysql_engine = isset( $opts['engine'] ) ? $opts['engine'] : 'InnoDB';
   
   $t = '';
   $t .= l( '# MySQL script to create database for Canvas Data schema version %s', $cdschema['version'] );
+  $t .= c( 'SET default_storage_engine=%s', $mysql_engine );
+  if ($mysql_engine == 'InnoDB') {
+    $t .= c( 'SET GLOBAL innodb_file_per_table=1' );
+  }
   if ($drop_schema) {
     $t .= c( 'DROP DATABASE IF EXISTS %s', $schema_name );
   }
-  $t .= c( 'CREATE DATABASE IF NOT EXISTS %s', $schema_name );
+  $t .= c( 'CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8', $schema_name );
   $t .= c( 'USE %s', $schema_name );
   $t .= c( 'SET NAMES utf8' );
   $table_types = array ();
   foreach ( $cdschema['schema'] as $key => $table ) {
     $table_name = isset( $table['tableName'] ) ? $table['tableName'] : $key;
+    $table = table_overrides( $table, $table_name );
     $table_types[$table_name] = isset( $table['incremental'] ) ? $table['incremental'] : FALSE;
     $columns = array ();
     foreach ( $table['columns'] as $colkey => $column ) {
@@ -185,7 +209,7 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
       }
       $create = l( 'CREATE TABLE IF NOT EXISTS %s (', $table_name );
       $create .= join( ",\n", $columns ) . "\n";
-      $create .= ') ENGINE = MyISAM DEFAULT CHARSET=utf8';
+      $create .= ')';
       if ($add_comments && ! empty( $table['description'] )) {
         $create .= sprintf( ' COMMENT = "%s"', addslashes( $table['description'] ) );
       }
@@ -197,7 +221,7 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   $create .= l( '  table_name VARCHAR(127) PRIMARY KEY NOT NULL%s,', $add_comments ? " COMMENT 'Name of Canvas Data table'" : '' );
   $create .= l( '  version BIGINT DEFAULT NULL%s,', $add_comments ? " COMMENT 'Latest version downloaded'" : '' );
   $create .= l( '  incremental TINYINT DEFAULT NULL%s', $add_comments ? " COMMENT 'Incremental (1) or complete (0)?'" : '' );
-  $create .= ') ENGINE = MyISAM DEFAULT CHARSET=utf8';
+  $create .= ')';
   $create .= $add_comments ? ' COMMENT = "Used by import script"' : '';
   $t .= c( $create );
   $version_code = explode( '.', $cdschema['version'] );
@@ -213,4 +237,87 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   $t .= c( $versions );
   
   return $t;
+}
+
+function table_overrides($T = NULL, $table_name = NULL) {
+  if (empty( $T )) {
+    return;
+  }
+  if (! isset( $table_name )) {
+    $table_name = $T['tableName'] || '';
+  }
+  $overrides = array ( 
+      'assignment_override_dim' => array ( 
+          'all_day' => array ( 
+              'enum', 
+              'same_all_day', 
+              'new_all_day' 
+          ), 
+          'due_at_overridden' => array ( 
+              'enum', 
+              'same_due_at', 
+              'new_due_at' 
+          ), 
+          'lock_at_overridden' => array ( 
+              'enum', 
+              'same_lock_at', 
+              'new_lock_at' 
+          ), 
+          'set_type' => array ( 
+              'enum', 
+              'course_section', 
+              'group', 
+              'adhoc' 
+          ), 
+          'unlock_at_overridden' => array ( 
+              'enum', 
+              'same_unlock_at', 
+              'new_unlock_at' 
+          ), 
+          'workflow_state' => array ( 
+              'enum', 
+              'active', 
+              'deleted' 
+          ) 
+      ), 
+      'requests' => array ( 
+          'web_applicaiton_action' => array ( 
+              'rename', 
+              'web_application_action' 
+          ) 
+      ) 
+  );
+  if (isset( $overrides[$table_name] )) {
+    $ov = $overrides[$table_name];
+    foreach ( $T['columns'] as $key => $data ) {
+      $name = $data['name'];
+      if (! isset( $ov[$name] )) {
+        continue;
+      }
+      $parms = $ov[$name];
+      $action = array_shift( $parms );
+      switch ($action) {
+        case 'rename' :
+          $T['columns'][$key]['name'] = $parms[0];
+          break;
+        case 'enum' :
+          $t = '';
+          for($i = 0; $i < count( $parms ); $i ++) {
+            if ($i > 0) {
+              if ($i < count( $parms ) - 1) {
+                $t .= ', ';
+              } else {
+                $t .= ' and ';
+              }
+            }
+            $t .= sprintf( "'%s'", $parms[$i] );
+          }
+          $T['columns'][$key]['description'] .= ' Possible values are ' . $t;
+          break;
+        default :
+          break;
+      }
+    }
+  }
+  return $T;
 }
