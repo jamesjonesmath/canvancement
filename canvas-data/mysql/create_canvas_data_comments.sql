@@ -7,7 +7,7 @@ USE canvas_data;
 SET NAMES utf8;
 DROP TABLE IF EXISTS course_dim;
 CREATE TABLE IF NOT EXISTS course_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for a course',
+  `id` BIGINT COMMENT 'Unique surrogate id for a course',
   `canvas_id` BIGINT COMMENT 'Primary key for this course in the canvas courses table.',
   `root_account_id` BIGINT COMMENT 'The root account associated with this course.',
   `account_id` BIGINT COMMENT 'The parent account for this course.',
@@ -21,56 +21,58 @@ CREATE TABLE IF NOT EXISTS course_dim (
   `publicly_visible` BOOLEAN COMMENT 'True if the course is publicly visible',
   `sis_source_id` VARCHAR(256) COMMENT 'Correlated id for the record for this course in the SIS system (assuming SIS integration is configured)',
   `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating the current state of the course, valid values are: completed, created, deleted, available, claimed',
-  `wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.'
+  `wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.',
+PRIMARY KEY (id)
 ) COMMENT = "A course in the canvas system";
 DROP TABLE IF EXISTS account_dim;
 CREATE TABLE IF NOT EXISTS account_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for an account',
+  `id` BIGINT COMMENT 'Unique surrogate id for an account',
   `canvas_id` BIGINT COMMENT 'Primary key for this entry in the Canvas accounts table',
   `name` VARCHAR(256) COMMENT 'Name of the account',
-  `depth` INTEGER UNSIGNED COMMENT 'Depth of the account in the hierarchy.  The root node is at 0.',
+  `depth` INTEGER UNSIGNED COMMENT 'Depth of the account in the hierarchy. The root node is at 0.',
   `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating that account is [deleted] or [active]',
-  `parent_account` VARCHAR(256) COMMENT 'Name of this account\'s parent account.  This field will be NULL for the root account.',
-  `parent_account_id` BIGINT COMMENT 'Id of this account\'s parent account.  This field will be NULL for the root account.',
-  `grandparent_account` VARCHAR(256) COMMENT 'Name of this account\'s grand parent account.  This field will be NULL for the root account and all accounts at level 1.',
-  `grandparent_account_id` BIGINT COMMENT 'Id of this account\'s grand parent account.  This field will be NULL for the root account and all subaccounts at level 1.',
+  `parent_account` VARCHAR(256) COMMENT 'Name of this account\'s parent account. This field will be NULL for the root account.',
+  `parent_account_id` BIGINT COMMENT 'Id of this account\'s parent account. This field will be NULL for the root account.',
+  `grandparent_account` VARCHAR(256) COMMENT 'Name of this account\'s grand parent account. This field will be NULL for the root account and all accounts at level 1.',
+  `grandparent_account_id` BIGINT COMMENT 'Id of this account\'s grand parent account. This field will be NULL for the root account and all subaccounts at level 1.',
   `root_account` VARCHAR(256) COMMENT 'Name of the root account associated with this account.',
   `root_account_id` BIGINT COMMENT 'Id of the root account associated with this account.',
-  `subaccount1` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 1.  If this account is a level 1 account, this will be the name of this account.',
-  `subaccount1_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 1.  If this account is a level 1 account, this will be the id of this account.',
-  `subaccount2` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 2.  If this account is a level 2 account, subaccount2 will be the name of this account.',
-  `subaccount2_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 2.  If this account is a level 2 account, subaccount2_id will be the id of this account.',
-  `subaccount3` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 3.  If this account is a level 3 account, subaccount3 will be the name of this account.',
-  `subaccount3_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 3.  If this account is a level 3 account, subaccount3_id will be the id of this account.',
-  `subaccount4` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 4.  If this account is a level 4 account, subaccount4 will be the name of this account.',
-  `subaccount4_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 4.  If this account is a level 4 account, subaccount4_id will be the id of this account.',
-  `subaccount5` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 5.  If this account is a level 5 account, subaccount5 will be the name of this account.',
-  `subaccount5_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 5.  If this account is a level 5 account, subaccount5_id will be the id of this account.',
-  `subaccount6` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 6.  If this account is a level 6 account, subaccount6 will be the name of this account.',
-  `subaccount6_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 6.  If this account is a level 6 account, subaccount6_id will be the id of this account.',
-  `subaccount7` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 7.  If this account is a level 7 account, subaccount7 will be the name of this account.',
-  `subaccount7_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 7.  If this account is a level 7 account, subaccount7_id will be the id of this account.',
-  `subaccount8` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 8.  If this account is a level 8 account, subaccount8 will be the name of this account.',
-  `subaccount8_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 8.  If this account is a level 8 account, subaccount8_id will be the id of this account.',
-  `subaccount9` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 9.  If this account is a level 9 account, subaccount9 will be the name of this account.',
-  `subaccount9_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 9.  If this account is a level 9 account, subaccount9_id will be the id of this account.',
-  `subaccount10` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 10.  If this account is a level 10 account, subaccount10 will be the name of this account.',
-  `subaccount10_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 10.  If this account is a level 10 account, subaccount10_id will be the id of this account.',
-  `subaccount11` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 11.  If this account is a level 11 account, subaccount11 will be the name of this account.',
-  `subaccount11_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 11.  If this account is a level 11 account, subaccount11_id will be the id of this account.',
-  `subaccount12` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 12.  If this account is a level 12 account, subaccount12 will be the name of this account.',
-  `subaccount12_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 12.  If this account is a level 12 account, subaccount12_id will be the id of this account.',
-  `subaccount13` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 13.  If this account is a level 13 account, subaccount13 will be the name of this account.',
-  `subaccount13_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 13.  If this account is a level 13 account, subaccount13_id will be the id of this account.',
-  `subaccount14` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 14.  If this account is a level 14 account, subaccount14 will be the name of this account.',
-  `subaccount14_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 14.  If this account is a level 14 account, subaccount14_id will be the id of this account.',
-  `subaccount15` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 15.  If this account is a level 15 account, subaccount15 will be the name of this account.',
-  `subaccount15_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 15.  If this account is a level 15 account, subaccount15_id will be the id of this account.',
-  `sis_source_id` VARCHAR(256) COMMENT 'Correlated id for the record for this course in the SIS system (assuming SIS integration is configured)'
-) COMMENT = "An account object in the Canvas system.  Accounts are most often used to represent a hierarchy of colleges, schools, departments, campuses, etc.";
+  `subaccount1` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 1. If this account is a level 1 account, this will be the name of this account.',
+  `subaccount1_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 1. If this account is a level 1 account, this will be the id of this account.',
+  `subaccount2` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 2. If this account is a level 2 account, subaccount2 will be the name of this account.',
+  `subaccount2_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 2. If this account is a level 2 account, subaccount2_id will be the id of this account.',
+  `subaccount3` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 3. If this account is a level 3 account, subaccount3 will be the name of this account.',
+  `subaccount3_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 3. If this account is a level 3 account, subaccount3_id will be the id of this account.',
+  `subaccount4` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 4. If this account is a level 4 account, subaccount4 will be the name of this account.',
+  `subaccount4_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 4. If this account is a level 4 account, subaccount4_id will be the id of this account.',
+  `subaccount5` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 5. If this account is a level 5 account, subaccount5 will be the name of this account.',
+  `subaccount5_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 5. If this account is a level 5 account, subaccount5_id will be the id of this account.',
+  `subaccount6` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 6. If this account is a level 6 account, subaccount6 will be the name of this account.',
+  `subaccount6_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 6. If this account is a level 6 account, subaccount6_id will be the id of this account.',
+  `subaccount7` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 7. If this account is a level 7 account, subaccount7 will be the name of this account.',
+  `subaccount7_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 7. If this account is a level 7 account, subaccount7_id will be the id of this account.',
+  `subaccount8` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 8. If this account is a level 8 account, subaccount8 will be the name of this account.',
+  `subaccount8_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 8. If this account is a level 8 account, subaccount8_id will be the id of this account.',
+  `subaccount9` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 9. If this account is a level 9 account, subaccount9 will be the name of this account.',
+  `subaccount9_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 9. If this account is a level 9 account, subaccount9_id will be the id of this account.',
+  `subaccount10` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 10. If this account is a level 10 account, subaccount10 will be the name of this account.',
+  `subaccount10_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 10. If this account is a level 10 account, subaccount10_id will be the id of this account.',
+  `subaccount11` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 11. If this account is a level 11 account, subaccount11 will be the name of this account.',
+  `subaccount11_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 11. If this account is a level 11 account, subaccount11_id will be the id of this account.',
+  `subaccount12` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 12. If this account is a level 12 account, subaccount12 will be the name of this account.',
+  `subaccount12_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 12. If this account is a level 12 account, subaccount12_id will be the id of this account.',
+  `subaccount13` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 13. If this account is a level 13 account, subaccount13 will be the name of this account.',
+  `subaccount13_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 13. If this account is a level 13 account, subaccount13_id will be the id of this account.',
+  `subaccount14` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 14. If this account is a level 14 account, subaccount14 will be the name of this account.',
+  `subaccount14_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 14. If this account is a level 14 account, subaccount14_id will be the id of this account.',
+  `subaccount15` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 15. If this account is a level 15 account, subaccount15 will be the name of this account.',
+  `subaccount15_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 15. If this account is a level 15 account, subaccount15_id will be the id of this account.',
+  `sis_source_id` VARCHAR(256) COMMENT 'Correlated id for the record for this course in the SIS system (assuming SIS integration is configured)',
+PRIMARY KEY (id)
+) COMMENT = "An account object in the Canvas system. Accounts are most often used to represent a hierarchy of colleges, schools, departments, campuses, etc.";
 DROP TABLE IF EXISTS user_dim;
 CREATE TABLE IF NOT EXISTS user_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the user.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the user.',
   `canvas_id` BIGINT COMMENT 'Primary key for this user in the Canvas users table.',
   `root_account_id` BIGINT COMMENT 'Root account associated with this user.',
   `name` VARCHAR(256) COMMENT 'Name of the user',
@@ -85,11 +87,12 @@ CREATE TABLE IF NOT EXISTS user_dim (
   `birthdate` DATETIME COMMENT 'The user\'s birth date. This is an optional field and may not be entered by the user.',
   `country_code` VARCHAR(256) COMMENT 'The user\'s country code. This is an optional field and may not be entered by the user.',
   `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating the status of the user, valid values are: creation_pending, deleted, pre_registered, registered',
-  `sortable_name` VARCHAR(256) COMMENT 'Name of the user that is should be used for sorting groups of users, such as in the gradebook.'
+  `sortable_name` VARCHAR(256) COMMENT 'Name of the user that is should be used for sorting groups of users, such as in the gradebook.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for users";
 DROP TABLE IF EXISTS pseudonym_dim;
 CREATE TABLE IF NOT EXISTS pseudonym_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the pseudonym.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the pseudonym.',
   `canvas_id` BIGINT COMMENT 'Primary key for this pseudonym in the the Canvas database',
   `user_id` BIGINT COMMENT 'Id for the user associated with this pseudonym',
   `account_id` BIGINT COMMENT 'Id for the account associated with this pseudonym',
@@ -105,7 +108,8 @@ CREATE TABLE IF NOT EXISTS pseudonym_dim (
   `password_auto_generated` BOOLEAN COMMENT 'True if the password has been auto-generated',
   `deleted_at` DATETIME COMMENT 'Timestamp when the pseudonym was deleted (NULL if the pseudonym is still active)',
   `sis_user_id` VARCHAR(256) COMMENT 'Correlated id for the record for this course in the SIS system (assuming SIS integration is configured)',
-  `unique_name` VARCHAR(256) COMMENT 'Actual login id for a given pseudonym/account'
+  `unique_name` VARCHAR(256) COMMENT 'Actual login id for a given pseudonym/account',
+PRIMARY KEY (id)
 ) COMMENT = "Pseudonyms are logins associated with users.";
 DROP TABLE IF EXISTS pseudonym_fact;
 CREATE TABLE IF NOT EXISTS pseudonym_fact (
@@ -117,7 +121,7 @@ CREATE TABLE IF NOT EXISTS pseudonym_fact (
 );
 DROP TABLE IF EXISTS assignment_dim;
 CREATE TABLE IF NOT EXISTS assignment_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the assignment.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the assignment.',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the Canvas assignments table.',
   `course_id` BIGINT COMMENT 'Foreign key to the course associated with this assignment',
   `title` VARCHAR(256) COMMENT 'Title of the assignment',
@@ -128,7 +132,7 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `points_possible` DOUBLE COMMENT 'Total points possible for the assignment',
   `grading_type` VARCHAR(256) COMMENT 'Describes how the assignment will be graded (gpa_scale, pass_fail, percent, points, not_graded, letter_grade)',
   `submission_types` VARCHAR(256) COMMENT 'Comma separated list of valid methods for submitting the assignment (online_url, media_recording, online_upload, online_quiz, external_tool, online_text_entry, online_file_upload)',
-  `workflow_state` VARCHAR(256) COMMENT 'Current workflow state of the assignment.  Possible values are unpublished, published and deleted',
+  `workflow_state` VARCHAR(256) COMMENT 'Current workflow state of the assignment. Possible values are unpublished, published and deleted',
   `created_at` DATETIME COMMENT 'Timestamp of the first time the assignment was entered into the system',
   `updated_at` DATETIME COMMENT 'Timestamp of the last time the assignment was updated',
   `peer_review_count` INTEGER UNSIGNED COMMENT 'The number of pears to assign for review if using algorithmic assignment',
@@ -136,14 +140,15 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `peer_reviews_assigned` BOOLEAN COMMENT 'True if all peer reviews have been assigned',
   `peer_reviews` BOOLEAN COMMENT 'True if peer reviews are enabled for this assignment',
   `automatic_peer_reviews` BOOLEAN COMMENT 'True if peer reviews are assigned algorithmically (vs. letting the instructor make manual assignments)',
-  `all_day` BOOLEAN COMMENT 'True if A specific time for when the assignment is due was not given.  The effective due time will be 11:59pm.',
+  `all_day` BOOLEAN COMMENT 'True if A specific time for when the assignment is due was not given. The effective due time will be 11:59pm.',
   `all_day_date` DATE COMMENT 'The date version of the due date if the all_day flag is true.',
   `could_be_locked` BOOLEAN COMMENT 'TBD',
   `grade_group_students_individually` BOOLEAN COMMENT 'True if students who submit work as a group will each receive individual grades (vs one grade that is copied to all group members)',
   `anonymous_peer_reviews` BOOLEAN COMMENT '(currently unimplemented, do not use)',
   `muted` BOOLEAN COMMENT 'Student cannot see grades left on the assignment.',
-  `assignment_group_id` BIGINT COMMENT 'Foreign key to the assignment group dimension table.'
-) COMMENT = "Attributes for for assignments.  There is one record in this table for each assignment.  Individual submissions of the assignment are in the submission_dim and submission_fact tables.";
+  `assignment_group_id` BIGINT COMMENT 'Foreign key to the assignment group dimension table.',
+PRIMARY KEY (id)
+) COMMENT = "Attributes for for assignments. There is one record in this table for each assignment. Individual submissions of the assignment are in the submission_dim and submission_fact tables.";
 DROP TABLE IF EXISTS assignment_fact;
 CREATE TABLE IF NOT EXISTS assignment_fact (
   `assignment_id` BIGINT COMMENT 'Foreign key to assignment dimension',
@@ -161,7 +166,7 @@ CREATE TABLE IF NOT EXISTS assignment_rule_dim (
 ) COMMENT = "Rules associated with an assignment.";
 DROP TABLE IF EXISTS submission_dim;
 CREATE TABLE IF NOT EXISTS submission_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the submission.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the submission.',
   `canvas_id` BIGINT COMMENT 'Primary key of this record in the Canvas submissions table.',
   `body` LONGTEXT COMMENT 'Text content for the submission.',
   `url` VARCHAR(256) COMMENT 'URL content for the submission.',
@@ -186,7 +191,8 @@ CREATE TABLE IF NOT EXISTS submission_dim (
   `group_id` BIGINT COMMENT 'Foreign key to the group_dim table.',
   `quiz_submission_id` BIGINT COMMENT 'Foreign key to the quiz_submission_dim table.',
   `user_id` BIGINT COMMENT 'Foreign key to the user_dim table.',
-  `grade_state` ENUM('auto_graded', 'human_graded', 'not_graded') COMMENT 'Denotes the current state of the grade.'
+  `grade_state` ENUM('auto_graded', 'human_graded', 'not_graded') COMMENT 'Denotes the current state of the grade.',
+PRIMARY KEY (id)
 ) COMMENT = "This table records the latest submission for an assignment.";
 DROP TABLE IF EXISTS submission_fact;
 CREATE TABLE IF NOT EXISTS submission_fact (
@@ -223,11 +229,12 @@ CREATE TABLE IF NOT EXISTS submission_comment_participant_fact (
 );
 DROP TABLE IF EXISTS submission_comment_participant_dim;
 CREATE TABLE IF NOT EXISTS submission_comment_participant_dim (
-  `id` BIGINT PRIMARY KEY,
+  `id` BIGINT,
   `canvas_id` BIGINT,
   `participation_type` VARCHAR(256),
   `created_at` DATETIME,
-  `updated_at` DATETIME
+  `updated_at` DATETIME,
+PRIMARY KEY (id)
 );
 DROP TABLE IF EXISTS submission_comment_fact;
 CREATE TABLE IF NOT EXISTS submission_comment_fact (
@@ -246,7 +253,7 @@ CREATE TABLE IF NOT EXISTS submission_comment_fact (
 );
 DROP TABLE IF EXISTS submission_comment_dim;
 CREATE TABLE IF NOT EXISTS submission_comment_dim (
-  `id` BIGINT PRIMARY KEY,
+  `id` BIGINT,
   `canvas_id` BIGINT,
   `submission_id` BIGINT,
   `recipient_id` BIGINT COMMENT '(Deprecated) No longer used in Canvas.',
@@ -259,11 +266,12 @@ CREATE TABLE IF NOT EXISTS submission_comment_dim (
   `updated_at` DATETIME,
   `anonymous` BOOLEAN,
   `teacher_only_comment` BOOLEAN,
-  `hidden` BOOLEAN
+  `hidden` BOOLEAN,
+PRIMARY KEY (id)
 );
 DROP TABLE IF EXISTS assignment_group_dim;
 CREATE TABLE IF NOT EXISTS assignment_group_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the assignment group.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the assignment group.',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the Canvas assignment_groups table.',
   `course_id` BIGINT COMMENT 'Foreign key to the course to which the assignment group belongs to.',
   `name` VARCHAR(256) COMMENT 'Name of the assignment group. Defaults to \'Assignments\' if no name is provided during group creation.',
@@ -271,7 +279,8 @@ CREATE TABLE IF NOT EXISTS assignment_group_dim (
   `workflow_state` VARCHAR(256) COMMENT 'Current workflow state of the assignment groups. Possible values are \'available\' and \'deleted\'.',
   `position` INTEGER UNSIGNED COMMENT 'Position of the assignment group in the assignment index page. It determines where it should be displayed on the page and where it should be displayed in a new course if the course is cloned.',
   `created_at` DATETIME COMMENT 'Date/Time when the assignment group was created.',
-  `updated_at` DATETIME COMMENT 'Date/Time when the assignment group was last updated.'
+  `updated_at` DATETIME COMMENT 'Date/Time when the assignment group was last updated.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for assignment_groups.";
 DROP TABLE IF EXISTS assignment_group_fact;
 CREATE TABLE IF NOT EXISTS assignment_group_fact (
@@ -287,32 +296,33 @@ CREATE TABLE IF NOT EXISTS assignment_group_rule_dim (
 ) COMMENT = "Rules associated with an assignment group.";
 DROP TABLE IF EXISTS assignment_override_user_dim;
 CREATE TABLE IF NOT EXISTS assignment_override_user_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the assignment_override_student.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the assignment_override_student.',
   `canvas_id` BIGINT COMMENT 'The ID of the user in the adhoc group table.',
-  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with.  May be empty.',
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with. May be empty.',
   `assignment_override_id` BIGINT,
-  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with.  May be empty.',
+  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with. May be empty.',
   `user_id` BIGINT COMMENT 'Foreign key to the user.',
   `created_at` DATETIME COMMENT 'Timestamp of when the assignment_override_student was created.',
-  `updated_at` DATETIME COMMENT 'Timestamp of when the assignment_override_student was last updated.'
+  `updated_at` DATETIME COMMENT 'Timestamp of when the assignment_override_student was last updated.',
+PRIMARY KEY (id)
 ) COMMENT = "Table contains measures related to adhoc users for whom an assignment override exists.";
 DROP TABLE IF EXISTS assignment_override_user_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_user_fact (
   `assignment_override_user_id` BIGINT COMMENT 'Unique surrogate ID for the assignment_override_student. Is made up by adding a large number to the ID of the source table.',
   `account_id` BIGINT COMMENT 'Foreign key to the account associated with the course associated with this assignment.',
   `assignment_group_id` BIGINT,
-  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with.  May be empty.',
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with. May be empty.',
   `assignment_override_id` BIGINT,
   `course_id` BIGINT COMMENT 'Foreign key to the course associated with this assignment.',
   `enrollment_term_id` BIGINT COMMENT 'Foreign Key to enrollment term table.',
-  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with.  May be empty.',
+  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with. May be empty.',
   `user_id` BIGINT COMMENT 'Foreign key to the user.'
 ) COMMENT = "Table contains measures related to students for whom an assignment override exists.";
 DROP TABLE IF EXISTS assignment_override_dim;
 CREATE TABLE IF NOT EXISTS assignment_override_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the assignment override.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the assignment override.',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the Canvas assignments table.',
-  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with.  May be empty.',
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with. May be empty.',
   `course_section_id` BIGINT COMMENT 'Foreign key to the course_section.',
   `group_id` BIGINT COMMENT 'Foreign key to the group.',
   `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with.',
@@ -330,13 +340,14 @@ CREATE TABLE IF NOT EXISTS assignment_override_dim (
   `unlock_at_overridden` ENUM('same_unlock_at', 'new_unlock_at') COMMENT 'Indicates if the unlock_at field overrides the original assignment.unlock_at field for this group of users.',
   `updated_at` DATETIME COMMENT 'Timestamp of when the assignment_override was last updated.',
   `quiz_version` INTEGER UNSIGNED COMMENT 'The version of the quiz this override is applied too.',
-  `workflow_state` ENUM('active', 'deleted') COMMENT 'Gives the workflow state of this record.'
-) COMMENT = "Attributes for assignment_override.  There may be many records in this table for each assignment.  Use the data in this table to calculate actual due, all_day, lock and unlock dates/times.";
+  `workflow_state` ENUM('active', 'deleted') COMMENT 'Gives the workflow state of this record.',
+PRIMARY KEY (id)
+) COMMENT = "Attributes for assignment_override. There may be many records in this table for each assignment. Use the data in this table to calculate actual due, all_day, lock and unlock dates/times.";
 DROP TABLE IF EXISTS assignment_override_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_fact (
   `assignment_override_id` BIGINT COMMENT 'Unique surrogate ID for the assignment_override.',
   `account_id` BIGINT COMMENT 'Foreign key to the account associated with the course associated with this assignment.',
-  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with.  May be empty.',
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with. May be empty.',
   `assignment_group_id` BIGINT COMMENT 'Foreign key to the assignment group dimension table.',
   `course_id` BIGINT COMMENT 'Foreign key to the course associated with this assignment.',
   `course_section_id` BIGINT COMMENT 'Foreign key to the course_section.',
@@ -345,12 +356,12 @@ CREATE TABLE IF NOT EXISTS assignment_override_fact (
   `group_category_id` BIGINT COMMENT '(Not implemented) Foreign key to group category dimension table.',
   `group_parent_account_id` BIGINT COMMENT 'If the group is directly associated with an account, this is the id.',
   `nonxlist_course_id` BIGINT COMMENT 'The course ID for the original course if this course has been cross listed.',
-  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with.  May be empty.',
+  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with. May be empty.',
   `group_wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.'
-) COMMENT = "Table contains measures related to assignment overrides.  Overrides can be found in the assignment_override_dim.  Overrides are primarily the dates about the assigmnents for a given group of assignees.";
+) COMMENT = "Table contains measures related to assignment overrides. Overrides can be found in the assignment_override_dim. Overrides are primarily the dates about the assigmnents for a given group of assignees.";
 DROP TABLE IF EXISTS communication_channel_dim;
 CREATE TABLE IF NOT EXISTS communication_channel_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the communication channel.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the communication channel.',
   `canvas_id` BIGINT COMMENT 'Primary key for this communication channel in the communication_channel table.',
   `user_id` BIGINT COMMENT 'Foreign key to the user that owns this communication channel.',
   `address` VARCHAR(256) COMMENT 'Address, or path, of the communication channel. Set to \'NULL\' for push notifications.',
@@ -358,7 +369,8 @@ CREATE TABLE IF NOT EXISTS communication_channel_dim (
   `position` INTEGER UNSIGNED COMMENT 'Position of this communication channel relative to the user\'s other channels when they are ordered.',
   `workflow_state` VARCHAR(256) COMMENT 'Current state of the communication channel. Possible values are \'unconfirmed\' and \'active\'.',
   `created_at` DATETIME COMMENT 'Date/Time when the quiz was created.',
-  `updated_at` DATETIME COMMENT 'Date/Time when the quiz was last updated.'
+  `updated_at` DATETIME COMMENT 'Date/Time when the quiz was last updated.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for communication channel.";
 DROP TABLE IF EXISTS communication_channel_fact;
 CREATE TABLE IF NOT EXISTS communication_channel_fact (
@@ -368,18 +380,19 @@ CREATE TABLE IF NOT EXISTS communication_channel_fact (
 ) COMMENT = "Measures for communication channel.";
 DROP TABLE IF EXISTS conversation_dim;
 CREATE TABLE IF NOT EXISTS conversation_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the conversation.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the conversation.',
   `canvas_id` BIGINT COMMENT 'Original primary key for conversation in the Canvas table',
   `has_attachments` BOOLEAN COMMENT 'True if the conversation has attachments',
   `has_media_objects` BOOLEAN COMMENT 'True if the conversation has media objects',
   `subject` VARCHAR(256) COMMENT 'The subject of the conversation',
   `course_id` BIGINT COMMENT 'The course that owns this conversation',
   `group_id` BIGINT COMMENT 'The group that owns this conversation',
-  `account_id` BIGINT COMMENT 'The account this owns this conversation'
+  `account_id` BIGINT COMMENT 'The account this owns this conversation',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for a conversation";
 DROP TABLE IF EXISTS conversation_message_dim;
 CREATE TABLE IF NOT EXISTS conversation_message_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the message.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the message.',
   `canvas_id` BIGINT COMMENT 'Original ID for canvas table.',
   `conversation_id` BIGINT COMMENT 'Parent conversation for this message.',
   `author_id` BIGINT COMMENT 'User id of the author of the message.',
@@ -387,7 +400,8 @@ CREATE TABLE IF NOT EXISTS conversation_message_dim (
   `generated` BOOLEAN COMMENT 'This attribute is true if the system generated this message (e.g. \"John was added to this conversation\")',
   `has_attachments` BOOLEAN COMMENT 'True if the message has attachments.',
   `has_media_objects` BOOLEAN COMMENT 'True if the message has media objects.',
-  `body` LONGTEXT COMMENT 'The content of the message.'
+  `body` LONGTEXT COMMENT 'The content of the message.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for a message in a conversation";
 DROP TABLE IF EXISTS conversation_message_participant_fact;
 CREATE TABLE IF NOT EXISTS conversation_message_participant_fact (
@@ -407,22 +421,23 @@ CREATE TABLE IF NOT EXISTS conversation_message_participant_fact (
 ) COMMENT = "Fact table for each message in a conversation and each participant";
 DROP TABLE IF EXISTS discussion_topic_dim;
 CREATE TABLE IF NOT EXISTS discussion_topic_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the discussion topic.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the discussion topic.',
   `canvas_id` BIGINT COMMENT 'Primary key to the discussion_topics table in Canvas',
   `title` VARCHAR(256) COMMENT 'Title of the discussion topic',
   `message` LONGTEXT COMMENT 'Message text for the discussion topic.',
-  `type` VARCHAR(256) COMMENT 'Discussion topic type.  Two types are default (blank) and announcement.',
-  `workflow_state` VARCHAR(256) COMMENT 'Workflow state for this discussion topic.  Valid states are unpublished, active, locked, deleted, and post_delayed',
+  `type` VARCHAR(256) COMMENT 'Discussion topic type. Two types are default (blank) and announcement.',
+  `workflow_state` VARCHAR(256) COMMENT 'Workflow state for this discussion topic. Valid states are unpublished, active, locked, deleted, and post_delayed',
   `last_reply_at` DATETIME COMMENT 'Timestamp of the last reply to this topic.',
   `created_at` DATETIME COMMENT 'Timestamp when the discussion topic was first saved in the system.',
   `updated_at` DATETIME COMMENT 'Timestamp when the discussion topic was last updated in the system.',
   `delayed_post_at` DATETIME COMMENT 'Timestamp when the discussion topic was/will be delay-posted',
   `posted_at` DATETIME COMMENT 'Timestamp when the discussion topic was posted',
   `deleted_at` DATETIME COMMENT 'Timestamp when the discussion topic was deleted.',
-  `discussion_type` VARCHAR(256) COMMENT 'Type of discussion topic: default(blank), side_comment, threaded.  threaded indicates that replies are threaded where side_comment indicates that replies in the discussion are flat.  See related Canvas Guide https://guides.instructure.com/m/4152/l/60423-how-do-i-create-a-threaded-discussion',
+  `discussion_type` VARCHAR(256) COMMENT 'Type of discussion topic: default(blank), side_comment, threaded. threaded indicates that replies are threaded where side_comment indicates that replies in the discussion are flat. See related Canvas Guide https://guides.instructure.com/m/4152/l/60423-how-do-i-create-a-threaded-discussion',
   `pinned` BOOLEAN COMMENT 'True if the discussion topic has been pinned',
-  `locked` BOOLEAN COMMENT 'True if the discussion topic has been locked'
-) COMMENT = "Attributes for discussion topics in Canvas.  Discussion topics are logical discussion threads.  They can have many discussion entries.   They also have their own message text for the message that started the topic.";
+  `locked` BOOLEAN COMMENT 'True if the discussion topic has been locked',
+PRIMARY KEY (id)
+) COMMENT = "Attributes for discussion topics in Canvas. Discussion topics are logical discussion threads. They can have many discussion entries. They also have their own message text for the message that started the topic.";
 DROP TABLE IF EXISTS discussion_topic_fact;
 CREATE TABLE IF NOT EXISTS discussion_topic_fact (
   `discussion_topic_id` BIGINT COMMENT 'Foreign key to the discussion topic dimension for the associated discussion topic.',
@@ -437,14 +452,15 @@ CREATE TABLE IF NOT EXISTS discussion_topic_fact (
 ) COMMENT = "Measures for discussion topics/threads.";
 DROP TABLE IF EXISTS discussion_entry_dim;
 CREATE TABLE IF NOT EXISTS discussion_entry_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the discussion entry.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the discussion entry.',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the Canvas discussion_entries table',
   `message` LONGTEXT COMMENT 'Full text of the entry\'s message',
   `workflow_state` VARCHAR(256) COMMENT 'Workflow state for discussion message (values: deleted, active)',
   `created_at` DATETIME COMMENT 'Timestamp when the discussion entry was created.',
   `updated_at` DATETIME COMMENT 'Timestamp when the discussion entry was updated.',
   `deleted_at` DATETIME COMMENT 'Timestamp when the discussion entry was deleted.',
-  `depth` INTEGER UNSIGNED COMMENT 'Reply depth for this entry'
+  `depth` INTEGER UNSIGNED COMMENT 'Reply depth for this entry',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for discussion entries. Discussion entries are replies in a discussion topic.";
 DROP TABLE IF EXISTS discussion_entry_fact;
 CREATE TABLE IF NOT EXISTS discussion_entry_fact (
@@ -460,20 +476,21 @@ CREATE TABLE IF NOT EXISTS discussion_entry_fact (
   `topic_editor_id` BIGINT COMMENT 'Foreign key to editor associated with the entry\'s discussion topic.',
   `enrollment_rollup_id` BIGINT COMMENT 'Foreign key to the enrollment roll-up dimension table',
   `message_length` INTEGER UNSIGNED COMMENT 'Length of the message in bytes'
-) COMMENT = "Measures for discussion entries.  Discussion entries are replies in a discussion topic.";
+) COMMENT = "Measures for discussion entries. Discussion entries are replies in a discussion topic.";
 DROP TABLE IF EXISTS enrollment_term_dim;
 CREATE TABLE IF NOT EXISTS enrollment_term_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the enrollment term.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the enrollment term.',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the Canvas enrollments table.',
   `root_account_id` BIGINT COMMENT 'Foreign key to the root account for this enrollment term',
   `name` VARCHAR(256) COMMENT 'Name of the enrollment term',
   `date_start` DATETIME COMMENT 'Term start date',
   `date_end` DATETIME COMMENT 'Term end date',
-  `sis_source_id` VARCHAR(256) COMMENT 'Correlated SIS id for this enrollment term (assuming SIS has been configured properly)'
+  `sis_source_id` VARCHAR(256) COMMENT 'Correlated SIS id for this enrollment term (assuming SIS has been configured properly)',
+PRIMARY KEY (id)
 ) COMMENT = "Enrollment term describes the term or semester associated with courses (e.g. Fall 2013)";
 DROP TABLE IF EXISTS course_section_dim;
 CREATE TABLE IF NOT EXISTS course_section_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the course section.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the course section.',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the Canvas course_sections table.',
   `name` VARCHAR(256) COMMENT 'Name of the section',
   `course_id` BIGINT COMMENT 'Foreign key to the associated course',
@@ -488,11 +505,12 @@ CREATE TABLE IF NOT EXISTS course_section_dim (
   `workflow_state` VARCHAR(256) COMMENT 'Life-cycle state for section. (active, deleted)',
   `restrict_enrollments_to_section_dates` BOOLEAN COMMENT 'True when \"Users can only participate in the course between these dates\" is checked',
   `nonxlist_course_id` BIGINT COMMENT 'The course id for the original course if this course has been cross listed',
-  `sis_source_id` VARCHAR(256) COMMENT 'Id for the correlated record for the section in the SIS (assuming SIS integration has been properly configured)'
+  `sis_source_id` VARCHAR(256) COMMENT 'Id for the correlated record for the section in the SIS (assuming SIS integration has been properly configured)',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for a section of a course";
 DROP TABLE IF EXISTS role_dim;
 CREATE TABLE IF NOT EXISTS role_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the role.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the role.',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the Canvas roles table',
   `root_account_id` BIGINT,
   `account_id` BIGINT COMMENT 'The foreign key to the account that is in the role',
@@ -501,11 +519,12 @@ CREATE TABLE IF NOT EXISTS role_dim (
   `workflow_state` VARCHAR(256),
   `created_at` DATETIME,
   `updated_at` DATETIME,
-  `deleted_at` DATETIME
+  `deleted_at` DATETIME,
+PRIMARY KEY (id)
 ) COMMENT = "Give the possible roles for an enrolled user";
 DROP TABLE IF EXISTS enrollment_dim;
 CREATE TABLE IF NOT EXISTS enrollment_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the enrollment.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the enrollment.',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the Canvas enrollments table',
   `root_account_id` BIGINT COMMENT 'Root account id associated with this enrollment',
   `course_section_id` BIGINT COMMENT 'Foreign key to the course section for this enrollment',
@@ -520,7 +539,8 @@ CREATE TABLE IF NOT EXISTS enrollment_dim (
   `self_enrolled` BOOLEAN COMMENT 'Enrollment was created via self-enrollment',
   `sis_source_id` VARCHAR(256) COMMENT '(Deprecated) No longer used in Canvas.',
   `course_id` BIGINT COMMENT 'Foreign key to course for this enrollment',
-  `user_id` BIGINT COMMENT 'Foreign key to user for the enrollment'
+  `user_id` BIGINT COMMENT 'Foreign key to user for the enrollment',
+PRIMARY KEY (id)
 ) COMMENT = "An enrollment represents a user\'s association with a specific course and section";
 DROP TABLE IF EXISTS enrollment_fact;
 CREATE TABLE IF NOT EXISTS enrollment_fact (
@@ -535,7 +555,7 @@ CREATE TABLE IF NOT EXISTS enrollment_fact (
 ) COMMENT = "Measures for enrollments";
 DROP TABLE IF EXISTS enrollment_rollup_dim;
 CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the user and the course.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the user and the course.',
   `user_id` BIGINT COMMENT 'Foreign key to the enrolled user.',
   `course_id` BIGINT COMMENT 'Foreign key to the enrolled course.',
   `enrollment_count` INTEGER UNSIGNED COMMENT 'Total number of enrollments associated with the user in the course for his/her all roles under all base roles, duplicate or not.',
@@ -558,11 +578,12 @@ CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
   `account_membership_enrollment_id` BIGINT COMMENT 'Enrollment ID if this a valid role for the user in the course, else NULL.',
   `no_permissions_enrollment_id` BIGINT COMMENT 'Enrollment ID if this a valid role for the user in the course, else NULL.',
   `most_privileged_role` VARCHAR(256) COMMENT 'The most privileged role associated with the user in the course.',
-  `least_privileged_role` VARCHAR(256) COMMENT 'The least privileged role associated with the user in the course.'
+  `least_privileged_role` VARCHAR(256) COMMENT 'The least privileged role associated with the user in the course.',
+PRIMARY KEY (id)
 ) COMMENT = "Would be an empty table. Roll-up aggregating the roles held by the users in the courses they are associated with.";
 DROP TABLE IF EXISTS file_dim;
 CREATE TABLE IF NOT EXISTS file_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for this file.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for this file.',
   `canvas_id` BIGINT COMMENT 'Primary key for this file in the attachments table.',
   `display_name` LONGTEXT COMMENT 'Name of this file.',
   `account_id` BIGINT COMMENT 'Foreign key to the account this file belongs to.',
@@ -589,7 +610,8 @@ CREATE TABLE IF NOT EXISTS file_dim (
   `viewed_at` DATETIME COMMENT 'Date/Time when this file was last viewed.',
   `created_at` DATETIME COMMENT 'Date/Time when this file was created.',
   `updated_at` DATETIME COMMENT 'Date/Time when this file was last updated.',
-  `deleted_at` DATETIME COMMENT 'Date/Time when this file was deleted.'
+  `deleted_at` DATETIME COMMENT 'Date/Time when this file was deleted.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for files.";
 DROP TABLE IF EXISTS file_fact;
 CREATE TABLE IF NOT EXISTS file_fact (
@@ -620,7 +642,7 @@ CREATE TABLE IF NOT EXISTS file_fact (
 ) COMMENT = "Measures for files.";
 DROP TABLE IF EXISTS group_dim;
 CREATE TABLE IF NOT EXISTS group_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for the group.',
+  `id` BIGINT COMMENT 'Unique surrogate id for the group.',
   `canvas_id` BIGINT COMMENT 'Primary key to the groups table in canvas.',
   `name` VARCHAR(256) COMMENT 'Name of the group.',
   `description` LONGTEXT COMMENT 'Description of the group.',
@@ -636,7 +658,8 @@ CREATE TABLE IF NOT EXISTS group_dim (
   `sis_source_id` BIGINT COMMENT 'Correlated id for the record for this group in the SIS system (assuming SIS integration is configured)',
   `group_category_id` BIGINT COMMENT '(Not implemented) Foreign key to group category dimension table.',
   `account_id` BIGINT COMMENT 'Parent account for this group.',
-  `wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.'
+  `wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for groups in canvas. Groups contain two or more students enrolled in a particular course working on an assignment or project together.";
 DROP TABLE IF EXISTS group_fact;
 CREATE TABLE IF NOT EXISTS group_fact (
@@ -662,18 +685,20 @@ CREATE TABLE IF NOT EXISTS group_membership_fact (
 ) COMMENT = "Measures for groups.";
 DROP TABLE IF EXISTS course_ui_canvas_navigation_dim;
 CREATE TABLE IF NOT EXISTS course_ui_canvas_navigation_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Primary key for navigational item',
+  `id` BIGINT COMMENT 'Primary key for navigational item',
   `canvas_id` BIGINT COMMENT 'ID in Canvas system',
   `name` VARCHAR(256) COMMENT 'Name of navigational item',
   `default` VARCHAR(256) COMMENT '(Default|NotDefault) - set to Default if this is one of the navigation items enabled in a course by default',
-  `original_position` VARCHAR(256) COMMENT 'Original position of this navigation item'
+  `original_position` VARCHAR(256) COMMENT 'Original position of this navigation item',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for a Canvas navigation function";
 DROP TABLE IF EXISTS course_ui_navigation_item_dim;
 CREATE TABLE IF NOT EXISTS course_ui_navigation_item_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Primary key for navigational item',
+  `id` BIGINT COMMENT 'Primary key for navigational item',
   `root_account_id` BIGINT COMMENT 'Foreign key to root account of the course',
   `visible` VARCHAR(256) COMMENT '(visible|hidden) Visible if this element is visible, hidden if hidden/not available in the navigation',
-  `position` INTEGER UNSIGNED COMMENT 'Position in the navigation.  NULL if hidden.'
+  `position` INTEGER UNSIGNED COMMENT 'Position in the navigation. NULL if hidden.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for a navigation item";
 DROP TABLE IF EXISTS course_ui_navigation_item_fact;
 CREATE TABLE IF NOT EXISTS course_ui_navigation_item_fact (
@@ -687,7 +712,7 @@ CREATE TABLE IF NOT EXISTS course_ui_navigation_item_fact (
 ) COMMENT = "Facts describing a single item in the navigation UI";
 DROP TABLE IF EXISTS quiz_dim;
 CREATE TABLE IF NOT EXISTS quiz_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the quiz.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the quiz.',
   `canvas_id` BIGINT COMMENT 'Primary key for this quiz in the quizzes table.',
   `root_account_id` BIGINT COMMENT 'Root account ID associated with this quiz.',
   `name` VARCHAR(256) COMMENT 'Name of the quiz. Equivalent Canvas API field -> \'title\'.',
@@ -717,7 +742,8 @@ CREATE TABLE IF NOT EXISTS quiz_dim (
   `unlock_at` DATETIME COMMENT 'Day/Time when the quiz is to be unlocked for students.',
   `lock_at` DATETIME COMMENT 'Day/Time when the quiz is to be locked for students.',
   `due_at` DATETIME COMMENT 'Day/Time when the quiz is due.',
-  `deleted_at` DATETIME COMMENT 'Time when the quiz was deleted.'
+  `deleted_at` DATETIME COMMENT 'Time when the quiz was deleted.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for quiz.";
 DROP TABLE IF EXISTS quiz_fact;
 CREATE TABLE IF NOT EXISTS quiz_fact (
@@ -734,7 +760,7 @@ CREATE TABLE IF NOT EXISTS quiz_fact (
 ) COMMENT = "Measures for quiz.";
 DROP TABLE IF EXISTS quiz_submission_historical_dim;
 CREATE TABLE IF NOT EXISTS quiz_submission_historical_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the quiz submission.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the quiz submission.',
   `canvas_id` BIGINT COMMENT 'Primary key for this quiz submission in the \'quiz_submissions\' Canvas table.',
   `quiz_id` BIGINT COMMENT 'ID of the quiz the quiz submission represents. Foreign key to the quiz dimension table.',
   `submission_id` BIGINT COMMENT 'ID to the submission the quiz submission represents. Foreign key to the quiz submission dimension table.',
@@ -751,7 +777,8 @@ CREATE TABLE IF NOT EXISTS quiz_submission_historical_dim (
   `updated_at` DATETIME COMMENT 'Time when the quiz submission was last updated.',
   `started_at` DATETIME COMMENT 'Time at which the student started the quiz submission.',
   `finished_at` DATETIME COMMENT 'Time at which the student submitted the quiz submission.',
-  `due_at` DATETIME COMMENT 'Time at which the quiz submission will be overdue, and will be flagged as a late submission.'
+  `due_at` DATETIME COMMENT 'Time at which the quiz submission will be overdue, and will be flagged as a late submission.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for all submitted quizzes";
 DROP TABLE IF EXISTS quiz_submission_historical_fact;
 CREATE TABLE IF NOT EXISTS quiz_submission_historical_fact (
@@ -777,7 +804,7 @@ CREATE TABLE IF NOT EXISTS quiz_submission_historical_fact (
 ) COMMENT = "Measures for the all submitted quizzes";
 DROP TABLE IF EXISTS quiz_submission_dim;
 CREATE TABLE IF NOT EXISTS quiz_submission_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the quiz submission.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the quiz submission.',
   `canvas_id` BIGINT COMMENT 'Primary key for this quiz submission in the \'quiz_submissions\' Canvas table.',
   `quiz_id` BIGINT COMMENT 'ID of the quiz the quiz submission represents. Foreign key to the quiz dimension table.',
   `submission_id` BIGINT COMMENT 'ID to the submission the quiz submission represents. Foreign key to the quiz submission dimension table.',
@@ -792,7 +819,8 @@ CREATE TABLE IF NOT EXISTS quiz_submission_dim (
   `updated_at` DATETIME COMMENT 'Time when the quiz submission was last updated.',
   `started_at` DATETIME COMMENT 'Time at which the student started the quiz submission.',
   `finished_at` DATETIME COMMENT 'Time at which the student submitted the quiz submission.',
-  `due_at` DATETIME COMMENT 'Time at which the quiz submission will be overdue, and will be flagged as a late submission.'
+  `due_at` DATETIME COMMENT 'Time at which the quiz submission will be overdue, and will be flagged as a late submission.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for the last submitted quiz";
 DROP TABLE IF EXISTS quiz_submission_fact;
 CREATE TABLE IF NOT EXISTS quiz_submission_fact (
@@ -818,13 +846,14 @@ CREATE TABLE IF NOT EXISTS quiz_submission_fact (
 ) COMMENT = "Measures for the last submitted quiz";
 DROP TABLE IF EXISTS quiz_question_group_dim;
 CREATE TABLE IF NOT EXISTS quiz_question_group_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate ID for the quiz group.',
+  `id` BIGINT COMMENT 'Unique surrogate ID for the quiz group.',
   `canvas_id` BIGINT COMMENT 'Primary key for this quiz group in the \'quiz_question_groups\' table.',
   `quiz_id` BIGINT COMMENT 'Foreign key to quiz dimension.',
   `name` VARCHAR(256) COMMENT 'Name of the quiz group.',
   `position` INTEGER UNSIGNED COMMENT 'Order in which the questions from this group will be displayed in the quiz relative to other questions in the quiz from other groups.',
   `created_at` DATETIME COMMENT 'Time when the quiz question was created.',
-  `updated_at` DATETIME COMMENT 'Time when the quiz question was last updated.'
+  `updated_at` DATETIME COMMENT 'Time when the quiz question was last updated.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for quiz group.";
 DROP TABLE IF EXISTS quiz_question_group_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_group_fact (
@@ -839,7 +868,7 @@ CREATE TABLE IF NOT EXISTS quiz_question_group_fact (
 ) COMMENT = "Measures related to quiz groups.";
 DROP TABLE IF EXISTS quiz_question_dim;
 CREATE TABLE IF NOT EXISTS quiz_question_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate key for the quiz question.',
+  `id` BIGINT COMMENT 'Unique surrogate key for the quiz question.',
   `canvas_id` BIGINT COMMENT 'Primary key for this quiz question in the \'quiz_questions\' table.',
   `quiz_id` BIGINT COMMENT 'Foreign key to the quiz dimension table.',
   `quiz_question_group_id` BIGINT COMMENT 'Foreign key to the quiz group dimension table.',
@@ -855,7 +884,8 @@ CREATE TABLE IF NOT EXISTS quiz_question_dim (
   `regrade_option` VARCHAR(256) COMMENT 'Denotes if regrading is available for the question. Possible values are \'available\' and \'unavailable\' for question types \'multiple_answers_question\', \'multiple_choice_question\', \'true_false_question\' and \'NULL\' for others. Defaults to \'available\' for the allowed question types and \'NULL\' for the rest.',
   `correct_comments` LONGTEXT COMMENT 'Comments to be displayed if the student answers the question correctly.',
   `incorrect_comments` LONGTEXT COMMENT 'Comments to be displayed if the student answers the question incorrectly.',
-  `neutral_comments` LONGTEXT COMMENT 'Comments to be displayed regardless of how the student answers the question.'
+  `neutral_comments` LONGTEXT COMMENT 'Comments to be displayed regardless of how the student answers the question.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes of a question associated with a quiz.";
 DROP TABLE IF EXISTS quiz_question_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_fact (
@@ -871,7 +901,7 @@ CREATE TABLE IF NOT EXISTS quiz_question_fact (
 ) COMMENT = "Measures of a question associated with a quiz.";
 DROP TABLE IF EXISTS quiz_question_answer_dim;
 CREATE TABLE IF NOT EXISTS quiz_question_answer_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate key for the quiz question answer.',
+  `id` BIGINT COMMENT 'Unique surrogate key for the quiz question answer.',
   `canvas_id` BIGINT COMMENT 'Primary key for this quiz question answer. No table available in Canvas.',
   `quiz_question_id` BIGINT COMMENT 'Foreign key to the quiz question dimension column.',
   `text` LONGTEXT COMMENT 'Text of the answer.',
@@ -886,7 +916,8 @@ CREATE TABLE IF NOT EXISTS quiz_question_answer_dim (
   `exact` DOUBLE COMMENT '(Used in \'numerical_question\' with answer type \'exact_answer\', set to \'NULL\' otherwise) Value the answer must be equal to.',
   `margin` DOUBLE COMMENT '(Used in \'numerical_question\' with answer type \'exact_answer\', set to \'NULL\' otherwise) Margin of error allowed for a student\'s answer.',
   `starting_range` DOUBLE COMMENT '(Used in \'numerical_question\' with answer type \'range_answer\', set to \'NULL\' otherwise) Start of the allowed range (inclusive).',
-  `ending_range` DOUBLE COMMENT '(Used in \'numerical_question\' with answer type \'range_answer\', set to \'NULL\' otherwise) End of the allowed range (inclusive).'
+  `ending_range` DOUBLE COMMENT '(Used in \'numerical_question\' with answer type \'range_answer\', set to \'NULL\' otherwise) End of the allowed range (inclusive).',
+PRIMARY KEY (id,quiz_question_id)
 ) COMMENT = "Attributes of an answer related to a quiz question.";
 DROP TABLE IF EXISTS quiz_question_answer_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_answer_fact (
@@ -932,11 +963,14 @@ CREATE TABLE IF NOT EXISTS requests (
   `session_id` VARCHAR(256) COMMENT 'ID of the user\'s session where this request was made.',
   `user_agent_id` BIGINT COMMENT '(Not implemented) Foreign key to the user agent dimension table.',
   `http_status` VARCHAR(10) COMMENT 'HTTP status of the request.',
-  `http_version` VARCHAR(256) COMMENT 'HTTP protocol version.'
+  `http_version` VARCHAR(256) COMMENT 'HTTP protocol version.',
+  `pkid` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Artificial primary key',
+PRIMARY KEY (pkid),
+UNIQUE KEY id (id)
 ) COMMENT = "Pageview requests";
 DROP TABLE IF EXISTS external_tool_activation_dim;
 CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique surrogate id for tool activations',
+  `id` BIGINT COMMENT 'Unique surrogate id for tool activations',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the context_external_tools table in the Canvas database',
   `course_id` BIGINT COMMENT 'Foreign key to the course if this tool was activated in a course',
   `account_id` BIGINT COMMENT 'Foreign key to the account this tool was activated in if it was activated in an account',
@@ -949,9 +983,9 @@ CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
   `created_at` DATETIME COMMENT 'Timestamp when the activation was created',
   `updated_at` DATETIME COMMENT 'Timestamp when the activation was last updated',
   `tool_id` VARCHAR(256) COMMENT 'The tool id received from the external tool. May be missing if the tool does not send an id.',
-  `selectable_all` BOOLEAN COMMENT 'true - tool is selectable in all scenarios. false - not selectable for assignment or module selection menu'
-) COMMENT = "Attributes for external tool (LTI) activations.
-Note that activations can happen on courses or accounts.   If this activation is associated with a course then course_id, course_account_id and enrollment_term_id will be populated.  If this activation is associated with an account then only account_id will be populated.";
+  `selectable_all` BOOLEAN COMMENT 'true - tool is selectable in all scenarios. false - not selectable for assignment or module selection menu',
+PRIMARY KEY (id)
+) COMMENT = "Attributes for external tool (LTI) activations. Note that activations can happen on courses or accounts. If this activation is associated with a course then course_id, course_account_id and enrollment_term_id will be populated. If this activation is associated with an account then only account_id will be populated.";
 DROP TABLE IF EXISTS external_tool_activation_fact;
 CREATE TABLE IF NOT EXISTS external_tool_activation_fact (
   `external_tool_activation_id` BIGINT COMMENT 'Foreign key to the external_tool_activation_dim dimension with attribute for this activation',
@@ -963,14 +997,15 @@ CREATE TABLE IF NOT EXISTS external_tool_activation_fact (
 ) COMMENT = "Facts and denormalized dimensions for external tool (LTI) activations.";
 DROP TABLE IF EXISTS wiki_dim;
 CREATE TABLE IF NOT EXISTS wiki_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique id for the wiki.',
+  `id` BIGINT COMMENT 'Unique id for the wiki.',
   `canvas_id` BIGINT COMMENT 'Primary key to the wikis table in canvas.',
   `parent_type` VARCHAR(256) COMMENT 'Type of Parent the wiki belongs to. For example, Groups or Courses.',
   `title` LONGTEXT COMMENT 'Title for the wiki.',
   `created_at` DATETIME COMMENT 'Timestamp when the wiki was first saved in the system.',
   `updated_at` DATETIME COMMENT 'Timestamp when the wiki was last updated in the system.',
   `front_page_url` LONGTEXT COMMENT 'URL of the front page of the wiki.',
-  `has_no_front_page` BOOLEAN COMMENT 'True if the wiki does not have a front page or is set to NULL.'
+  `has_no_front_page` BOOLEAN COMMENT 'True if the wiki does not have a front page or is set to NULL.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for wiki in canvas.";
 DROP TABLE IF EXISTS wiki_fact;
 CREATE TABLE IF NOT EXISTS wiki_fact (
@@ -986,7 +1021,7 @@ CREATE TABLE IF NOT EXISTS wiki_fact (
 ) COMMENT = "Measures for wikis.";
 DROP TABLE IF EXISTS wiki_page_dim;
 CREATE TABLE IF NOT EXISTS wiki_page_dim (
-  `id` BIGINT PRIMARY KEY COMMENT 'Unique id for the wiki pages.',
+  `id` BIGINT COMMENT 'Unique id for the wiki pages.',
   `canvas_id` BIGINT COMMENT 'Primary key for the wiki pages table.',
   `title` VARCHAR(256) COMMENT 'Title of the wiki page.',
   `body` LONGTEXT COMMENT 'Body of the wiki page. Redshift will only load the first 256 bytes of the body.',
@@ -997,7 +1032,8 @@ CREATE TABLE IF NOT EXISTS wiki_page_dim (
   `protected_editing` BOOLEAN COMMENT 'Editing protection for the wiki page. It is false by default.',
   `editing_roles` VARCHAR(256) COMMENT 'Users or roles who can edit a wiki page.',
   `revised_at` DATETIME COMMENT 'Timestamp the wiki page was last revised in the system.',
-  `could_be_locked` BOOLEAN COMMENT 'True if the wiki page can be locked. This prevents it from being visible to others until ready.'
+  `could_be_locked` BOOLEAN COMMENT 'True if the wiki page can be locked. This prevents it from being visible to others until ready.',
+PRIMARY KEY (id)
 ) COMMENT = "Attributes for wiki pages in canvas.";
 DROP TABLE IF EXISTS wiki_page_fact;
 CREATE TABLE IF NOT EXISTS wiki_page_fact (
