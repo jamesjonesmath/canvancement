@@ -191,19 +191,46 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
         $enumvalues = join( ', ', $matches[0] );
         $colextra .= sprintf( '(%s)', $enumvalues );
       }
+      if (isset( $column['extra'] )) {
+        $colextra .= $column['extra'];
+      }
       $columndef = sprintf( '  `%s` %s', $column['name'], strtoupper( $coltype ) );
       if (! empty( $colextra )) {
+        $colextra = trim( $colextra );
+        if (! preg_match( '/^\(/', $colextra )) {
+          $columndef .= ' ';
+        }
         $columndef .= $colextra;
       }
-      if (isset( $table['dw_type'] ) && $table['dw_type'] == 'dimension' && $colname == 'id') {
-        $columndef .= ' PRIMARY KEY';
-      }
       if ($add_comments && ! empty( $comment )) {
-        $columndef .= sprintf( " COMMENT '%s'", addslashes( $comment ) );
+        $comment = preg_replace( '/\n/', ' ', $comment );
+        $comment = preg_replace( '/\s+/', ' ', $comment );
+        $columndef .= sprintf( " COMMENT '%s'", addslashes( trim( $comment ) ) );
       }
       $columns[] = $columndef;
     }
     if (count( $columns ) > 0) {
+      if (isset( $table['KEYS'] )) {
+        foreach ( $table['KEYS'] as $keytype => $keyinfo ) {
+          switch ($keytype) {
+            case 'primary' :
+              $columns[] = sprintf( 'PRIMARY KEY (%s)', $keyinfo );
+              break;
+            case 'unique' :
+              foreach ( $keyinfo as $keyname => $keyfields ) {
+                $columns[] = sprintf( 'UNIQUE KEY %s (%s)', $keyname, $keyfields );
+              }
+              break;
+            case 'index' :
+              foreach ( $keyinfo as $keyname => $keyfields ) {
+                $columns[] = sprintf( 'INDEX %s (%s)', $keyname, $keyfields );
+              }
+              break;
+            default :
+              break;
+          }
+        }
+      }
       if (! isset( $table['incremental'] ) || $table['incremental'] == FALSE) {
         $t .= c( 'DROP TABLE IF EXISTS %s', $table_name );
       }
@@ -211,7 +238,9 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
       $create .= join( ",\n", $columns ) . "\n";
       $create .= ')';
       if ($add_comments && ! empty( $table['description'] )) {
-        $create .= sprintf( ' COMMENT = "%s"', addslashes( $table['description'] ) );
+        $comment = preg_replace( '/\n/', ' ', $table['description'] );
+        $comment = preg_replace( '/\s+/', ' ', $comment );
+        $create .= sprintf( ' COMMENT = "%s"', addslashes( trim( $comment ) ) );
       }
       $t .= c( $create );
     }
@@ -281,9 +310,28 @@ function table_overrides($T = NULL, $table_name = NULL) {
           ) 
       ), 
       'requests' => array ( 
+          'KEYS' => array ( 
+              'primary' => 'pkid', 
+              'unique' => array ( 
+                  'id' => 'id' 
+              ) 
+          ), 
+          'NEW' => array ( 
+              array ( 
+                  'name' => 'pkid', 
+                  'type' => 'bigint', 
+                  'extra' => 'NOT NULL AUTO_INCREMENT', 
+                  'description' => 'Artificial primary key' 
+              ) 
+          ), 
           'web_applicaiton_action' => array ( 
               'rename', 
               'web_application_action' 
+          ) 
+      ), 
+      'quiz_question_answer_dim' => array ( 
+          'KEYS' => array ( 
+              'primary' => 'id,quiz_question_id' 
           ) 
       ) 
   );
@@ -313,11 +361,27 @@ function table_overrides($T = NULL, $table_name = NULL) {
             $t .= sprintf( "'%s'", $parms[$i] );
           }
           $T['columns'][$key]['description'] .= ' Possible values are ' . $t;
+      }
+    }
+    foreach ( $ov as $action => $info ) {
+      switch ($action) {
+        case 'NEW' :
+          foreach ( $info as $newfield ) {
+            $T['columns'][] = $newfield;
+          }
+          break;
+        case 'KEYS' :
+          $T['KEYS'] = $info;
           break;
         default :
           break;
       }
     }
+  }
+  if (! isset( $T['KEYS'] ) && preg_match( '/_dim$/', $table_name ) && $T['columns'][0]['name'] == 'id') {
+    $T['KEYS'] = array ( 
+        'primary' => 'id' 
+    );
   }
   return $T;
 }
