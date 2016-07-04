@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS course_dim (
   `sis_source_id` VARCHAR(256),
   `workflow_state` VARCHAR(256),
   `wiki_id` BIGINT,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS account_dim;
 CREATE TABLE IF NOT EXISTS account_dim (
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS account_dim (
   `subaccount1` VARCHAR(256),
   `subaccount1_id` BIGINT,
   `subaccount2` VARCHAR(256),
-  `subaccount2_id` BIGINT,id
+  `subaccount2_id` BIGINT,
   `subaccount3` VARCHAR(256),
   `subaccount3_id` BIGINT,
   `subaccount4` VARCHAR(256),
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS account_dim (
   `subaccount15` VARCHAR(256),
   `subaccount15_id` BIGINT,
   `sis_source_id` VARCHAR(256),
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS user_dim;
 CREATE TABLE IF NOT EXISTS user_dim (
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS user_dim (
   `country_code` VARCHAR(256),
   `workflow_state` VARCHAR(256),
   `sortable_name` VARCHAR(256),
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS pseudonym_dim;
 CREATE TABLE IF NOT EXISTS pseudonym_dim (
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS pseudonym_dim (
   `deleted_at` DATETIME,
   `sis_user_id` VARCHAR(256),
   `unique_name` VARCHAR(256),
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS pseudonym_fact;
 CREATE TABLE IF NOT EXISTS pseudonym_fact (
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `anonymous_peer_reviews` BOOLEAN,
   `muted` BOOLEAN,
   `assignment_group_id` BIGINT,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS assignment_fact;
 CREATE TABLE IF NOT EXISTS assignment_fact (
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS submission_dim (
   `quiz_submission_id` BIGINT,
   `user_id` BIGINT,
   `grade_state` ENUM('auto_graded', 'human_graded', 'not_graded'),
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS submission_fact;
 CREATE TABLE IF NOT EXISTS submission_fact (
@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS submission_comment_participant_dim (
   `participation_type` VARCHAR(256),
   `created_at` DATETIME,
   `updated_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS submission_comment_fact;
 CREATE TABLE IF NOT EXISTS submission_comment_fact (
@@ -267,7 +267,7 @@ CREATE TABLE IF NOT EXISTS submission_comment_dim (
   `anonymous` BOOLEAN,
   `teacher_only_comment` BOOLEAN,
   `hidden` BOOLEAN,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS assignment_group_dim;
 CREATE TABLE IF NOT EXISTS assignment_group_dim (
@@ -280,7 +280,7 @@ CREATE TABLE IF NOT EXISTS assignment_group_dim (
   `position` INTEGER UNSIGNED,
   `created_at` DATETIME,
   `updated_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS assignment_group_fact;
 CREATE TABLE IF NOT EXISTS assignment_group_fact (
@@ -304,7 +304,7 @@ CREATE TABLE IF NOT EXISTS assignment_override_user_dim (
   `user_id` BIGINT,
   `created_at` DATETIME,
   `updated_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS assignment_override_user_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_user_fact (
@@ -341,7 +341,7 @@ CREATE TABLE IF NOT EXISTS assignment_override_dim (
   `updated_at` DATETIME,
   `quiz_version` INTEGER UNSIGNED,
   `workflow_state` ENUM('active', 'deleted'),
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS assignment_override_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_fact (
@@ -370,7 +370,7 @@ CREATE TABLE IF NOT EXISTS communication_channel_dim (
   `workflow_state` VARCHAR(256),
   `created_at` DATETIME,
   `updated_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS communication_channel_fact;
 CREATE TABLE IF NOT EXISTS communication_channel_fact (
@@ -388,7 +388,7 @@ CREATE TABLE IF NOT EXISTS conversation_dim (
   `course_id` BIGINT,
   `group_id` BIGINT,
   `account_id` BIGINT,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS conversation_message_dim;
 CREATE TABLE IF NOT EXISTS conversation_message_dim (
@@ -401,7 +401,7 @@ CREATE TABLE IF NOT EXISTS conversation_message_dim (
   `has_attachments` BOOLEAN,
   `has_media_objects` BOOLEAN,
   `body` LONGTEXT,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS conversation_message_participant_fact;
 CREATE TABLE IF NOT EXISTS conversation_message_participant_fact (
@@ -436,7 +436,7 @@ CREATE TABLE IF NOT EXISTS discussion_topic_dim (
   `discussion_type` VARCHAR(256),
   `pinned` BOOLEAN,
   `locked` BOOLEAN,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS discussion_topic_fact;
 CREATE TABLE IF NOT EXISTS discussion_topic_fact (
@@ -460,7 +460,7 @@ CREATE TABLE IF NOT EXISTS discussion_entry_dim (
   `updated_at` DATETIME,
   `deleted_at` DATETIME,
   `depth` INTEGER UNSIGNED,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS discussion_entry_fact;
 CREATE TABLE IF NOT EXISTS discussion_entry_fact (
@@ -486,7 +486,7 @@ CREATE TABLE IF NOT EXISTS enrollment_term_dim (
   `date_start` DATETIME,
   `date_end` DATETIME,
   `sis_source_id` VARCHAR(256),
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS course_section_dim;
 CREATE TABLE IF NOT EXISTS course_section_dim (
@@ -506,7 +506,7 @@ CREATE TABLE IF NOT EXISTS course_section_dim (
   `restrict_enrollments_to_section_dates` BOOLEAN,
   `nonxlist_course_id` BIGINT,
   `sis_source_id` VARCHAR(256),
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS role_dim;
 CREATE TABLE IF NOT EXISTS role_dim (
@@ -520,7 +520,7 @@ CREATE TABLE IF NOT EXISTS role_dim (
   `created_at` DATETIME,
   `updated_at` DATETIME,
   `deleted_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS enrollment_dim;
 CREATE TABLE IF NOT EXISTS enrollment_dim (
@@ -540,7 +540,7 @@ CREATE TABLE IF NOT EXISTS enrollment_dim (
   `sis_source_id` VARCHAR(256),
   `course_id` BIGINT,
   `user_id` BIGINT,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS enrollment_fact;
 CREATE TABLE IF NOT EXISTS enrollment_fact (
@@ -579,7 +579,7 @@ CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
   `no_permissions_enrollment_id` BIGINT,
   `most_privileged_role` VARCHAR(256),
   `least_privileged_role` VARCHAR(256),
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS file_dim;
 CREATE TABLE IF NOT EXISTS file_dim (
@@ -611,7 +611,7 @@ CREATE TABLE IF NOT EXISTS file_dim (
   `created_at` DATETIME,
   `updated_at` DATETIME,
   `deleted_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS file_fact;
 CREATE TABLE IF NOT EXISTS file_fact (
@@ -659,7 +659,7 @@ CREATE TABLE IF NOT EXISTS group_dim (
   `group_category_id` BIGINT,
   `account_id` BIGINT,
   `wiki_id` BIGINT,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS group_fact;
 CREATE TABLE IF NOT EXISTS group_fact (
@@ -690,7 +690,7 @@ CREATE TABLE IF NOT EXISTS course_ui_canvas_navigation_dim (
   `name` VARCHAR(256),
   `default` VARCHAR(256),
   `original_position` VARCHAR(256),
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS course_ui_navigation_item_dim;
 CREATE TABLE IF NOT EXISTS course_ui_navigation_item_dim (
@@ -698,7 +698,7 @@ CREATE TABLE IF NOT EXISTS course_ui_navigation_item_dim (
   `root_account_id` BIGINT,
   `visible` VARCHAR(256),
   `position` INTEGER UNSIGNED,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS course_ui_navigation_item_fact;
 CREATE TABLE IF NOT EXISTS course_ui_navigation_item_fact (
@@ -743,7 +743,7 @@ CREATE TABLE IF NOT EXISTS quiz_dim (
   `lock_at` DATETIME,
   `due_at` DATETIME,
   `deleted_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS quiz_fact;
 CREATE TABLE IF NOT EXISTS quiz_fact (
@@ -778,7 +778,7 @@ CREATE TABLE IF NOT EXISTS quiz_submission_historical_dim (
   `started_at` DATETIME,
   `finished_at` DATETIME,
   `due_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS quiz_submission_historical_fact;
 CREATE TABLE IF NOT EXISTS quiz_submission_historical_fact (
@@ -820,7 +820,7 @@ CREATE TABLE IF NOT EXISTS quiz_submission_dim (
   `started_at` DATETIME,
   `finished_at` DATETIME,
   `due_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS quiz_submission_fact;
 CREATE TABLE IF NOT EXISTS quiz_submission_fact (
@@ -853,7 +853,7 @@ CREATE TABLE IF NOT EXISTS quiz_question_group_dim (
   `position` INTEGER UNSIGNED,
   `created_at` DATETIME,
   `updated_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS quiz_question_group_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_group_fact (
@@ -885,7 +885,7 @@ CREATE TABLE IF NOT EXISTS quiz_question_dim (
   `correct_comments` LONGTEXT,
   `incorrect_comments` LONGTEXT,
   `neutral_comments` LONGTEXT,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS quiz_question_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_fact (
@@ -917,7 +917,7 @@ CREATE TABLE IF NOT EXISTS quiz_question_answer_dim (
   `margin` DOUBLE,
   `starting_range` DOUBLE,
   `ending_range` DOUBLE,
-PRIMARY KEY (id,quiz_question_id)
+UNIQUE KEY id (id,quiz_question_id)
 );
 DROP TABLE IF EXISTS quiz_question_answer_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_answer_fact (
@@ -964,8 +964,6 @@ CREATE TABLE IF NOT EXISTS requests (
   `user_agent_id` BIGINT,
   `http_status` VARCHAR(10),
   `http_version` VARCHAR(256),
-  `pkid` BIGINT NOT NULL AUTO_INCREMENT,
-PRIMARY KEY (pkid),
 UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS external_tool_activation_dim;
@@ -984,7 +982,7 @@ CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
   `updated_at` DATETIME,
   `tool_id` VARCHAR(256),
   `selectable_all` BOOLEAN,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS external_tool_activation_fact;
 CREATE TABLE IF NOT EXISTS external_tool_activation_fact (
@@ -1005,7 +1003,7 @@ CREATE TABLE IF NOT EXISTS wiki_dim (
   `updated_at` DATETIME,
   `front_page_url` LONGTEXT,
   `has_no_front_page` BOOLEAN,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS wiki_fact;
 CREATE TABLE IF NOT EXISTS wiki_fact (
@@ -1033,7 +1031,7 @@ CREATE TABLE IF NOT EXISTS wiki_page_dim (
   `editing_roles` VARCHAR(256),
   `revised_at` DATETIME,
   `could_be_locked` BOOLEAN,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS wiki_page_fact;
 CREATE TABLE IF NOT EXISTS wiki_page_fact (
