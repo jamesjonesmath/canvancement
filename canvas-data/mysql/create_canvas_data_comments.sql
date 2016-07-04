@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS course_dim (
   `sis_source_id` VARCHAR(256) COMMENT 'Correlated id for the record for this course in the SIS system (assuming SIS integration is configured)',
   `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating the current state of the course, valid values are: completed, created, deleted, available, claimed',
   `wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "A course in the canvas system";
 DROP TABLE IF EXISTS account_dim;
 CREATE TABLE IF NOT EXISTS account_dim (
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS account_dim (
   `subaccount15` VARCHAR(256) COMMENT 'Name of this account\'s parent at subaccount level 15. If this account is a level 15 account, subaccount15 will be the name of this account.',
   `subaccount15_id` BIGINT COMMENT 'Id of this account\'s parent at subaccount level 15. If this account is a level 15 account, subaccount15_id will be the id of this account.',
   `sis_source_id` VARCHAR(256) COMMENT 'Correlated id for the record for this course in the SIS system (assuming SIS integration is configured)',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "An account object in the Canvas system. Accounts are most often used to represent a hierarchy of colleges, schools, departments, campuses, etc.";
 DROP TABLE IF EXISTS user_dim;
 CREATE TABLE IF NOT EXISTS user_dim (
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS user_dim (
   `country_code` VARCHAR(256) COMMENT 'The user\'s country code. This is an optional field and may not be entered by the user.',
   `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating the status of the user, valid values are: creation_pending, deleted, pre_registered, registered',
   `sortable_name` VARCHAR(256) COMMENT 'Name of the user that is should be used for sorting groups of users, such as in the gradebook.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for users";
 DROP TABLE IF EXISTS pseudonym_dim;
 CREATE TABLE IF NOT EXISTS pseudonym_dim (
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS pseudonym_dim (
   `deleted_at` DATETIME COMMENT 'Timestamp when the pseudonym was deleted (NULL if the pseudonym is still active)',
   `sis_user_id` VARCHAR(256) COMMENT 'Correlated id for the record for this course in the SIS system (assuming SIS integration is configured)',
   `unique_name` VARCHAR(256) COMMENT 'Actual login id for a given pseudonym/account',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Pseudonyms are logins associated with users.";
 DROP TABLE IF EXISTS pseudonym_fact;
 CREATE TABLE IF NOT EXISTS pseudonym_fact (
@@ -147,7 +147,7 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `anonymous_peer_reviews` BOOLEAN COMMENT '(currently unimplemented, do not use)',
   `muted` BOOLEAN COMMENT 'Student cannot see grades left on the assignment.',
   `assignment_group_id` BIGINT COMMENT 'Foreign key to the assignment group dimension table.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for for assignments. There is one record in this table for each assignment. Individual submissions of the assignment are in the submission_dim and submission_fact tables.";
 DROP TABLE IF EXISTS assignment_fact;
 CREATE TABLE IF NOT EXISTS assignment_fact (
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS submission_dim (
   `quiz_submission_id` BIGINT COMMENT 'Foreign key to the quiz_submission_dim table.',
   `user_id` BIGINT COMMENT 'Foreign key to the user_dim table.',
   `grade_state` ENUM('auto_graded', 'human_graded', 'not_graded') COMMENT 'Denotes the current state of the grade.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "This table records the latest submission for an assignment.";
 DROP TABLE IF EXISTS submission_fact;
 CREATE TABLE IF NOT EXISTS submission_fact (
@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS submission_comment_participant_dim (
   `participation_type` VARCHAR(256),
   `created_at` DATETIME,
   `updated_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS submission_comment_fact;
 CREATE TABLE IF NOT EXISTS submission_comment_fact (
@@ -267,7 +267,7 @@ CREATE TABLE IF NOT EXISTS submission_comment_dim (
   `anonymous` BOOLEAN,
   `teacher_only_comment` BOOLEAN,
   `hidden` BOOLEAN,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS assignment_group_dim;
 CREATE TABLE IF NOT EXISTS assignment_group_dim (
@@ -280,7 +280,7 @@ CREATE TABLE IF NOT EXISTS assignment_group_dim (
   `position` INTEGER UNSIGNED COMMENT 'Position of the assignment group in the assignment index page. It determines where it should be displayed on the page and where it should be displayed in a new course if the course is cloned.',
   `created_at` DATETIME COMMENT 'Date/Time when the assignment group was created.',
   `updated_at` DATETIME COMMENT 'Date/Time when the assignment group was last updated.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for assignment_groups.";
 DROP TABLE IF EXISTS assignment_group_fact;
 CREATE TABLE IF NOT EXISTS assignment_group_fact (
@@ -304,7 +304,7 @@ CREATE TABLE IF NOT EXISTS assignment_override_user_dim (
   `user_id` BIGINT COMMENT 'Foreign key to the user.',
   `created_at` DATETIME COMMENT 'Timestamp of when the assignment_override_student was created.',
   `updated_at` DATETIME COMMENT 'Timestamp of when the assignment_override_student was last updated.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Table contains measures related to adhoc users for whom an assignment override exists.";
 DROP TABLE IF EXISTS assignment_override_user_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_user_fact (
@@ -341,7 +341,7 @@ CREATE TABLE IF NOT EXISTS assignment_override_dim (
   `updated_at` DATETIME COMMENT 'Timestamp of when the assignment_override was last updated.',
   `quiz_version` INTEGER UNSIGNED COMMENT 'The version of the quiz this override is applied too.',
   `workflow_state` ENUM('active', 'deleted') COMMENT 'Gives the workflow state of this record.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for assignment_override. There may be many records in this table for each assignment. Use the data in this table to calculate actual due, all_day, lock and unlock dates/times.";
 DROP TABLE IF EXISTS assignment_override_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_fact (
@@ -370,7 +370,7 @@ CREATE TABLE IF NOT EXISTS communication_channel_dim (
   `workflow_state` VARCHAR(256) COMMENT 'Current state of the communication channel. Possible values are \'unconfirmed\' and \'active\'.',
   `created_at` DATETIME COMMENT 'Date/Time when the quiz was created.',
   `updated_at` DATETIME COMMENT 'Date/Time when the quiz was last updated.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for communication channel.";
 DROP TABLE IF EXISTS communication_channel_fact;
 CREATE TABLE IF NOT EXISTS communication_channel_fact (
@@ -388,7 +388,7 @@ CREATE TABLE IF NOT EXISTS conversation_dim (
   `course_id` BIGINT COMMENT 'The course that owns this conversation',
   `group_id` BIGINT COMMENT 'The group that owns this conversation',
   `account_id` BIGINT COMMENT 'The account this owns this conversation',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for a conversation";
 DROP TABLE IF EXISTS conversation_message_dim;
 CREATE TABLE IF NOT EXISTS conversation_message_dim (
@@ -401,7 +401,7 @@ CREATE TABLE IF NOT EXISTS conversation_message_dim (
   `has_attachments` BOOLEAN COMMENT 'True if the message has attachments.',
   `has_media_objects` BOOLEAN COMMENT 'True if the message has media objects.',
   `body` LONGTEXT COMMENT 'The content of the message.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for a message in a conversation";
 DROP TABLE IF EXISTS conversation_message_participant_fact;
 CREATE TABLE IF NOT EXISTS conversation_message_participant_fact (
@@ -436,7 +436,7 @@ CREATE TABLE IF NOT EXISTS discussion_topic_dim (
   `discussion_type` VARCHAR(256) COMMENT 'Type of discussion topic: default(blank), side_comment, threaded. threaded indicates that replies are threaded where side_comment indicates that replies in the discussion are flat. See related Canvas Guide https://guides.instructure.com/m/4152/l/60423-how-do-i-create-a-threaded-discussion',
   `pinned` BOOLEAN COMMENT 'True if the discussion topic has been pinned',
   `locked` BOOLEAN COMMENT 'True if the discussion topic has been locked',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for discussion topics in Canvas. Discussion topics are logical discussion threads. They can have many discussion entries. They also have their own message text for the message that started the topic.";
 DROP TABLE IF EXISTS discussion_topic_fact;
 CREATE TABLE IF NOT EXISTS discussion_topic_fact (
@@ -460,7 +460,7 @@ CREATE TABLE IF NOT EXISTS discussion_entry_dim (
   `updated_at` DATETIME COMMENT 'Timestamp when the discussion entry was updated.',
   `deleted_at` DATETIME COMMENT 'Timestamp when the discussion entry was deleted.',
   `depth` INTEGER UNSIGNED COMMENT 'Reply depth for this entry',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for discussion entries. Discussion entries are replies in a discussion topic.";
 DROP TABLE IF EXISTS discussion_entry_fact;
 CREATE TABLE IF NOT EXISTS discussion_entry_fact (
@@ -486,7 +486,7 @@ CREATE TABLE IF NOT EXISTS enrollment_term_dim (
   `date_start` DATETIME COMMENT 'Term start date',
   `date_end` DATETIME COMMENT 'Term end date',
   `sis_source_id` VARCHAR(256) COMMENT 'Correlated SIS id for this enrollment term (assuming SIS has been configured properly)',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Enrollment term describes the term or semester associated with courses (e.g. Fall 2013)";
 DROP TABLE IF EXISTS course_section_dim;
 CREATE TABLE IF NOT EXISTS course_section_dim (
@@ -506,7 +506,7 @@ CREATE TABLE IF NOT EXISTS course_section_dim (
   `restrict_enrollments_to_section_dates` BOOLEAN COMMENT 'True when \"Users can only participate in the course between these dates\" is checked',
   `nonxlist_course_id` BIGINT COMMENT 'The course id for the original course if this course has been cross listed',
   `sis_source_id` VARCHAR(256) COMMENT 'Id for the correlated record for the section in the SIS (assuming SIS integration has been properly configured)',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for a section of a course";
 DROP TABLE IF EXISTS role_dim;
 CREATE TABLE IF NOT EXISTS role_dim (
@@ -520,7 +520,7 @@ CREATE TABLE IF NOT EXISTS role_dim (
   `created_at` DATETIME,
   `updated_at` DATETIME,
   `deleted_at` DATETIME,
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Give the possible roles for an enrolled user";
 DROP TABLE IF EXISTS enrollment_dim;
 CREATE TABLE IF NOT EXISTS enrollment_dim (
@@ -540,7 +540,7 @@ CREATE TABLE IF NOT EXISTS enrollment_dim (
   `sis_source_id` VARCHAR(256) COMMENT '(Deprecated) No longer used in Canvas.',
   `course_id` BIGINT COMMENT 'Foreign key to course for this enrollment',
   `user_id` BIGINT COMMENT 'Foreign key to user for the enrollment',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "An enrollment represents a user\'s association with a specific course and section";
 DROP TABLE IF EXISTS enrollment_fact;
 CREATE TABLE IF NOT EXISTS enrollment_fact (
@@ -579,7 +579,7 @@ CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
   `no_permissions_enrollment_id` BIGINT COMMENT 'Enrollment ID if this a valid role for the user in the course, else NULL.',
   `most_privileged_role` VARCHAR(256) COMMENT 'The most privileged role associated with the user in the course.',
   `least_privileged_role` VARCHAR(256) COMMENT 'The least privileged role associated with the user in the course.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Would be an empty table. Roll-up aggregating the roles held by the users in the courses they are associated with.";
 DROP TABLE IF EXISTS file_dim;
 CREATE TABLE IF NOT EXISTS file_dim (
@@ -611,7 +611,7 @@ CREATE TABLE IF NOT EXISTS file_dim (
   `created_at` DATETIME COMMENT 'Date/Time when this file was created.',
   `updated_at` DATETIME COMMENT 'Date/Time when this file was last updated.',
   `deleted_at` DATETIME COMMENT 'Date/Time when this file was deleted.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for files.";
 DROP TABLE IF EXISTS file_fact;
 CREATE TABLE IF NOT EXISTS file_fact (
@@ -659,7 +659,7 @@ CREATE TABLE IF NOT EXISTS group_dim (
   `group_category_id` BIGINT COMMENT '(Not implemented) Foreign key to group category dimension table.',
   `account_id` BIGINT COMMENT 'Parent account for this group.',
   `wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for groups in canvas. Groups contain two or more students enrolled in a particular course working on an assignment or project together.";
 DROP TABLE IF EXISTS group_fact;
 CREATE TABLE IF NOT EXISTS group_fact (
@@ -690,7 +690,7 @@ CREATE TABLE IF NOT EXISTS course_ui_canvas_navigation_dim (
   `name` VARCHAR(256) COMMENT 'Name of navigational item',
   `default` VARCHAR(256) COMMENT '(Default|NotDefault) - set to Default if this is one of the navigation items enabled in a course by default',
   `original_position` VARCHAR(256) COMMENT 'Original position of this navigation item',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for a Canvas navigation function";
 DROP TABLE IF EXISTS course_ui_navigation_item_dim;
 CREATE TABLE IF NOT EXISTS course_ui_navigation_item_dim (
@@ -698,7 +698,7 @@ CREATE TABLE IF NOT EXISTS course_ui_navigation_item_dim (
   `root_account_id` BIGINT COMMENT 'Foreign key to root account of the course',
   `visible` VARCHAR(256) COMMENT '(visible|hidden) Visible if this element is visible, hidden if hidden/not available in the navigation',
   `position` INTEGER UNSIGNED COMMENT 'Position in the navigation. NULL if hidden.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for a navigation item";
 DROP TABLE IF EXISTS course_ui_navigation_item_fact;
 CREATE TABLE IF NOT EXISTS course_ui_navigation_item_fact (
@@ -743,7 +743,7 @@ CREATE TABLE IF NOT EXISTS quiz_dim (
   `lock_at` DATETIME COMMENT 'Day/Time when the quiz is to be locked for students.',
   `due_at` DATETIME COMMENT 'Day/Time when the quiz is due.',
   `deleted_at` DATETIME COMMENT 'Time when the quiz was deleted.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for quiz.";
 DROP TABLE IF EXISTS quiz_fact;
 CREATE TABLE IF NOT EXISTS quiz_fact (
@@ -778,7 +778,7 @@ CREATE TABLE IF NOT EXISTS quiz_submission_historical_dim (
   `started_at` DATETIME COMMENT 'Time at which the student started the quiz submission.',
   `finished_at` DATETIME COMMENT 'Time at which the student submitted the quiz submission.',
   `due_at` DATETIME COMMENT 'Time at which the quiz submission will be overdue, and will be flagged as a late submission.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for all submitted quizzes";
 DROP TABLE IF EXISTS quiz_submission_historical_fact;
 CREATE TABLE IF NOT EXISTS quiz_submission_historical_fact (
@@ -820,7 +820,7 @@ CREATE TABLE IF NOT EXISTS quiz_submission_dim (
   `started_at` DATETIME COMMENT 'Time at which the student started the quiz submission.',
   `finished_at` DATETIME COMMENT 'Time at which the student submitted the quiz submission.',
   `due_at` DATETIME COMMENT 'Time at which the quiz submission will be overdue, and will be flagged as a late submission.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for the last submitted quiz";
 DROP TABLE IF EXISTS quiz_submission_fact;
 CREATE TABLE IF NOT EXISTS quiz_submission_fact (
@@ -853,7 +853,7 @@ CREATE TABLE IF NOT EXISTS quiz_question_group_dim (
   `position` INTEGER UNSIGNED COMMENT 'Order in which the questions from this group will be displayed in the quiz relative to other questions in the quiz from other groups.',
   `created_at` DATETIME COMMENT 'Time when the quiz question was created.',
   `updated_at` DATETIME COMMENT 'Time when the quiz question was last updated.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for quiz group.";
 DROP TABLE IF EXISTS quiz_question_group_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_group_fact (
@@ -885,7 +885,7 @@ CREATE TABLE IF NOT EXISTS quiz_question_dim (
   `correct_comments` LONGTEXT COMMENT 'Comments to be displayed if the student answers the question correctly.',
   `incorrect_comments` LONGTEXT COMMENT 'Comments to be displayed if the student answers the question incorrectly.',
   `neutral_comments` LONGTEXT COMMENT 'Comments to be displayed regardless of how the student answers the question.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes of a question associated with a quiz.";
 DROP TABLE IF EXISTS quiz_question_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_fact (
@@ -917,7 +917,7 @@ CREATE TABLE IF NOT EXISTS quiz_question_answer_dim (
   `margin` DOUBLE COMMENT '(Used in \'numerical_question\' with answer type \'exact_answer\', set to \'NULL\' otherwise) Margin of error allowed for a student\'s answer.',
   `starting_range` DOUBLE COMMENT '(Used in \'numerical_question\' with answer type \'range_answer\', set to \'NULL\' otherwise) Start of the allowed range (inclusive).',
   `ending_range` DOUBLE COMMENT '(Used in \'numerical_question\' with answer type \'range_answer\', set to \'NULL\' otherwise) End of the allowed range (inclusive).',
-PRIMARY KEY (id,quiz_question_id)
+UNIQUE KEY id (id,quiz_question_id)
 ) COMMENT = "Attributes of an answer related to a quiz question.";
 DROP TABLE IF EXISTS quiz_question_answer_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_answer_fact (
@@ -964,8 +964,6 @@ CREATE TABLE IF NOT EXISTS requests (
   `user_agent_id` BIGINT COMMENT '(Not implemented) Foreign key to the user agent dimension table.',
   `http_status` VARCHAR(10) COMMENT 'HTTP status of the request.',
   `http_version` VARCHAR(256) COMMENT 'HTTP protocol version.',
-  `pkid` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Artificial primary key',
-PRIMARY KEY (pkid),
 UNIQUE KEY id (id)
 ) COMMENT = "Pageview requests";
 DROP TABLE IF EXISTS external_tool_activation_dim;
@@ -984,7 +982,7 @@ CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
   `updated_at` DATETIME COMMENT 'Timestamp when the activation was last updated',
   `tool_id` VARCHAR(256) COMMENT 'The tool id received from the external tool. May be missing if the tool does not send an id.',
   `selectable_all` BOOLEAN COMMENT 'true - tool is selectable in all scenarios. false - not selectable for assignment or module selection menu',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for external tool (LTI) activations. Note that activations can happen on courses or accounts. If this activation is associated with a course then course_id, course_account_id and enrollment_term_id will be populated. If this activation is associated with an account then only account_id will be populated.";
 DROP TABLE IF EXISTS external_tool_activation_fact;
 CREATE TABLE IF NOT EXISTS external_tool_activation_fact (
@@ -1005,7 +1003,7 @@ CREATE TABLE IF NOT EXISTS wiki_dim (
   `updated_at` DATETIME COMMENT 'Timestamp when the wiki was last updated in the system.',
   `front_page_url` LONGTEXT COMMENT 'URL of the front page of the wiki.',
   `has_no_front_page` BOOLEAN COMMENT 'True if the wiki does not have a front page or is set to NULL.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for wiki in canvas.";
 DROP TABLE IF EXISTS wiki_fact;
 CREATE TABLE IF NOT EXISTS wiki_fact (
@@ -1033,7 +1031,7 @@ CREATE TABLE IF NOT EXISTS wiki_page_dim (
   `editing_roles` VARCHAR(256) COMMENT 'Users or roles who can edit a wiki page.',
   `revised_at` DATETIME COMMENT 'Timestamp the wiki page was last revised in the system.',
   `could_be_locked` BOOLEAN COMMENT 'True if the wiki page can be locked. This prevents it from being visible to others until ready.',
-PRIMARY KEY (id)
+UNIQUE KEY id (id)
 ) COMMENT = "Attributes for wiki pages in canvas.";
 DROP TABLE IF EXISTS wiki_page_fact;
 CREATE TABLE IF NOT EXISTS wiki_page_fact (
