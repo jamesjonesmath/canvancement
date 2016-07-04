@@ -32,6 +32,10 @@ incrementaltables=requests
 # This is an attempt to save file space
 leaveasgzip=1
 
+# sortdata will pipe the data through the sort -u command
+# This can have a huge impact on the import process
+sortdata=1
+
 # MYSQL is the mysql command that is needed to execute mysql
 # You can put items like username and password here, but it is recommended
 # that you configure the ~/.my.cnf file instead
@@ -143,10 +147,18 @@ do
         then
           # Extract it, but plan on removing it later
           gzip -dc "${datafile}.gz" > "${datafile}"
+          if [ ${sortdata} -eq 1 ]
+          then
+            sort -u -o "${datafile}" "${datafile}"
+          fi
           removefile=1
         else
           # Extract it and leave it extracted
           gzip -d "${datafile}.gz"
+          if [ ${sortdata} -eq 1 ]
+          then
+            sort -u -o "${datafile}" "${datafile}"
+          fi
         fi
       fi
     fi
