@@ -1,16 +1,19 @@
-// ==UserScript==  
-// @name        Sort sections  
-// @namespace   https://github.com/jamesjonesmath/canvancement  
-// @description Sort the list of sections alphabetically  
+// ==UserScript==
+// @name        Sort sections
+// @namespace   https://github.com/jamesjonesmath/canvancement
+// @description Sort the list of sections alphabetically
 // @include     https://richland.instructure.com/courses/*/gradebook
 // @include     https://richland.instructure.com/courses/*/settings
-// @require     https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort.js
-// @version     1  
-// @grant       none  
+// @version     1
+// @grant       none
 // ==/UserScript==
-requirejs([ 'tinysort' ], function() {
+requirejs.config({
+  paths : {
+    'tinysort' : 'https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort'
+  }
+});
+requirejs([ 'tinysort' ], function(tinysort) {
   'use strict';
-  var tinysort = requirejs('tinysort');
   try {
     checkGradebookClassView();
     checkGradebookIndividualView();
