@@ -8,6 +8,3 @@ You must have a user script manager loaded to use these.
 * Install: [sort_sections.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/sections/sort_sections.user.js)
 * Type: [user script](../USERSCRIPTS.md)
 * Browsers: Firefox, Chrome, Safari
-
-
-**There is currently a cosmetic bug in the individual view where it now defaults to the last section rather than All Sections**
