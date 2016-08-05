@@ -2,9 +2,9 @@
 // @name        Sort sections
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Sort the list of sections alphabetically
-// @include     https://richland.instructure.com/courses/*/gradebook
-// @include     https://richland.instructure.com/courses/*/settings
-// @version     1
+// @include     https://*.instructure.com/courses/*/gradebook
+// @include     https://*.instructure.com/courses/*/settings
+// @version     2
 // @grant       none
 // ==/UserScript==
 requirejs.config({
@@ -105,25 +105,34 @@ requirejs([ 'tinysort' ], function(tinysort) {
   }
   function sortGradebookClassView() {
     tinysort('ul#section-to-show-menu>li.ui-menu-item', {
+      returns : false,
       sortFunction : function(a, b) {
         var aLabel = a.elm.querySelector('a>label');
         var bLabel = b.elm.querySelector('a>label');
-        return (aLabel.htmlFor === 'section_option_') ? 0 : (aLabel.textContent < bLabel.textContent ? -1 : 1);
+        return (aLabel.htmlFor === 'section_option_') ? 0 : aLabel.textContent.localeCompare(bLabel.textContent);
       }
     });
     return;
   }
   function sortGradebookIndividualView() {
+    var sel = document.getElementById('section_select').selectedIndex;
     tinysort('select#section_select>option', {
+      returns : true,
       sortFunction : function(a, b) {
-        return (a.elm.value === '') ? 0 : (a.elm.textContent < b.elm.textContent ? -1 : 1);
+        return (a.elm.value === '' || b.elm.value === '') ? -1 : a.elm.textContent.localeCompare(b.elm.textContent);
       }
     });
+    document.getElementById('section_select').selectedIndex = sel;
     return;
   }
   function sortCourseSettings() {
-    tinysort('ul#sections>li.section', {
+    tinysort('ul#sections>li', {
+      returns : false,
+      place : 'start',
       sortFunction : function(a, b) {
+        if (!a.elm.classList.contains('section') || !b.elm.classList.contains('section')) {
+          return 0;
+        }
         var aLabel = a.elm.querySelector('a').textContent.trim();
         var bLabel = b.elm.querySelector('a').textContent.trim();
         return aLabel < bLabel ? -1 : 1;
