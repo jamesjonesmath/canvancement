@@ -8,7 +8,7 @@
 // @version     1  
 // @grant       none  
 // ==/UserScript==
-requirejs([ './tinysort' ], function() {
+requirejs([ 'tinysort' ], function() {
   'use strict';
   var tinysort = requirejs('tinysort');
   try {
