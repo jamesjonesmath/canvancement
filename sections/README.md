@@ -6,7 +6,7 @@ This script was inspired by the [Sort by section name anywhere sections are disp
 You must have a user script manager loaded to use these.
 
 * Install: [sort_sections.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/sections/sort_sections.user.js)
-* Type: [user script](../../USERSCRIPTS.md)
+* Type: [user script](../USERSCRIPTS.md)
 * Browsers: Firefox, Chrome, Safari
 
 
