@@ -10,4 +10,4 @@ You must have a user script manager loaded to use these.
 * Browsers: Firefox, Chrome, Safari
 
 
-**Note, there are still some dependencies to resolve and it only works with Firefox for right now**
+**There is currently a cosmetic bug in the individual view where it now defaults to the last section rather than All Sections**
