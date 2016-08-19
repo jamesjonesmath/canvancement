@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.11.1
+# MySQL script to create database for Canvas Data schema version 1.12.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -109,6 +109,8 @@ CREATE TABLE IF NOT EXISTS pseudonym_dim (
   `deleted_at` DATETIME,
   `sis_user_id` VARCHAR(256),
   `unique_name` VARCHAR(256),
+  `integration_id` VARCHAR(256),
+  `authentication_provider_id` BIGINT,
 UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS pseudonym_fact;
@@ -326,18 +328,18 @@ CREATE TABLE IF NOT EXISTS assignment_override_dim (
   `course_section_id` BIGINT,
   `group_id` BIGINT,
   `quiz_id` BIGINT,
-  `all_day` ENUM('same_all_day', 'new_all_day'),
+  `all_day` ENUM('new_all_day', 'same_all_day'),
   `all_day_date` DATE,
   `assignment_version` INTEGER UNSIGNED,
   `created_at` DATETIME,
   `due_at` DATETIME,
-  `due_at_overridden` ENUM('same_due_at', 'new_due_at'),
+  `due_at_overridden` ENUM('new_due_at', 'same_due_at'),
   `lock_at` DATETIME,
-  `lock_at_overridden` ENUM('same_lock_at', 'new_lock_at'),
+  `lock_at_overridden` ENUM('new_lock_at', 'same_lock_at'),
   `set_type` ENUM('course_section', 'group', 'adhoc'),
   `title` LONGTEXT,
   `unlock_at` DATETIME,
-  `unlock_at_overridden` ENUM('same_unlock_at', 'new_unlock_at'),
+  `unlock_at_overridden` ENUM('new_unlock_at', 'same_unlock_at'),
   `updated_at` DATETIME,
   `quiz_version` INTEGER UNSIGNED,
   `workflow_state` ENUM('active', 'deleted'),
@@ -358,6 +360,25 @@ CREATE TABLE IF NOT EXISTS assignment_override_fact (
   `nonxlist_course_id` BIGINT,
   `quiz_id` BIGINT,
   `group_wiki_id` BIGINT
+);
+DROP TABLE IF EXISTS assignment_override_user_rollup_fact;
+CREATE TABLE IF NOT EXISTS assignment_override_user_rollup_fact (
+  `assignment_id` BIGINT,
+  `assignment_override_id` BIGINT,
+  `assignment_override_user_adhoc_id` BIGINT,
+  `assignment_group_id` BIGINT,
+  `course_id` BIGINT,
+  `course_account_id` BIGINT,
+  `course_section_id` BIGINT,
+  `enrollment_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `group_category_id` BIGINT,
+  `group_id` BIGINT,
+  `group_parent_account_id` BIGINT,
+  `group_wiki_id` BIGINT,
+  `nonxlist_course_id` BIGINT,
+  `quiz_id` BIGINT,
+  `user_id` BIGINT
 );
 DROP TABLE IF EXISTS communication_channel_dim;
 CREATE TABLE IF NOT EXISTS communication_channel_dim (
@@ -963,8 +984,7 @@ CREATE TABLE IF NOT EXISTS requests (
   `session_id` VARCHAR(256),
   `user_agent_id` BIGINT,
   `http_status` VARCHAR(10),
-  `http_version` VARCHAR(256),
-UNIQUE KEY id (id)
+  `http_version` VARCHAR(256)
 );
 DROP TABLE IF EXISTS external_tool_activation_dim;
 CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
@@ -1077,6 +1097,7 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('assignment_override_user_fact',0,NULL),
   ('assignment_override_dim',0,NULL),
   ('assignment_override_fact',0,NULL),
+  ('assignment_override_user_rollup_fact',0,NULL),
   ('communication_channel_dim',0,NULL),
   ('communication_channel_fact',0,NULL),
   ('conversation_dim',0,NULL),
@@ -1119,4 +1140,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11101);
+  ('schema',-1,11200);
