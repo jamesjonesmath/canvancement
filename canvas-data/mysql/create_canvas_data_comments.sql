@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.11.1
+# MySQL script to create database for Canvas Data schema version 1.12.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -109,6 +109,8 @@ CREATE TABLE IF NOT EXISTS pseudonym_dim (
   `deleted_at` DATETIME COMMENT 'Timestamp when the pseudonym was deleted (NULL if the pseudonym is still active)',
   `sis_user_id` VARCHAR(256) COMMENT 'Correlated id for the record for this course in the SIS system (assuming SIS integration is configured)',
   `unique_name` VARCHAR(256) COMMENT 'Actual login id for a given pseudonym/account',
+  `integration_id` VARCHAR(256) COMMENT 'A secondary unique identifier useful for more complex SIS integrations. This identifier must not change for the user, and must be globally unique.',
+  `authentication_provider_id` BIGINT COMMENT 'The authentication provider this login is associated with. This can be the integer ID of the provider, or the type of the provider (in which case, it will find the first matching provider.)',
 UNIQUE KEY id (id)
 ) COMMENT = "Pseudonyms are logins associated with users.";
 DROP TABLE IF EXISTS pseudonym_fact;
@@ -326,18 +328,18 @@ CREATE TABLE IF NOT EXISTS assignment_override_dim (
   `course_section_id` BIGINT COMMENT 'Foreign key to the course_section.',
   `group_id` BIGINT COMMENT 'Foreign key to the group.',
   `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with.',
-  `all_day` ENUM('same_all_day', 'new_all_day') COMMENT 'Indicates if the all_day field overrides the original assignment.all_day field for this group of users.',
+  `all_day` ENUM('new_all_day', 'same_all_day') COMMENT 'Indicates if the all_day field overrides the original assignment.all_day field for this group of users.',
   `all_day_date` DATE COMMENT 'The new date version of the due date if the all_day flag is true.',
   `assignment_version` INTEGER UNSIGNED COMMENT 'The version of the assignment this override is applied too.',
   `created_at` DATETIME COMMENT 'Timestamp of when the assignment_override was created.',
   `due_at` DATETIME COMMENT 'The new due_at date-time for this group of users.',
-  `due_at_overridden` ENUM('same_due_at', 'new_due_at') COMMENT 'Indicates if the due_at field overrides the original assignment.due_at field for this group of users.',
+  `due_at_overridden` ENUM('new_due_at', 'same_due_at') COMMENT 'Indicates if the due_at field overrides the original assignment.due_at field for this group of users.',
   `lock_at` DATETIME COMMENT 'The new lock_at date-time for this group of users.',
-  `lock_at_overridden` ENUM('same_lock_at', 'new_lock_at') COMMENT 'Indicates if the lock_at field overrides the original assignment.lock_at field for this group of users.',
+  `lock_at_overridden` ENUM('new_lock_at', 'same_lock_at') COMMENT 'Indicates if the lock_at field overrides the original assignment.lock_at field for this group of users.',
   `set_type` ENUM('course_section', 'group', 'adhoc') COMMENT 'Used in conjunction with set_id, this field tells us what type of foreign relation is used.',
   `title` LONGTEXT COMMENT 'The title for this assignment_override.',
   `unlock_at` DATETIME COMMENT 'The new unlock_at date-time for this group of users.',
-  `unlock_at_overridden` ENUM('same_unlock_at', 'new_unlock_at') COMMENT 'Indicates if the unlock_at field overrides the original assignment.unlock_at field for this group of users.',
+  `unlock_at_overridden` ENUM('new_unlock_at', 'same_unlock_at') COMMENT 'Indicates if the unlock_at field overrides the original assignment.unlock_at field for this group of users.',
   `updated_at` DATETIME COMMENT 'Timestamp of when the assignment_override was last updated.',
   `quiz_version` INTEGER UNSIGNED COMMENT 'The version of the quiz this override is applied too.',
   `workflow_state` ENUM('active', 'deleted') COMMENT 'Gives the workflow state of this record.',
@@ -359,6 +361,25 @@ CREATE TABLE IF NOT EXISTS assignment_override_fact (
   `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with. May be empty.',
   `group_wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.'
 ) COMMENT = "Table contains measures related to assignment overrides. Overrides can be found in the assignment_override_dim. Overrides are primarily the dates about the assigmnents for a given group of assignees.";
+DROP TABLE IF EXISTS assignment_override_user_rollup_fact;
+CREATE TABLE IF NOT EXISTS assignment_override_user_rollup_fact (
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with. May be empty.',
+  `assignment_override_id` BIGINT COMMENT 'The ID of the assignment_override for this override user.',
+  `assignment_override_user_adhoc_id` BIGINT COMMENT 'When not empty, this field is the ID of the user in the adhoc group table.',
+  `assignment_group_id` BIGINT COMMENT 'Foreign key to the assignment group dimension table.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this assignment.',
+  `course_account_id` BIGINT COMMENT 'Foreign key to the account associated with the course associated with this assignment.',
+  `course_section_id` BIGINT COMMENT 'When not empty, this field is the ID of the course_section the user is part of.',
+  `enrollment_id` BIGINT COMMENT 'When not empty, this field is the ID of the enrollment for a course section.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign Key to enrollment term table.',
+  `group_category_id` BIGINT COMMENT 'When not empty, this field is the ID of the group category the user is part of.',
+  `group_id` BIGINT COMMENT 'When not empty, this field is the ID of the group the user is part of.',
+  `group_parent_account_id` BIGINT COMMENT 'If the group is directly associated with an account, this is the id.',
+  `group_wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.',
+  `nonxlist_course_id` BIGINT COMMENT 'The course ID for the original course if this course has been cross listed.',
+  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with. May be empty.',
+  `user_id` BIGINT COMMENT 'Foreign key to the user.'
+) COMMENT = "Table contains measures related to students for whom an assignment override exists. This table contains the user ids of users for whom an override was created. There are 3 ways a user can be included, via an adhoc form, via a group membership, or a course section. All three are included here.";
 DROP TABLE IF EXISTS communication_channel_dim;
 CREATE TABLE IF NOT EXISTS communication_channel_dim (
   `id` BIGINT COMMENT 'Unique surrogate ID for the communication channel.',
@@ -963,8 +984,7 @@ CREATE TABLE IF NOT EXISTS requests (
   `session_id` VARCHAR(256) COMMENT 'ID of the user\'s session where this request was made.',
   `user_agent_id` BIGINT COMMENT '(Not implemented) Foreign key to the user agent dimension table.',
   `http_status` VARCHAR(10) COMMENT 'HTTP status of the request.',
-  `http_version` VARCHAR(256) COMMENT 'HTTP protocol version.',
-UNIQUE KEY id (id)
+  `http_version` VARCHAR(256) COMMENT 'HTTP protocol version.'
 ) COMMENT = "Pageview requests";
 DROP TABLE IF EXISTS external_tool_activation_dim;
 CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
@@ -1077,6 +1097,7 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('assignment_override_user_fact',0,NULL),
   ('assignment_override_dim',0,NULL),
   ('assignment_override_fact',0,NULL),
+  ('assignment_override_user_rollup_fact',0,NULL),
   ('communication_channel_dim',0,NULL),
   ('communication_channel_fact',0,NULL),
   ('conversation_dim',0,NULL),
@@ -1119,4 +1140,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11101);
+  ('schema',-1,11200);
