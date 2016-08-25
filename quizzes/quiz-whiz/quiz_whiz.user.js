@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Speed Enhancements to Canvas SpeedGrader
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
-// @version     2
+// @version     3
 // @grant none
 // ==/UserScript==
 (function() {
@@ -18,14 +18,17 @@
       'unanswered' : true,
       'full_essay' : true,
       'ma_full' : true,
-      'ma_percent' : true,
-      'ma_diff' : false,
+      'ma_correct' : true,
+      'ma_difference' : false,
       'ma_canvas' : false,
       'ma_best' : false,
       'mf_full' : true,
       'md_full' : true,
     },
-  // 'autoRun' : [ 'unanswered' ]
+    'autoRun' : [
+    // 'unanswered',
+    // 'full_essay'
+    ]
   };
 
   var namespace = 'quizwhiz';
@@ -274,6 +277,7 @@
       // Duplicate Update Scores button
       var updateScore = document.querySelector('button.update-scores').cloneNode(true);
       updateScore.classList.add('btn-small');
+      updateScore.type = 'button';
       updateScore.addEventListener('click', updateAdvance);
       row.appendChild(updateScore);
       for (k = 1; k < row.children.length; k++) {
@@ -375,6 +379,7 @@
 
   function addFeatureButton(method, n) {
     var el = document.createElement('button');
+    el.type = 'button';
     el.id = namespace + '_' + method.method;
     el.classList.add('btn', 'btn-small');
     if (typeof config.showButtonCounts !== 'undefined' && config.showButtonCounts && typeof n !== 'undefined') {
@@ -511,9 +516,9 @@
           }
         }
       },
-      'ma_percent' : {
+      'ma_correct' : {
         'desc' : 'Regrade multiple answer questions so that each item is worth the same amount of points. This gives points based on the percentage of questions that are correctly marked.',
-        'text' : 'MA % Correct',
+        'text' : 'MA Correct',
         'type' : 'multiple_answers_question',
         'allowUpdate' : true,
         'enabled' : true,
@@ -538,7 +543,7 @@
           }
         }
       },
-      'ma_diff' : {
+      'ma_difference' : {
         'desc' : 'Regrade multiple answer questions by subtracting the number wrong from the number right.',
         'text' : 'MA Difference',
         'type' : 'multiple_answers_question',
@@ -776,7 +781,7 @@
         score.value = pts;
         this.updated = true;
         score.dispatchEvent(new Event('change', {
-          'bubbles' : false
+          'bubbles' : true
         }));
       }
     };
