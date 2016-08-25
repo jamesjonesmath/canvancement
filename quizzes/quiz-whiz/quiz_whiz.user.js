@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Speed Enhancements to Canvas SpeedGrader
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
-// @version     1
+// @version     2
 // @grant none
 // ==/UserScript==
 (function() {
@@ -13,7 +13,7 @@
     'autoExpandComments' : true,
     'duplicateQuestionHeader' : true,
     'showButtonCounts' : true,
-//    'autoAdvance' : false,
+    // 'autoAdvance' : false,
     'methods' : {
       'unanswered' : true,
       'full_essay' : true,
@@ -22,13 +22,14 @@
       'ma_diff' : false,
       'ma_canvas' : false,
       'ma_best' : false,
-      'mf_full' : false,
+      'mf_full' : true,
+      'md_full' : true,
     },
-    'autoRun' : [ 'unanswered' ]
+  // 'autoRun' : [ 'unanswered' ]
   };
 
   var namespace = 'quizwhiz';
-  //  var isSG = document.body.classList.contains('quizzes-speedgrader');
+  // var isSG = document.body.classList.contains('quizzes-speedgrader');
   var QT;
 
   try {
@@ -193,11 +194,9 @@
     icp.classList.add('header-bar-left');
     ics.classList.add('header-bar-right');
     var summaryNodes = submission.children;
-
     var nodelist = [];
     for ( var node in summaryNodes) {
       if (summaryNodes.hasOwnProperty(node)) {
-
         if (summaryNodes[node].classList.length > 0 && summaryNodes[node].classList.contains('alert')) {
           continue;
         }
@@ -207,7 +206,6 @@
         nodelist.push(node);
       }
     }
-
     if (nodelist.length > 0) {
       var inserted = 0;
       for (var j = 0; j < nodelist.length; j++) {
@@ -217,14 +215,11 @@
     }
     ic.appendChild(icp);
     ic.appendChild(ics);
-
     var qdiv = document.getElementById('questions');
     submission.insertBefore(ic, qdiv);
-
     QT = new Question();
     var methods = QT.methods;
     var qtypes = scanQuiz();
-
     var wrapper, row, div, el, k;
     wrapper = document.createElement('div');
     wrapper.classList.add('header-group-right');
@@ -233,18 +228,18 @@
       row = document.createElement('div');
       row.classList.add('pull-right');
       row.style.display = 'block';
+      row.style.verticalAlign = 'middle';
       // Duplicate Final Score Block
       div = document.createElement('div');
       div.style.display = 'inline-block';
-      div.style.verticalAlign = 'middle';
-      div.style.paddingBottom = 0;
+      div.style.margin = '0px 2px 5px 5px';
       el = document.createElement('strong');
       el.textContent = 'Final Score:';
       div.appendChild(el);
       var finalScoreOriginal = document.getElementById('after_fudge_points_total');
       var finalScore = finalScoreOriginal.cloneNode(true);
       finalScore.id = namespace + '_' + finalScore.id;
-      finalScore.style.fontSize = '1.25em';
+      finalScore.style.fontSize = '1em';
       finalScore.style.marginRight = '10px';
       div.appendChild(finalScore);
       row.appendChild(div);
@@ -288,7 +283,6 @@
     }
     row = document.createElement('div');
     row.classList.add('content-box-micro', 'pull-right');
-
     for ( var key in qtypes) {
       if (qtypes.hasOwnProperty(key) && qtypes[key] > 0) {
         row.appendChild(addFeatureButton(methods[key], qtypes[key]));
@@ -404,12 +398,10 @@
     var observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.addedNodes.length > 0) {
-          for ( var i in mutation.addedNodes) {
-            if (mutation.addedNodes.hasOwnProperty(i)) {
-              var node = mutation.addedNodes[i];
-              var dest = namespace + '_' + node.parentNode.id;
-              document.getElementById(dest).textContent = node.textContent;
-            }
+          for (var i = 0; i < mutation.addedNodes.length; i++) {
+            var node = mutation.addedNodes[i];
+            var dest = namespace + '_' + node.parentNode.id;
+            document.getElementById(dest).textContent = node.textContent;
           }
         }
       });
@@ -427,11 +419,10 @@
       return;
     }
     var key = match[1];
-    console.log('Processing ' + key);
     var Q = new Question(key);
     var questions = document.querySelectorAll('div#questions > div.question_holder > div.question');
-    for ( var i in questions) {
-      if (questions.hasOwnProperty(i) && Q.check(questions[i])) {
+    for (var i = 0; i < questions.length; i++) {
+      if (Q.check(questions[i])) {
         Q.apply(questions[i]);
       }
     }
@@ -470,7 +461,7 @@
         }
       },
       'full_essay' : {
-        'desc' : 'Assign full points to ungraded essay questions.',
+        'desc' : 'Assign full points to answered, but ungraded, essay questions',
         'text' : 'Full Essay Points',
         'type' : 'essay_question',
         'allowUpdate' : false,
@@ -680,7 +671,6 @@
           }
         }
       }
-
     };
     if (typeof method !== 'undefined') {
       if (typeof methods[method] !== 'undefined') {
@@ -786,7 +776,7 @@
         score.value = pts;
         this.updated = true;
         score.dispatchEvent(new Event('change', {
-          'bubbles' : true
+          'bubbles' : false
         }));
       }
     };
