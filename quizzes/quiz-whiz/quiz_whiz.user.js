@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Speed Enhancements to Canvas SpeedGrader
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
-// @version     3
+// @version     4
 // @grant none
 // ==/UserScript==
 (function() {
@@ -39,10 +39,10 @@
     if (/^\/courses\/[0-9]+\/quizzes\/[0-9]+\/history$/.test(window.location.pathname)) {
       // navigationObserver();
       // checkAutoAdvance();
+      setupInterface();
       autoExpandComments();
       duplicateQuestionHeader();
-      setupInterface();
-      autoRun();
+      checkAutoRun();
     }
   } catch (e) {
     console.log(e);
@@ -74,6 +74,28 @@
   // });
   // }
 
+  function checkAutoRun() {
+    if (typeof config.autoRun !== 'object' || !Array.isArray(config.autoRun)) {
+      return;
+    }
+    var j = document.querySelectorAll('#questions .enhanced');
+    if (j.length > 0) {
+      autoRun();
+    } else {
+      var observer = new MutationObserver(function() {
+        var j = document.querySelectorAll('#questions .enhanced');
+        if (j.length > 0) {
+          observer.disconnect();
+          autoRun();
+        }
+      });
+      observer.observe(document.getElementById('questions'), {
+        'attributes' : true,
+        'subtree' : true
+      });
+    }
+  }
+
   function autoRun() {
     if (typeof config.autoRun === 'object' && Array.isArray(config.autoRun)) {
       for (var i = 0; i < config.autoRun.length; i++) {
@@ -81,7 +103,7 @@
         var e = document.getElementById(namespace + '_' + key);
         if (e) {
           e.dispatchEvent(new Event('click', {
-            'bubbling' : false
+            'bubbles' : true
           }));
         }
       }
@@ -149,13 +171,14 @@
       userPoints.removeAttribute('class');
       var input = userPoints.querySelector('input.question_input');
       var originalInput = original.querySelector('div.user_points > input.question_input');
-      input.addEventListener('change', userPointsUpdate, false);
+      input.addEventListener('change', userPointsUpdate, true);
       originalInput.addEventListener('change', userPointsUpdate, false);
       parent.insertBefore(duplicate, commentNode);
     }
   }
 
   function userPointsUpdate(e) {
+    // e.preventDefault();
     var name = e.target.name;
     var value = e.target.value;
     var parent = e.target.parentNode;
@@ -176,7 +199,7 @@
       if (dst.value !== value) {
         dst.value = value;
         dst.dispatchEvent(new Event('change', {
-          'bubbling' : false
+          'bubbles' : true
         }));
       }
     }
@@ -261,7 +284,7 @@
         var target = document.getElementById('fudge_points_entry');
         target.value = e.target.value;
         target.dispatchEvent(new Event('change', {
-          'bubbling' : false
+          'bubbles' : false
         }));
       });
       fudgeOriginal.addEventListener('change', function(e) {
@@ -342,7 +365,7 @@
   // if (next) {
   // console.log('AutoAdvancing');
   // next.dispatchEvent(new Event('click', {
-  // 'bubbling' : true
+  // 'bubbles' : true
   // }));
   // }
   // }
@@ -395,7 +418,7 @@
       el.title = method.desc;
     }
     el.style.marginLeft = '5px';
-    el.onclick = process;
+    el.addEventListener('click', process, false);
     return el;
   }
 
@@ -405,7 +428,7 @@
         if (mutation.addedNodes.length > 0) {
           for (var i = 0; i < mutation.addedNodes.length; i++) {
             var node = mutation.addedNodes[i];
-            var dest = namespace + '_' + node.parentNode.id;
+            var dest = namespace + '_' + mutation.target.id;
             document.getElementById(dest).textContent = node.textContent;
           }
         }
@@ -417,7 +440,6 @@
   }
 
   function process(e) {
-    e.preventDefault();
     var regex = new RegExp('^' + namespace + '_(.*)$');
     var match = regex.exec(e.target.id);
     if (!match) {
