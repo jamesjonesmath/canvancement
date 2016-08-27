@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Speed Enhancements to Canvas SpeedGrader
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
-// @version     4
+// @version     5
 // @grant none
 // ==/UserScript==
 (function() {
@@ -13,17 +13,14 @@
     'autoExpandComments' : true,
     'duplicateQuestionHeader' : true,
     'showButtonCounts' : true,
-    // 'autoAdvance' : false,
     'methods' : {
       'unanswered' : true,
       'full_essay' : true,
-      'ma_full' : true,
+      'ma_allnone' : true,
       'ma_correct' : true,
       'ma_difference' : false,
-      'ma_canvas' : false,
-      'ma_best' : false,
-      'mf_full' : true,
-      'md_full' : true,
+      'fill_in_blanks' : true,
+      'dropdowns' : true,
     },
     'autoRun' : [
     // 'unanswered',
@@ -380,7 +377,22 @@
     for ( var key in methods) {
       if (methods.hasOwnProperty(key)) {
         if (typeof config.methods[key] !== 'undefined' && config.methods[key]) {
-          qtypes[key] = 0;
+          var isConflict = false;
+          if (methods[key].conflicts !== false) {
+            for (var k = 0; k < methods[key].conflicts.length; k++) {
+              var conflict = methods[key].conflicts[k];
+              if (typeof qtypes[conflict] !== 'undefined') {
+                if (!isConflict) {
+                  console.log('You have conflicting entries in your configuration.'); 
+                }
+                console.log('Method ' + key + ' conflicts with ' + conflict);
+                isConflict = true;
+              }
+            }
+          }
+          if (!isConflict) {
+            qtypes[key] = 0;
+          }
         }
       }
     }
@@ -459,7 +471,7 @@
   function Question(method) {
     var methods = {
       'unanswered' : {
-        'desc' : 'Assign 0 to unanswered essay and file upload questions',
+        'desc' : 'This assigns 0 points to unanswered essay and file upload questions.',
         'text' : 'Unanswered',
         'enabled' : true,
         'check' : function(e) {
@@ -488,8 +500,8 @@
         }
       },
       'full_essay' : {
-        'desc' : 'Assign full points to answered, but ungraded, essay questions',
-        'text' : 'Full Essay Points',
+        'desc' : 'This assigns full points to essay questions that were answered but have not yet been graded.',
+        'text' : 'Full Essay',
         'type' : 'essay_question',
         'allowUpdate' : false,
         'enabled' : true,
@@ -515,17 +527,20 @@
           }
         }
       },
-      'ma_full' : {
-        'desc' : 'Regrade multiple answer questions without any partial credit, all items must be answered correctly to get any points',
+      'ma_allnone' : {
+        'desc' : 'This "All or Nothing" approach regrades multiple answer questions without any partial credit; all items must be answered correctly to get any points.',
         'text' : 'MA All/None',
         'type' : 'multiple_answers_question',
         'allowUpdate' : true,
         'enabled' : true,
-        'conflicts' : [ 'maPartial', 'maDiff', 'maBest' ],
+        'conflicts' : [ 'ma_correct', 'ma_difference', 'ma_bestdiff', 'ma_canvas' ],
         'check' : function(e) {
           var valid = false;
-          if (e.classList.contains(this.type) && e.querySelectorAll('div.answers div.answer.wrong_answer').length > 0 && this.score(e).value !== '0') {
-            valid = true;
+          if (e.classList.contains(this.type)) {
+            var calc = this.rightwrong(e);
+            if (Math.abs(calc.full - calc.current) > 0.005) {
+              valid = true;
+            }
           }
           if (valid) {
             this.contains = true;
@@ -534,17 +549,18 @@
         },
         'apply' : function(e) {
           if (this.check(e)) {
-            this.update(e, 0);
+            var calc = this.rightwrong(e);
+            this.update(e, calc.full);
           }
         }
       },
       'ma_correct' : {
-        'desc' : 'Regrade multiple answer questions so that each item is worth the same amount of points. This gives points based on the percentage of questions that are correctly marked.',
+        'desc' : 'This assigns partial credit to multiple answer questions by making each item worth the same amount of points. The points are assigned based on the percentage of items that are correctly marked.',
         'text' : 'MA Correct',
         'type' : 'multiple_answers_question',
         'allowUpdate' : true,
         'enabled' : true,
-        'conflicts' : [ 'maFull', 'maDiff', 'maBest' ],
+        'conflicts' : [ 'ma_allnone', 'ma_difference', 'ma_bestdiff', 'ma_canvas' ],
         'check' : function(e) {
           var valid = false;
           if (e.classList.contains(this.type)) {
@@ -566,12 +582,12 @@
         }
       },
       'ma_difference' : {
-        'desc' : 'Regrade multiple answer questions by subtracting the number wrong from the number right.',
+        'desc' : 'This regrades multiple answer questions by subtracting the percentage of incorrect responses from the percentage of correct responses.',
         'text' : 'MA Difference',
         'type' : 'multiple_answers_question',
         'allowUpdate' : true,
         'enabled' : true,
-        'conflicts' : [ 'maFull', 'maPartial', 'maBest' ],
+        'conflicts' : [ 'ma_allnone', 'ma_correct', 'ma_bestdiff', 'ma_canvas' ],
         'check' : function(e) {
           var valid = false;
           if (e.classList.contains(this.type)) {
@@ -598,7 +614,7 @@
         'type' : 'multiple_answers_question',
         'allowUpdate' : true,
         'enabled' : false,
-        'conflicts' : [ 'maFull', 'maDiff', 'maPartial', 'maBest' ],
+        'conflicts' : [ 'ma_allnone', 'ma_correct', 'ma_difference', 'ma_bestdiff' ],
         'check' : function(e) {
           var valid = false;
           if (e.classList.contains(this.type)) {
@@ -619,13 +635,13 @@
           }
         }
       },
-      'ma_best' : {
-        'desc' : 'Regrade multiple answer questions using the best approach for the student',
-        'text' : 'MS Best',
+      'ma_bestdiff' : {
+        'desc' : 'This regrades multiple answer questions by comparing the Canvas method to the Difference method and choosing the one that is greater.',
+        'text' : 'MA Best Diff',
         'type' : 'multiple_answers_question',
         'allowUpdate' : true,
         'enabled' : true,
-        'conflicts' : [ 'maFull', 'maPartial', 'maDiff' ],
+        'conflicts' : ['ma_allnone', 'ma_correct', 'ma_difference', 'ma_canvas' ],
         'check' : function(e) {
           var valid = false;
           if (e.classList.contains(this.type)) {
@@ -646,8 +662,8 @@
           }
         }
       },
-      'mf_full' : {
-        'desc' : 'Regrade multiple fill-in-the-blanks questions to award full points or no points.',
+      'fill_in_blanks' : {
+        'desc' : 'This "All or Nothing" approach regrades multiple fill-in-the-blanks questions to award either full points or no points without the opportunity for partial credit.',
         'text' : 'Fill in Blanks',
         'type' : 'fill_in_multiple_blanks_question',
         'allowUpdate' : true,
@@ -672,8 +688,8 @@
           }
         }
       },
-      'md_full' : {
-        'desc' : 'Regrade Multiple Dropdowns to award full points or no points.',
+      'dropdowns' : {
+        'desc' : 'This "All or Nothing" approach regrades multiple dropdown questions to award either full points or no points without the opportunity for partial credit.',
         'text' : 'Dropdowns',
         'type' : 'multiple_dropdowns_question',
         'allowUpdate' : true,
@@ -733,7 +749,7 @@
                   'diff' : diff,
                   'current' : curscore
                 };
-                calc.best = Math.max(calc.full, calc.partial, calc.canvas, calc.diff);
+                calc.best = Math.max(calc.canvas, calc.diff);
                 return calc;
               };
               break;
@@ -774,7 +790,8 @@
             'type' : methods[m].type,
             'enabled' : methods[m].enabled,
             'text' : methods[m].text,
-            'desc' : methods[m].desc
+            'desc' : methods[m].desc,
+            'conflicts' : typeof methods[m].conflicts !== 'undefined' ? methods[m].conflicts : false
           };
         }
       }
