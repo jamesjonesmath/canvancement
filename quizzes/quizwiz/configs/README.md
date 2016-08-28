@@ -30,6 +30,6 @@ However, they are unlikely to be updated when there are new features added to Qu
 * Duplicates the question header at the bottom of the question
 
 ## Generic Configuration
-[quizwhiz.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/configs/qw-math_whiz.user.js) is the starting point for those who want to configure their own system. Those installing this script will not see much happening until the script is configured.
+[quizwiz.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/quizwiz.user.js) is the starting point for those who want to configure their own system. Those installing this script will not see much happening until the script is configured.
 
 Also note that when new features are added to the system, they will be added to this configuration file as well, which means that you will probably need to go back and edit the script when those changes are made. This sounds more intrusive than it probably is as changes to the configuration file should only need made when there are new methods or features added to the software.
