@@ -18,6 +18,6 @@ It runs on the SpeedGrader quiz pages and on the quiz moderation pages.
 
 ## Installation
 
-* Install: [quiz_whiz.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quiz-whiz/quiz_whiz.user.js)
+* Install: [quizwhiz.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwhiz/quizwhiz.user.js)
 * Type: [user script](../../USERSCRIPTS.md)
 * Browsers: Firefox, Chrome, Safari
