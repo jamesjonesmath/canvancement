@@ -24,7 +24,7 @@ What you are installing is a configuration file that will load the QuizWiz engin
 
 There are some existing configuration files for you to choose from that have certain common features already enabled. These will remain fairly stable and rarely change. There is also a generic configuration file that you can completely customize, but it might change when new features are added. 
 
-* Install: Choose one of the [existing configuration files](configs/) or begin with a [generic configuration file](quizwiz.user.js)
+* Install: Choose one of the [existing configuration files](configs/) or begin with a [generic configuration file](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/quizwiz.user.js)
 * Type: [user script](../../USERSCRIPTS.md)
 * Browsers: Firefox, Chrome, Safari
 
