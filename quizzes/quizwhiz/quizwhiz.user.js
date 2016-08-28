@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Quiz Whiz
+// @name        QuizWhiz
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Regrading and speed enhancements for Canvas quizzes
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
