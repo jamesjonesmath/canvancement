@@ -17,7 +17,6 @@ requirejs([ 'https://cdn.rawgit.com/jamesjonesmath/canvancement/master/quizzes/q
       'ma_allnone' : false,
       'ma_correct' : false,
       'ma_difference' : false,
-      'ma_canvas' : false,
       'fill_in_blanks' : false,
       'dropdowns' : false,
     },
