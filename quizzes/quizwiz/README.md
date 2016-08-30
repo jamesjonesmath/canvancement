@@ -24,9 +24,10 @@ What you are installing is a configuration file that will load the QuizWiz engin
 
 There are some existing configuration files for you to choose from that have certain common features already enabled. These will remain fairly stable and rarely change. There is also a generic configuration file that you can completely customize, but it might change when new features are added. 
 
-* Install: Choose one of the [existing configuration files](configs/) or begin with a [generic configuration file](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/quizwiz.user.js)
-* Type: [user script](../../USERSCRIPTS.md)
-* Browsers: Firefox, Chrome, Safari
+1. Install a browser add-on: [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome/Safari.
+2. Choose one of the [QuizWiz Installation Scripts](install/)
+
+For most people, those two steps are all that should be needed. If you wish to change the settings or your Canvas instance uses a custom domain, then you will need to edit the user script.
 
 # References
 This script was developed by James Jones and Avi Naiman following some discussion in the Canvas Community. 
