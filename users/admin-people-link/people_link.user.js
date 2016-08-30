@@ -2,7 +2,7 @@
 // @name Admin People Link
 // @namespace https://github.com/jamesjonesmath/canvancement
 // @description Links to the course people page from the admin course search
-// @include /^https:\/\/.*\.instructure\.com\/accounts\/[0-9]+($|\/courses)/
+// @include /^https:\/\/.*\.instructure\.com\/accounts\/[0-9]+(\/?$|\/courses)/
 // @version 1
 // @grant none
 // ==/UserScript==
