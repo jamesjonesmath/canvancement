@@ -35,7 +35,7 @@ Choose an installation script that matches how you wish to use QuizWiz.
 * Duplicates the question header at the bottom of the question.
 * Duplicates the final score, fudge points, and update scores button at the top unless running Speedgrader in grade by question mode.
 
-## Custom Install
+## Custom Installation
 [qw-custom.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/install/qw-custom.user.js) is a custom configuration file with everything disabled. The user is expected to go through and customize the configuration options before using the script.
 
 This installation script may change if new features are added to QuizWiz. Since the user scripts automatically update your scripts, your configuration may be lost. For most people, it is better to start with one of the other installation scripts, change settings as desired, and then watch for announcements of new features.
