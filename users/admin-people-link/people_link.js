@@ -4,12 +4,9 @@
  */
 (function() {
   var locationRegex = new RegExp('^/accounts/[0-9]+(/?$|/courses)');
-  console.log(locationRegex);
-  console.log(window.location.pathname);
   if (!locationRegex.test(window.location.pathname)) {
     return;
   }
-  console.log('Running people');
   var courseIdRegex = new RegExp('^course_([0-9]+)$');
   var items = document.querySelectorAll('div#content > ul.courses > li');
   if (items) {
