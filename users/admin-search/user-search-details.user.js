@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Show the Login ID and SIS User Id for users from the Admin Search Page
 // @include     /^https://.*\.instructure\.com/accounts/[0-9]+/users(\?|$)/
-// @version     3
+// @version     4
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -16,7 +16,7 @@
       'field' : 'sis_user_id',
       'name' : 'SIS ID'
     } ],
-    'features' : [ 'masquerade' ]
+    'features' : [ 'grades', 'masquerade' ]
   };
   var userRegex = new RegExp('/accounts/([0-9]+)/users/([0-9]+)');
   var userData = {};
@@ -47,15 +47,39 @@
       details.classList.add('ig-details');
       info.appendChild(details);
       layout.appendChild(info);
-      if (typeof config.features !== 'undefined' && config.features.indexOf('masquerade') > -1) {
+      if (typeof config.features !== 'undefined' && config.features.length > 0) {
+        var hasLinks = false;
         var admin = document.createElement('div');
         admin.classList.add('ig-admin');
-        var link = document.createElement('a');
-        link.href = '/?become_user_id=' + userId;
-        link.textContent = 'Become';
-        link.title = 'Masquerade as ' + e.textContent;
-        admin.appendChild(link);
-        layout.appendChild(admin);
+        var links = document.createElement('span');
+        links.classList.add('links');
+        for (var j = 0; j < config.features.length; j++) {
+          var link = document.createElement('a');
+          switch (config.features[j]) {
+            case 'masquerade':
+              link.href = '/?become_user_id=' + userId;
+              link.textContent = 'Become';
+              link.title = 'Masquerade as ' + e.textContent;
+              break;
+            case 'grades':
+              link.href = '/users/' + userId + '/grades';
+              link.textContent = 'Grades';
+              link.title = 'Show all grades for ' + e.textContent;
+              break;
+          }
+          if (link.href) {
+            if (hasLinks) {
+              links.appendChild(document.createTextNode(' | '));
+            } else {
+              hasLinks = true;
+            }
+            links.appendChild(link);
+          }
+        }
+        if (hasLinks) {
+          admin.appendChild(links);
+          layout.appendChild(admin);
+        }
       }
       row.appendChild(layout);
       nodes[k].appendChild(row);
@@ -89,14 +113,6 @@
         item.classList.add('ig-details__item');
         item.textContent = col.name + ': ' + user[col.field];
         node.appendChild(item);
-      }
-    }
-    if (typeof config.features !== 'undefined' && config.features.indexOf('masquerade') > -1) {
-      if (typeof user.short_name !== 'undefined' && user.short_name) {
-        var link = node.parentNode.parentNode.querySelector('div.ig-admin a[href^="/?become_user_id"]');
-        if (link) {
-          link.title = 'Masquerade as ' + user.short_name;
-        }
       }
     }
   }
