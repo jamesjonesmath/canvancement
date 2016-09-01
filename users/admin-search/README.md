@@ -24,3 +24,10 @@ You can also specify which columns are added to the search.
 ## References
 * [Advanced Admin Search & Sort](https://community.canvaslms.com/ideas/1126) is a feature request originally made on April 14, 2015.
 * [Adding Login and SIS IDs to Admin User Search](https://community.canvaslms.com/groups/admins/blog/2016/03/14/adding-login-and-sis-ids-to-admin-user-search) is the blog post announcing this in the Canvas Community.
+
+## Major Updates
+Version 3 - September 1, 2016
+* Canvas reworked their layout to be two rows instead of 1, so I dropped the column approach and went with the name on one row and the login and SIS ID on the second.
+* There are now labels on the Login and SIS IDs. These are configurable through the config variable
+* There is now a Become button that will allow you to masquerade from the user search. This is configurable.
+* Added a config.features array to the configuration. Right now, it only supports 'masquerade', but it opens it up for other quick user links in the future.
