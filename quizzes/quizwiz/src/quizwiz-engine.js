@@ -1,19 +1,18 @@
 /*
  * QuizWiz is a package that adds regrading and speed enhancements to Canvas quizzes
- * 
- * It was co-developed by Dr. Avi Naiman and James Jones
- * 
+ *
+ * It was co-developed by Avi Naiman and James Jones
+ *
  * This is the engine that does all of the work, but should not be directly installed.
  * It is loaded by a separate user script that installed into Greasemonkey or Tampermonkey.
- * 
- * See https://github.com/jamesjonesmath/canvancement/tree/master/quizzes/quizwiz 
+ *
+ * See https://github.com/jamesjonesmath/canvancement/tree/master/quizzes/quizwiz
  * for more information about QuizWiz
- * 
+ *
  */
 var QuizWiz =
   function(config) {
     'use strict';
-
     if (typeof config === 'undefined') {
       // Each regrading method has three possible options:
       // disabled -- do not use this method
@@ -29,61 +28,333 @@ var QuizWiz =
           'fill_in_blanks' : 'disabled',
           'dropdowns' : 'disabled'
         },
+        // Speed enhancements may be true or false
         'autoExpandComments' : true,
         'duplicateQuestionHeader' : true,
-        'showButtonCounts' : true
+        'showButtonCounts' : true,
+        'nextAfterUpdate' : true,
+        'nextAfterComment' : true,
+        'nextAfterRubric' : true,
+        'nextRubricExpanded' : true
       };
     }
 
     var namespace = 'quizwiz';
-    // var isSG = document.body.classList.contains('quizzes-speedgrader');
+    var isSG = false;
+    var isQuiz = document.body.classList.contains('quizzes');
     var QT;
+    var D = document;
+    var advanceUser = false;
+    var advanceSrc = false;
+    var advanceRubric = false;
 
     try {
-      if (/^\/courses\/[0-9]+\/quizzes\/[0-9]+\/history$/.test(window.location.pathname)) {
-        // navigationObserver();
-        // checkAutoAdvance();
-        setupInterface();
-        autoExpandComments();
-        duplicateQuestionHeader();
-        checkAutoRun();
+      if (/^\/courses\/[0-9]+\/gradebook\/speed_grader$/.test(window.location.pathname)) {
+        isSG = true;
+        addObservers();
+        addNextComment();
+        addNextRubric();
+      } else if (/^\/courses\/[0-9]+\/quizzes\/[0-9]+\/history$/.test(window.location.pathname)) {
+        isQuiz = true;
+        quizFeatures();
       }
     } catch (e) {
       console.log(e);
     }
 
-    // function navigationObserver() {
-    // // This is tricky
-    // // Students without submissions don't trigger this page
-    // // Students with submissions re-run this script, so the observer is no
-    // // longer valid
-    // // But the class we add remains either way
-    // if (!isSG || typeof config.autoAdvance === 'undefined' ||
-    // !config.autoAdvance) {
-    // return;
-    // }
-    // var src =
-    // window.parent.document.getElementById('this_student_does_not_have_a_submission');
-    // if (!src || src.classList.contains(namespace + '_navwatcher')) {
-    // return;
-    // }
-    // src.classList.add(namespace + '_navwatcher');
-    // var observer = new MutationObserver(function() {
-    // src.classList.remove(namespace + '_navwatcher');
-    // observer.disconnect();
-    // checkAutoAdvance();
-    // });
-    // observer.observe(src, {
-    // 'attributes' : true
-    // });
-    // }
+    function quizFeatures() {
+      setupInterface();
+      autoExpandComments();
+      duplicateQuestionHeader();
+      checkAutoRun();
+    }
+
+    function addObservers() {
+      if (isSG) {
+        updateObserver();
+        commentObserver();
+        rubricObserver();
+        navigationObserver();
+      }
+      return;
+    }
+
+    function updateObserver() {
+      // Watch for Update Scores or Save Rubric to finish
+      if (!isSG) {
+        return;
+      }
+      var install = false;
+      var triggers = [ 'nextAfterUpdate', 'nextAfterRubric' ];
+      for (var i = 0; i < triggers.length; i++) {
+        if (typeof config[triggers[i]] !== 'undefined' && config[triggers[i]]) {
+          install = true;
+        }
+      }
+      if (install) {
+        var src = document.getElementById('grading-box-extended');
+        if (!src) {
+          return;
+        }
+        var observer = new MutationObserver(function() {
+          if (advanceUser && advanceSrc) {
+            nextUser();
+          }
+        });
+        observer.observe(src, {
+          'attributes' : true
+        });
+      }
+      return;
+    }
+
+    function updateAdvance(e) {
+      e.preventDefault();
+      if (isSG && typeof config.nextAfterUpdate !== 'undefined' && config.nextAfterUpdate) {
+        if (typeof e.target.classList !== 'undefined') {
+          if (e.target.classList.contains('next')) {
+            advanceUser = true;
+            advanceSrc = 'update';
+          }
+        }
+      }
+      D.getElementById('update_history_form').submit();
+    }
+
+    function commentObserver() {
+      if (!isSG) {
+        return;
+      }
+      // Check for autoAdvance on Comment Submission
+      if (typeof config.nextAfterComment !== 'undefined' && config.nextAfterComment) {
+        var src = document.getElementById('comments');
+        if (!src) {
+          return;
+        }
+        var observer = new MutationObserver(function(mutations) {
+          var status = false;
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+              status = true;
+            }
+          });
+          if (status && advanceUser) {
+            nextUser();
+          }
+        });
+        observer.observe(src, {
+          'childList' : true
+        });
+      }
+      return;
+    }
+
+    function addNextComment() {
+      if (isSG && typeof config.nextAfterComment !== 'undefined' && config.nextAfterComment) {
+        var btn = document.getElementById('comment_submit_button');
+        if (btn) {
+          var parent = btn.parentNode;
+          if (parent) {
+            var advance = advanceButton(commentAdvance, {
+              'title' : 'Submit comment and advance to next user'
+            });
+            btn.title = 'Submit comment and stay on this user';
+            parent.insertBefore(advance, btn.nextSibling);
+          }
+        }
+      }
+    }
+
+    function commentAdvance() {
+      var btn = document.getElementById('comment_submit_button');
+      if (btn) {
+        advanceUser = true;
+        advanceSrc = 'comment';
+        btn.dispatchEvent(new Event('click', {
+          'bubbles' : true
+        }));
+      }
+    }
+
+    // Rubrics
+    function rubricObserver() {
+      if (!isSG) {
+        return;
+      }
+      // Needed if expanding after autoAdvance
+      var install = true;
+      var triggers = [ 'nextAfterRubric', 'nextRubricExpanded' ];
+      for (var i = 0; i < triggers.length; i++) {
+        if (typeof config[triggers[i]] === 'undefined' || !config[triggers[i]]) {
+          install = false;
+        }
+      }
+      // Watch for for visibility on rubric to change to be none
+      if (install) {
+        var src = document.getElementById('rubric_full');
+        if (!src) {
+          return;
+        }
+        var observer = new MutationObserver(function() {
+          if (advanceRubric) {
+            var src = document.getElementById('rubric_full');
+            if (typeof src.style.display !== 'undefined' && src.style.display === 'none') {
+              showRubric();
+            }
+          }
+        });
+        observer.observe(src, {
+          'attributes' : true,
+        });
+      }
+    }
+
+    function addNextRubric() {
+      if (isSG && typeof config.nextAfterRubric !== 'undefined' && config.nextAfterRubric) {
+        var btn = document.querySelector('div#rubric_holder button.save_rubric_button');
+        if (btn) {
+          var parent = btn.parentNode;
+          if (parent) {
+            var advance = advanceButton(rubricAdvance, {
+              'title' : 'Save rubric and advance to next user'
+            });
+            btn.title = 'Save rubric and stay on this user';
+            advance.style.marginLeft = '3px';
+            parent.insertBefore(advance, btn.nextSibling);
+          }
+        }
+      }
+    }
+
+    function rubricAdvance() {
+      var btn = document.querySelector('div#rubric_holder button.save_rubric_button');
+      if (btn) {
+        advanceUser = true;
+        advanceSrc = 'rubric';
+        btn.dispatchEvent(new Event('click', {
+          'bubbles' : true
+        }));
+      }
+    }
+
+    function advanceButton(f, options) {
+      var advance = D.createElement('button');
+      advance.type = 'button';
+      advance.classList.add('btn', 'btn-primary', 'next');
+      if (typeof options.size !== 'undefined' && options.size) {
+        advance.classList.add('btn-' + options.size);
+      }
+      if (typeof options.title !== 'undefined' && options.title) {
+        advance.title = options.title;
+      }
+      var text = D.createTextNode('&');
+      advance.appendChild(text);
+      var icon = D.createElement('i');
+      icon.classList.add('icon-mini-arrow-right');
+      advance.appendChild(icon);
+      advance.addEventListener('click', f);
+      return advance;
+    }
+
+    function nextUser() {
+      var next = false;
+      if (isSG && advanceUser) {
+        next = document.getElementById('next-student-button');
+        advanceUser = false;
+        if (next) {
+          next.dispatchEvent(new Event('click', {
+            'bubbles' : true
+          }));
+        }
+      }
+    }
+
+    function navigationObserver() {
+      if (!isSG) {
+        return;
+      }
+      // Watch for changes to the display, which happens when user is changed
+      var src = document.getElementById('iframe_holder');
+      if (!src) {
+        return;
+      }
+      var observer = new MutationObserver(function(mutations) {
+        var hasChanged = false;
+        var hasResults = false;
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'attributes') {
+            hasChanged = true;
+          } else if (mutation.type === 'childList') {
+            if (typeof mutation.target.id !== 'undefined' && mutation.target.id === 'iframe_holder' && mutation.addedNodes.length > 0) {
+              hasResults = true;
+            }
+          }
+        });
+        if (hasResults || hasChanged) {
+          // This allows you to do different processes depending on what
+          // observer invoked the next user
+          switch (advanceSrc) {
+            case 'rubric':
+              if (typeof config.nextRubricExpanded !== 'undefined' && config.nextRubricExpanded) {
+                openRubric();
+              }
+              break;
+          }
+          advanceSrc = false;
+        }
+        if (hasResults) {
+          var iframe = document.getElementById('speedgrader_iframe');
+          iframe.addEventListener('load', iframeLoaded, false);
+        }
+        advanceUser = false;
+      });
+      observer.observe(src, {
+        'attributes' : true,
+        'childList' : true,
+        'subtree' : true
+      });
+      return;
+    }
+
+    function openRubric() {
+      if (!isSG) {
+        return;
+      }
+      advanceRubric = true;
+      var rubric = document.getElementById('rubric_full');
+      if (rubric.style.display === 'none') {
+        showRubric();
+      }
+      return;
+    }
+
+    function showRubric() {
+      if (!isSG || !advanceRubric) {
+        return;
+      }
+      advanceRubric = false;
+      var btn = document.querySelector('#rubric_assessments_list_and_edit_button_holder button.toggle_full_rubric');
+      if (btn) {
+        btn.dispatchEvent(new Event('click', {
+          'bubbles' : true
+        }));
+      }
+    }
+
+    function iframeLoaded(e) {
+      D = e.target.contentDocument;
+      if (isQuiz || D.body.classList.contains('quizzes')) {
+        isQuiz = true;
+        quizFeatures();
+      }
+    }
 
     function checkAutoRun() {
       var hasAutorun = false;
       for ( var key in config.methods) {
         if (config.methods.hasOwnProperty(key)) {
           if (config.methods[key].toLowerCase() === 'autorun') {
-            var e = document.getElementById(namespace + '_' + key);
+            var e = D.getElementById(namespace + '_' + key);
             if (e) {
               hasAutorun = true;
               break;
@@ -94,18 +365,18 @@ var QuizWiz =
       if (!hasAutorun) {
         return;
       }
-      var j = document.querySelectorAll('#questions .enhanced');
+      var j = D.querySelectorAll('#questions .enhanced');
       if (j.length > 0) {
         autoRun();
       } else {
         var observer = new MutationObserver(function() {
-          j = document.querySelectorAll('#questions .enhanced');
+          j = D.querySelectorAll('#questions .enhanced');
           if (j.length > 0) {
             this.disconnect();
             autoRun();
           }
         });
-        observer.observe(document.getElementById('questions'), {
+        observer.observe(D.getElementById('questions'), {
           'attributes' : true,
           'subtree' : true
         });
@@ -116,7 +387,7 @@ var QuizWiz =
       for ( var key in config.methods) {
         if (config.methods.hasOwnProperty(key)) {
           if (config.methods[key].toLowerCase() === 'autorun') {
-            var e = document.getElementById(namespace + '_' + key);
+            var e = D.getElementById(namespace + '_' + key);
             if (e) {
               e.dispatchEvent(new Event('click', {
                 'bubbles' : true
@@ -131,7 +402,7 @@ var QuizWiz =
       if (typeof config.autoExpandComments !== 'undefined' && !config.autoExpandComments) {
         return;
       }
-      var nodes = document.querySelectorAll('div#questions > div.question_holder > div.display_question > div.quiz_comment');
+      var nodes = D.querySelectorAll('div#questions > div.question_holder > div.display_question > div.quiz_comment');
       for (var i = 0; i < nodes.length; i++) {
         var t = nodes[i].querySelector('textarea');
         if (t.value.length > 0) {
@@ -157,11 +428,12 @@ var QuizWiz =
         e.style.width = 'auto';
       }
     }
+
     function duplicateQuestionHeader() {
       if (typeof config.duplicateQuestionHeader !== 'undefined' && !config.duplicateQuestionHeader) {
         return;
       }
-      var nodes = document.querySelectorAll('div#questions > div.question_holder > div.display_question > div.header');
+      var nodes = D.querySelectorAll('div#questions > div.question_holder > div.display_question > div.header');
       for (var i = 0; i < nodes.length; i++) {
         var original = nodes[i];
         var parent = original.parentNode;
@@ -195,7 +467,6 @@ var QuizWiz =
     }
 
     function userPointsUpdate(e) {
-      // e.preventDefault();
       var name = e.target.name;
       var value = e.target.value;
       var parent = e.target.parentNode;
@@ -203,7 +474,7 @@ var QuizWiz =
       if (isPrimary) {
         // This is a change to the primary value.
         // Change secondaries but don't propagate events
-        var dsts = document.querySelectorAll('div.header div:not(.user_points) > input.question_input[name="' + name + '"]');
+        var dsts = D.querySelectorAll('div.header div:not(.user_points) > input.question_input[name="' + name + '"]');
         for (var i = 0; i < dsts.length; i++) {
           if (dsts[i].value !== value) {
             dsts[i].value = value;
@@ -212,7 +483,7 @@ var QuizWiz =
       } else {
         // This is a change to the secondary point.
         // Update the main one and trigger its events
-        var dst = document.querySelector('div.header div.user_points > input.question_input[name="' + name + '"]');
+        var dst = D.querySelector('div.header div.user_points > input.question_input[name="' + name + '"]');
         if (dst.value !== value) {
           dst.value = value;
           dst.dispatchEvent(new Event('change', {
@@ -223,16 +494,10 @@ var QuizWiz =
     }
 
     function setupInterface() {
-      var submission = document.getElementsByClassName('quiz-submission')[0];
-      // if (submission.classList.contains('headless')) {
-      // var prevAction =
-      // window.parent.document.querySelector('#jj_previous_action');
-      // if (prevAction) {
-      // }
-      // }
-      var ic = document.createElement('div');
-      var icp = document.createElement('div');
-      var ics = document.createElement('div');
+      var submission = D.getElementsByClassName('quiz-submission')[0];
+      var ic = D.createElement('div');
+      var icp = D.createElement('div');
+      var ics = D.createElement('div');
       ic.classList.add('header-bar');
       icp.classList.add('header-bar-left');
       ics.classList.add('header-bar-right');
@@ -258,74 +523,84 @@ var QuizWiz =
       }
       ic.appendChild(icp);
       ic.appendChild(ics);
-      var qdiv = document.getElementById('questions');
+      var qdiv = D.getElementById('questions');
       submission.insertBefore(ic, qdiv);
       QT = new Question();
       var methods = QT.methods;
       var qtypes = scanQuiz();
-      var wrapper, row, div, el, k;
-      wrapper = document.createElement('div');
+      var wrapper, row, div, el;
+      wrapper = D.createElement('div');
       wrapper.classList.add('header-group-right');
-      var gbqCheck = document.getElementById('speed_update_scores_container');
+      var originalUpdate = D.querySelector('button.update-scores');
+      var gbqCheck = D.getElementById('speed_update_scores_container');
       if (!gbqCheck) {
-        row = document.createElement('div');
+        row = D.createElement('div');
         row.classList.add('pull-right');
         row.style.display = 'block';
         row.style.verticalAlign = 'middle';
         // Duplicate Final Score Block
-        div = document.createElement('div');
+        var finalScores = D.getElementById('update_scores');
+        var scoreText = finalScores.querySelector('b').textContent;
+        var finalScoreOriginal = D.getElementById('after_fudge_points_total');
+        div = D.createElement('div');
         div.style.display = 'inline-block';
         div.style.margin = '0px 2px 5px 5px';
-        el = document.createElement('strong');
-        el.textContent = 'Final Score:';
+        el = D.createElement('strong');
+        el.textContent = scoreText;
         div.appendChild(el);
-        var finalScoreOriginal = document.getElementById('after_fudge_points_total');
         var finalScore = finalScoreOriginal.cloneNode(true);
         finalScore.id = namespace + '_' + finalScore.id;
         finalScore.style.fontSize = '1em';
-        finalScore.style.marginRight = '10px';
+        finalScore.style.marginRight = '8px';
         div.appendChild(finalScore);
         row.appendChild(div);
         duplicateText(finalScoreOriginal);
         // Duplicate Fudge Points
-        var fudgeOriginal = document.getElementById('fudge_points_entry');
+        var fudgeOriginal = D.getElementById('fudge_points_entry');
         var fudge = fudgeOriginal.cloneNode(true);
         fudge.id = namespace + '_' + fudge.id;
         fudge.name = namespace + '_' + fudge.name;
         fudge.setAttribute('placeholder', '--');
         fudge.size = 3;
-        fudge.style.width = '3em';
+        fudge.style.width = '4em';
         fudge.style.padding = '2px';
-        fudge.style.margin = '0px';
+        fudge.style.margin = '0px 2px';
         fudge.addEventListener('change', function(e) {
-          var target = document.getElementById('fudge_points_entry');
+          var target = D.getElementById('fudge_points_entry');
           target.value = e.target.value;
           target.dispatchEvent(new Event('change', {
             'bubbles' : false
           }));
         });
         fudgeOriginal.addEventListener('change', function(e) {
-          var target = document.getElementById(namespace + '_fudge_points_entry');
+          var target = D.getElementById(namespace + '_fudge_points_entry');
           target.value = e.target.value;
         });
-        var fudgeLabel = document.createElement('label');
+        var fudgeLabel = D.createElement('label');
         fudgeLabel.htmlFor = fudge.id;
         fudgeLabel.textContent = 'Fudge Points';
         fudgeLabel.style.marginRight = '2px';
         row.appendChild(fudgeLabel);
         row.appendChild(fudge);
         // Duplicate Update Scores button
-        var updateScore = document.querySelector('button.update-scores').cloneNode(true);
+        var updateScore = originalUpdate.cloneNode(true);
         updateScore.classList.add('btn-small');
         updateScore.type = 'button';
         updateScore.addEventListener('click', updateAdvance);
+        updateScore.style.marginLeft = '4px';
         row.appendChild(updateScore);
-        for (k = 1; k < row.children.length; k++) {
-          row.children[k].style.marginLeft = '5px';
+        if (isSG && typeof config.nextAfterUpdate !== 'undefined' && config.nextAfterUpdate) {
+          updateScore.title = 'Update scores and stay on this user';
+          var advance = advanceButton(updateAdvance, {
+            'size' : 'small',
+            'title' : 'Update scores and advance to the next user'
+          });
+          advance.style.marginLeft = '3px';
+          row.appendChild(advance);
         }
         wrapper.appendChild(row);
       }
-      row = document.createElement('div');
+      row = D.createElement('div');
       row.classList.add('content-box-micro', 'pull-right');
       for ( var key in qtypes) {
         if (qtypes.hasOwnProperty(key) && qtypes[key] > 0) {
@@ -336,60 +611,17 @@ var QuizWiz =
         wrapper.appendChild(row);
       }
       ics.appendChild(wrapper);
+      if (isSG && typeof config.nextAfterUpdate !== 'undefined' && config.nextAfterUpdate) {
+        var updateParent = originalUpdate.parentNode;
+        if (updateParent) {
+          var advance2 = advanceButton(updateAdvance, {
+            'title' : 'Update scores and advance to the next user'
+          });
+          originalUpdate.title = 'Update scores and stay on this user';
+          updateParent.appendChild(advance2);
+        }
+      }
     }
-
-    function updateAdvance(e) {
-      e.preventDefault();
-      // if (isSG && typeof config.autoAdvance !== 'undefined' &&
-      // config.autoAdvance) {
-      // var slist =
-      // window.parent.document.getElementById('students_selectmenu');
-      // if (slist) {
-      // var cuser = document.getElementById('submission_details');
-      // if (cuser) {
-      // var currentUserId =
-      // cuser.querySelector('div.user_id').textContent;
-      // for (var i = 0; i < slist.length; i++) {
-      // if (slist[i].value == currentUserId) {
-      // slist[i].classList.add(namespace + '_next_user');
-      // }
-      // }
-      // }
-      // }
-      // }
-      document.getElementById('update_history_form').submit();
-    }
-
-    // function checkAutoAdvance() {
-    // var next = false;
-    // if (isSG && typeof config.autoAdvance !== 'undefined' &&
-    // config.autoAdvance) {
-    // var slist =
-    // window.parent.document.getElementById('students_selectmenu');
-    // if (slist) {
-    // var cuser = document.getElementById('submission_details');
-    // if (cuser) {
-    // var currentUserId = cuser.querySelector('div.user_id').textContent;
-    // for (var i = 0; i < slist.length; i++) {
-    // if (slist[i].value == currentUserId) {
-    // if (slist[i].classList.contains(namespace + '_next_user')) {
-    // slist[i].classList.remove(namespace + '_next_user');
-    // next =
-    // window.parent.document.getElementById('next-student-button');
-    // break;
-    // }
-    // }
-    // }
-    // }
-    // }
-    // }
-    // if (next) {
-    // console.log('AutoAdvancing');
-    // next.dispatchEvent(new Event('click', {
-    // 'bubbles' : true
-    // }));
-    // }
-    // }
 
     function scanQuiz() {
       if (typeof QT === 'undefined') {
@@ -420,7 +652,7 @@ var QuizWiz =
           }
         }
       }
-      var questions = document.querySelectorAll('#questions div.question_holder > div.question');
+      var questions = D.querySelectorAll('#questions div.question_holder > div.question');
       for (key in qtypes) {
         if (qtypes.hasOwnProperty(key)) {
           var Q = new Question(key);
@@ -437,18 +669,18 @@ var QuizWiz =
     }
 
     function addFeatureButton(method, n) {
-      var el = document.createElement('button');
+      var el = D.createElement('button');
       el.type = 'button';
       el.id = namespace + '_' + method.method;
       el.classList.add('btn', 'btn-small');
       if (typeof config.showButtonCounts !== 'undefined' && config.showButtonCounts && typeof n !== 'undefined') {
-        var badge = document.createElement('span');
+        var badge = D.createElement('span');
         badge.classList.add('ic-badge');
         badge.textContent = n;
         badge.style.marginRight = '3px';
         el.appendChild(badge);
       }
-      var txt = document.createTextNode(method.button ? method.button : method.text);
+      var txt = D.createTextNode(method.button ? method.button : method.text);
       el.appendChild(txt);
       if (typeof method.desc !== 'undefined' && method.desc) {
         el.title = method.desc;
@@ -465,7 +697,7 @@ var QuizWiz =
             for (var i = 0; i < mutation.addedNodes.length; i++) {
               var node = mutation.addedNodes[i];
               var dest = namespace + '_' + mutation.target.id;
-              document.getElementById(dest).textContent = node.textContent;
+              D.getElementById(dest).textContent = node.textContent;
             }
           }
         });
@@ -483,7 +715,7 @@ var QuizWiz =
       }
       var key = match[1];
       var Q = new Question(key);
-      var questions = document.querySelectorAll('div#questions > div.question_holder > div.question');
+      var questions = D.querySelectorAll('div#questions > div.question_holder > div.question');
       for (var i = 0; i < questions.length; i++) {
         if (Q.check(questions[i])) {
           Q.apply(questions[i]);
