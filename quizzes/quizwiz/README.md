@@ -36,7 +36,8 @@ Each of these methods adds a button at the top of the quiz to invoke the method.
 * Can assign full points to any answered, but ungraded, *Essay* or *File Upload* quiz questions. This is another speed enhancement that regrades and provides a button.
 
 # References
-This script was developed by James Jones and Avi Naiman following some discussion in the Canvas Community. 
+This script was developed by James Jones and Avi Naiman following some discussion in the Canvas Community.
+
 The original intent was to have a system that would speed up the process of manually grading mathematics homework by reducing the number of clicks needed in Speedgrader. From there, it grew to include some other requests that had been made in the Community.
 * [Understanding Multiple Answers Questions](https://community.canvaslms.com/docs/DOC-6674) is required reading for anyone who doesn't understand how or why Canvas grades the Multiple Answers questions the way it does.
 * [How do you use Canvas for math homework assignments?](https://community.canvaslms.com/message/33657)
@@ -49,4 +50,4 @@ The original intent was to have a system that would speed up the process of manu
 * [Auto advance to next student in SpeedGrader when number grade is entered and Enter key is hit](https://community.canvaslms.com/ideas/2653) is not currently implemented by QuizWiz.
 * [Design/add "next" button nearer to "Submit Comment" in SpeedGrader](https://community.canvaslms.com/ideas/2896)
 
-Canvas marked many of the *advance to next user* requests as deployed in the [2016-08-06 production release](https://community.canvaslms.com/docs/DOC-7881), sometimes referred to as SpeedGrader 1.25, but that was just a redesign of SpeedGrader and doesn't actually advance to the next user.
+Canvas marked many of the *advance to next user* requests as deployed with the [2016-08-06 production release](https://community.canvaslms.com/docs/DOC-7881), sometimes referred to as SpeedGrader 1.25, but that was just a redesign of SpeedGrader and doesn't actually advance to the next user.
