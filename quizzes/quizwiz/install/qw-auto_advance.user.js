@@ -14,7 +14,7 @@ requirejs([ 'https://cdn.rawgit.com/jamesjonesmath/canvancement/master/quizzes/q
   var config = {
     // Regrading methods may be 'disabled', 'enabled', or 'autorun'
     'methods' : {
-      'unanswered' : 'enabled',
+      'unanswered' : 'disabled',
       'full_points' : 'disabled',
       'ma_allnone' : 'disabled',
       'ma_correct' : 'disabled',
