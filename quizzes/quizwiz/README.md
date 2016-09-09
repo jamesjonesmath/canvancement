@@ -1,5 +1,5 @@
 # QuizWiz
-QuizWiz is a user script that adds regrading and speed enhancements to grading quizzes in Canvas. It runs on the SpeedGrader quiz pages and on the quiz moderation pages within Canvas.
+QuizWiz is a user script that adds regrading and speed enhancements to grading quizzes in Canvas. It runs on the SpeedGrader quiz pages and on the quiz moderation pages within Canvas. It also adds some speed features to grading discussions and assignments within SpeedGrader.
 
 ## Quick Install
 1. Install a browser add-on: [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome/Safari.
@@ -8,22 +8,32 @@ QuizWiz is a user script that adds regrading and speed enhancements to grading q
 For most people, those two steps are all that should be needed. If you wish to change the settings or your Canvas instance uses a custom domain, then you will need to edit the user script.
 
 ## Features
-There are two major types of improvements that QuizWiz adds to Canvas quizzes. These are speed enhancements, which improve the worflow process and reduce needless mouse movement, and regrading methods, which add options for grading Canvas quizzes differently than what Canvas does.
+QuizWiz adds two major types of improvements to Canvas: *speed enhancements*, which improve the worflow process, and *regrading methods*, which provide alternative methods of grading quiz questions.
 
 ### Speed Improvements
-* Duplicates the Final Score, Fudge Points, and Update Scores at the top of SpeedGrader when the user is not using Grade By Question mode
-* Duplicates the question headers at the bottom of the questions
-* Automatically expands comment boxes when you start typing in them
-* Can assign 0 to any unanswered file upload questions or essay questions
-* Can assign full points to any essay question that is answered
+Some of the speed improvements are specific to quizzes and will work from either SpeedGrader or the Quiz Moderation page. Other enhancements are specific to SpeedGrader, but will work for quizzes, assignments, and discussions.
+* Can assign zero points to any unanswered *Essay* or *File Upload* quiz questions.
+* Can assign full points to any answered, but ungraded, *Essay* or *File Upload* quiz questions.
+* Duplicates the *Final Score*, *Fudge Points* input, and *Update Scores* button at the top of a quiz page when the user is not using SpeedGrader's *Grade by Question* mode.
+* Duplicates the question header of question number and point values at the bottom of each quiz question.
+* Automatically expands a quiz question's *Additional Comments* textbox when you start typing in it.
+* Adds a button next to the *Update Scores* button quizzes that will update scores and automatically advance to the next user.
+* Adds a button next to a submission comment's *Submit* button that will submit the submission comment and automatically advance to the next user.
+* Adds a button next to a rubric's *Save* button that will save the rubric and automatically advance to the next user.
+* Automatically expands a rubric when you advance to the next user. This feature depends on the *Save Rubric and Advance* feature.
 
 ### Regrading Features
-* Can regrade multiple answers (multiple select) questions as an all or nothing (no partial credit), based off the percent of correct responses, the difference between the number right and the number wrong, the Canvas method, or the best of any of these methods.
-* Can regrade multiple fill-in-the-blank questions as all or nothing (no partial credit)
-* Can regrade multiple drop-down questions as all or nothing (no partial credit)
-* Can automatically run any of these methods for you when the page is loaded
-* Each method has a button with the count of the number of items that would be affected by running that process.
-* Buttons are disabled after running, but left visible on the screen so you can see how many questions were affected.
+These features are specific to quizzes as they provide alternative methods of grading quiz questions.
+
+Each of these methods adds a button at the top of the quiz to invoke the method. Each button contains the number of questions on the student's quiz that would be affected by clicking the button and buttons will not show if they would not make any changes to the quiz. Buttons are disabled after being run, but left visible on the screen so that you can see how many questions were affected. Any of these methods can be configured to automatically execute once the quiz has loaded.
+* Can regrade *Multiple-Answers* questions, which are also known as multiple-select questions, using different approaches then Canvas. Only one of the following can be enabled at a time.
+    * *All or Nothing* provides the ability to grade questions without any partial credit -- all of the parts must be correct to receive any points.
+    * *Partial Credit* based off the percentage of items that are correctly answered. An item is correctly answered when the student selects a correct response or does not select an incorrect response.
+    * The *Difference* between the number of items correctly answered and the number of items incorrectly answered. This is sometimes called *right minus wrong* method and is similar to Canvas' method except Canvas assigns the points based on the number of correct responses and this method bases it on the total number of available responses.
+* Can regrade *Fill-in-Multiple-Blanks* questions using the *All or Nothing* technique of no partial credit. Canvas currently grades these questions based on the percentage of item that are correctly answered.
+* Can regrade *Multiple-Dropdowns" questions usingthe *All or Nothing* technique of no partial credit. Canvas currently grades these questions based on the percentage of item that are correctly answered.
+* Can assign zero points to any unanswered *Essay* or *File Upload* quiz questions. Although this was listed as a speed enhancement, it still changes the default grading of Canvas so it is listed here as well.
+* Can assign full points to any answered, but ungraded, *Essay* or *File Upload* quiz questions. This is another speed enhancement that regrades and provides a button.
 
 # References
 This script was developed by James Jones and Avi Naiman following some discussion in the Canvas Community. 
