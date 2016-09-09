@@ -3,7 +3,7 @@
  * It will add a "People" link to the course search page
  */
 (function() {
-  var locationRegex = new RegExp('^/accounts/[0-9]+(/?$|/courses)');
+  var locationRegex = new RegExp('^/accounts/[0-9]+(/|/courses)?$');
   if (!locationRegex.test(window.location.pathname)) {
     return;
   }
