@@ -1,12 +1,24 @@
 # QuizWiz Installation Scripts
-Choose an installation script that matches how you wish to use QuizWiz. 
+Choose an installation script from the list below that most closely matches how you wish to use QuizWiz. 
+
+The fastest way to install a QuizWiz flavor is to click on the filename from the description below. If you click on the filename from the list at the top, you can view the code, but then you will need to click the Raw button to install it.
 
 ## Speed Enhancements only
 [qw-speed.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/install/qw-speed.user.js) includes the speed enhancements without any of the regrade features. This is a good place to start for those who wish to choose their own features.
 
 * Automatically expands any comment boxes when the instructor begins typing in them.
 * Duplicates the question header at the bottom of the question.
+* Duplicates the final score, fudge points, and update scores button at the top unless running Speedgrader in grade by question mode. 
+
+## Auto Advance
+[qw-auto_advance.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/install/qw-auto_advance.user.js) includes the speed enhancements including auto advance without any of the regrade features. 
+
+* Automatically expands any comment boxes when the instructor begins typing in them.
+* Duplicates the question header at the bottom of the question.
 * Duplicates the final score, fudge points, and update scores button at the top unless running Speedgrader in grade by question mode.
+* Adds a button next to the "Update Scores" link in quizzes to update scores and advance to the next user.
+* Adds a button next to the "Submit" comment button to submit the comment and advance to the next user.
+* Adds a button next to the "Save" in the rubric to save the rubric and advance to the next user. There is an option to enable re-opening the rubric for the next user, but this is not enabled by default.
 
 ## All or Nothing
 [qw-all_or_nothing.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/install/qw-all_or_nothing.user.js) is for those people who like to grade without any partial credit.
