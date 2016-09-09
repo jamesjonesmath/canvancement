@@ -2,7 +2,9 @@
 // @name        QuizWiz : Partial Credit
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Regrading and speed enhancements for Canvas quizzes
+// @include     https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
+// @noframes
 // @version     1
 // @grant       none
 // ==/UserScript==
