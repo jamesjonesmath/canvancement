@@ -23,7 +23,11 @@ requirejs([ 'https://cdn.rawgit.com/jamesjonesmath/canvancement/master/quizzes/q
     // Speed enhancements may be true or false
     'autoExpandComments' : true,
     'duplicateQuestionHeader' : true,
-    'showButtonCounts' : true
+    'showButtonCounts' : true,
+    'nextAfterUpdate' : false,
+    'nextAfterComment' : false,
+    'nextAfterRubric' : false,
+    'nextRubricExpanded' : false
   };
 
   QuizWiz(config);
