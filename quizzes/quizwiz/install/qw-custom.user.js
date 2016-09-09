@@ -2,7 +2,9 @@
 // @name        QuizWiz
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Regrading and speed enhancements for Canvas quizzes
+// @include     https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
+// @noframes
 // @version     1
 // @grant       none
 // ==/UserScript==
@@ -23,7 +25,11 @@ requirejs([ 'https://cdn.rawgit.com/jamesjonesmath/canvancement/master/quizzes/q
     // Speed enhancements may be true or false
     'autoExpandComments' : false,
     'duplicateQuestionHeader' : false,
-    'showButtonCounts' : false
+    'showButtonCounts' : true,
+    'nextAfterUpdate' : false,
+    'nextAfterComment' : false,
+    'nextAfterRubric' : false,
+    'nextRubricExpanded' : false
   };
 
   QuizWiz(config);
