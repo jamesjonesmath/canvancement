@@ -32,7 +32,7 @@ Each of these methods adds a button at the top of the quiz to invoke the method.
     * The *Difference* between the number of items correctly answered and the number of items incorrectly answered. This is sometimes called *right minus wrong* method and is similar to Canvas' method except Canvas assigns the points based on the number of correct responses and this method bases it on the total number of available responses.
 * Can regrade *Fill-in-Multiple-Blanks* questions using the *All or Nothing* technique of no partial credit. Canvas currently grades these questions based on the percentage of item that are correctly answered.
 * Can regrade *Multiple-Dropdowns" questions usingthe *All or Nothing* technique of no partial credit. Canvas currently grades these questions based on the percentage of item that are correctly answered.
-* Can assign zero points to any unanswered *Essay* or *File Upload* quiz questions. Although this was listed as a speed enhancement, it still changes the default grading of Canvas so it is listed here as well.
+* Can assign zero points to any unanswered *Essay* or *File Upload* quiz questions. Although this was listed as a speed enhancement, it still changes the default grading of Canvas and so it is listed here as well.
 * Can assign full points to any answered, but ungraded, *Essay* or *File Upload* quiz questions. This is another speed enhancement that regrades and provides a button.
 
 # References
@@ -43,3 +43,10 @@ The original intent was to have a system that would speed up the process of manu
 * [How can you hand-grade a Quiz REALLY quickly in Canvas?](https://community.canvaslms.com/message/33481)
 * [Multiple Answer quiz question - partial points without penalty](https://community.canvaslms.com/ideas/2443)
 * [All or No Points on Multiple Answer Questions](https://community.canvaslms.com/ideas/1241)
+* [Update Scores and Next](https://community.canvaslms.com/ideas/1321)
+* [Speedgrader - auto advance to next student (after score is entered)](https://community.canvaslms.com/ideas/5625)
+* [In Speedgrader, the "advance to next student" button should be closer to grading box](https://community.canvaslms.com/ideas/3289)
+* [Auto advance to next student in SpeedGrader when number grade is entered and Enter key is hit](https://community.canvaslms.com/ideas/2653) is not currently implemented by QuizWiz.
+* [Design/add "next" button nearer to "Submit Comment" in SpeedGrader](https://community.canvaslms.com/ideas/2896)
+
+Canvas marked many of the *advance to next user* requests as deployed in the [2016-08-06 production release](https://community.canvaslms.com/docs/DOC-7881), sometimes referred to as SpeedGrader 1.25, but that was just a redesign of SpeedGrader and doesn't actually advance to the next user.
