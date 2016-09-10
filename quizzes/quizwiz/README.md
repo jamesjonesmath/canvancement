@@ -1,5 +1,5 @@
 # QuizWiz
-QuizWiz is a user script that adds regrading and speed enhancements to grading quizzes in Canvas. It runs on the SpeedGrader quiz pages and on the quiz moderation pages within Canvas. It also adds some speed features to grading discussions and assignments within SpeedGrader.
+QuizWiz is a user script developed by James Jones​ and Avi Naiman that adds speed enhancements to quizzes, assignments, and discussions within SpeedGrader. It also provides alternative scoring methods for certain types of quiz questions. It runs in SpeedGrader and on the quiz moderation pages.
 
 ## Quick Install
 1. Install a browser add-on: [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome/Safari.
@@ -33,7 +33,7 @@ Each of these methods adds a button at the top of the quiz to invoke the method.
 * Can regrade *Fill-in-Multiple-Blanks* questions using the *All or Nothing* technique of no partial credit. Canvas currently grades these questions based on the percentage of item that are correctly answered.
 * Can regrade *Multiple-Dropdowns" questions usingthe *All or Nothing* technique of no partial credit. Canvas currently grades these questions based on the percentage of item that are correctly answered.
 * Can assign zero points to any unanswered *Essay* or *File Upload* quiz questions. Although this was listed as a speed enhancement, it still changes the default grading of Canvas and so it is listed here as well.
-* Can assign full points to any answered, but ungraded, *Essay* or *File Upload* quiz questions. This is another speed enhancement that regrades and provides a button.
+* Can assign full points to any answered, but ungraded, *Essay* or *File Upload* quiz questions. This is another speed enhancement that provides an alternative to the Canvas default and is invoked via a button.
 
 # References
 This script was developed by James Jones and Avi Naiman following some discussion in the Canvas Community.
@@ -50,4 +50,4 @@ The original intent was to have a system that would speed up the process of manu
 * [Auto advance to next student in SpeedGrader when number grade is entered and Enter key is hit](https://community.canvaslms.com/ideas/2653) is not currently implemented by QuizWiz.
 * [Design/add "next" button nearer to "Submit Comment" in SpeedGrader](https://community.canvaslms.com/ideas/2896)
 
-Canvas marked many of the *advance to next user* requests as deployed with the [2016-08-06 production release](https://community.canvaslms.com/docs/DOC-7881), sometimes referred to as SpeedGrader 1.25, but that was just a redesign of SpeedGrader and doesn't actually advance to the next user.
+Canvas marked many of the *advance to next user* requests as deployed with the [2016-08-06 production release](https://community.canvaslms.com/docs/DOC-7881), referred to as SpeedGrader 1.25 in [Canvas Studio: Speedgrader™ Facelift](https://community.canvaslms.com/docs/DOC-7207), but that was just a redesign of SpeedGrader and doesn't actually advance to the next user.
