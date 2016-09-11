@@ -21,9 +21,9 @@ var QuizWiz =
       config = {
         'methods' : {
           'unanswered' : 'autorun',
-          'full_points' : 'enabled',
-          'ma_allnone' : 'disabled',
-          'ma_correct' : 'enabled',
+          'full_points' : 'disabled',
+          'ma_allnone' : 'enabled',
+          'ma_correct' : 'disabled',
           'ma_difference' : 'disabled',
           'fill_in_blanks' : 'disabled',
           'dropdowns' : 'disabled'
@@ -112,7 +112,7 @@ var QuizWiz =
       e.preventDefault();
       if (isSG && typeof config.nextAfterUpdate !== 'undefined' && config.nextAfterUpdate) {
         if (typeof e.target.classList !== 'undefined') {
-          if (e.target.classList.contains('next')) {
+          if (e.target.classList.contains(namespace + '_next')) {
             advanceUser = true;
             advanceSrc = 'update';
           }
@@ -166,6 +166,13 @@ var QuizWiz =
     }
 
     function commentAdvance() {
+      var comment = document.getElementById('speedgrader_comment_textarea');
+      if (!comment || comment.value.trim().length === 0) {
+        advanceUser = true;
+        advanceSrc = false;
+        nextUser();
+        return;
+      }
       var btn = document.getElementById('comment_submit_button');
       if (btn) {
         advanceUser = true;
@@ -240,17 +247,19 @@ var QuizWiz =
     function advanceButton(f, options) {
       var advance = D.createElement('button');
       advance.type = 'button';
-      advance.classList.add('btn', 'btn-primary', 'next');
+      advance.classList.add('btn', 'btn-primary', namespace + '_next');
       if (typeof options.size !== 'undefined' && options.size) {
         advance.classList.add('btn-' + options.size);
       }
       if (typeof options.title !== 'undefined' && options.title) {
         advance.title = options.title;
       }
-      var text = D.createTextNode('&');
-      advance.appendChild(text);
+      // var text = D.createTextNode('&');
+      // advance.appendChild(text);
       var icon = D.createElement('i');
-      icon.classList.add('icon-mini-arrow-right');
+      icon.classList.add('icon-mini-arrow-right', namespace + '_next');
+      advance.style.paddingLeft = '1px';
+      advance.style.paddingRight = '1px';
       advance.appendChild(icon);
       advance.addEventListener('click', f);
       return advance;
