@@ -8,7 +8,7 @@
 // @version     1
 // @grant       none
 // ==/UserScript==
-requirejs([ 'https://cdn.rawgit.com/jamesjonesmath/canvancement/master/quizzes/quizwiz/src/quizwiz-engine.js' ], function(QuizWiz) {
+requirejs([ 'https://cdn.gitcdn.link/repo/jamesjonesmath/canvancement/master/quizzes/quizwiz/src/qw-engine.js' ], function(QuizWiz) {
   'use strict';
 
   var config = {
