@@ -20,6 +20,18 @@ The fastest way to install a QuizWiz flavor is to click on the filename from the
 * Adds a button next to the "Submit" comment button to submit the comment and advance to the next user.
 * Adds a button next to the "Save" in the rubric to save the rubric and advance to the next user. There is an option to enable re-opening the rubric for the next user, but this is not enabled by default.
 
+## Rubrics
+[qw-rubrics.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/install/qw-rubrics.user.js) includes the speed enhancements including auto advance without any of the regrade features. 
+
+* Automatically expands any comment boxes when the instructor begins typing in them.
+* Duplicates the question header at the bottom of the question.
+* Duplicates the final score, fudge points, and update scores button at the top unless running Speedgrader in grade by question mode.
+* Automatically assigns 0 points to any unanswered essay or file-upload question
+* Adds a button next to the "Update Scores" link in quizzes to update scores and advance to the next user.
+* Adds a button next to the "Submit" comment button to submit the comment and advance to the next user.
+* Adds a button next to the "Save" in the rubric to save the rubric and advance to the next user.
+* Automatically reopens a rubric when clicking on the "Save Rubric and Advance" button.
+
 ## All or Nothing
 [qw-all_or_nothing.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/install/qw-all_or_nothing.user.js) is for those people who like to grade without any partial credit.
 
