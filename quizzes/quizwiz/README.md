@@ -3,7 +3,7 @@ QuizWiz is a user script developed by James Jones​ and Avi Naiman that adds sp
 
 ## Quick Install
 1. Install a browser add-on: [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome/Safari.
-2. Choose one of the [QuizWiz Installation Scripts](install/)
+2. Choose one of the [QuizWiz Installation Scripts](install)
 
 For most people, those two steps are all that should be needed. If you wish to change the settings or your Canvas instance uses a custom domain, then you will need to edit the user script.
 
