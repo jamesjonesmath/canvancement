@@ -5,7 +5,7 @@
 // @include     https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
 // @noframes
-// @version     2
+// @version     3
 // @grant       none
 // ==/UserScript==
 requirejs([ 'https://gitcdn.link/repo/jamesjonesmath/canvancement/master/quizzes/quizwiz/src/qw-engine.js' ], function(QuizWiz) {
