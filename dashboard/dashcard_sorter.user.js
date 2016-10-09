@@ -2,7 +2,7 @@
 // @name        Dashboard Card Sorter
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Sort dashboard course cards using drag and drop
-// @include     https://richland.instructure.com/
+// @include     https://*.instructure.com/
 // @version     1
 // @grant       none
 // ==/UserScript==
