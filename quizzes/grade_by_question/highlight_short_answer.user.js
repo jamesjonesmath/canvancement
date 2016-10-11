@@ -18,7 +18,6 @@
     var checkQuestionTypes = [ 'short_answer_question', 'fill_in_multiple_blanks_question' ];
     try {
       var nList = document.querySelectorAll('div#quiz-nav-inner-wrapper ul li');
-      console.log(nList);
       if (nList.length === 0) {
         return;
       }
