@@ -414,11 +414,13 @@ var QuizWiz =
       var nodes = D.querySelectorAll('div#questions > div.question_holder > div.display_question > div.quiz_comment');
       for (var i = 0; i < nodes.length; i++) {
         var t = nodes[i].querySelector('textarea');
-        if (t.value.length > 0) {
-          resizeComment(t);
+        if (t) {
+          if (t.value.length > 0) {
+            resizeComment(t);
+          }
+          t.addEventListener('input', watchComment, false);
+          t.addEventListener('paste', pasteComment, false);
         }
-        t.addEventListener('input', watchComment, false);
-        t.addEventListener('paste', pasteComment, false);
       }
     }
 
@@ -459,6 +461,7 @@ var QuizWiz =
         for (var j = parent.children.length - 1; j >= 0; j--) {
           if (parent.children[j].classList.contains('quiz_comment')) {
             commentNode = parent.children[j + 1];
+            break;
           }
         }
         if (commentNode === false) {
