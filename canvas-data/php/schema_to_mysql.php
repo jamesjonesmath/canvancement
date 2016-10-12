@@ -276,54 +276,7 @@ function table_overrides($T = NULL, $table_name = NULL) {
     $table_name = $T['tableName'] || '';
   }
   $overrides = array ( 
-      'assignment_override_dim' => array ( 
-          'all_day' => array ( 
-              'enum', 
-              'same_all_day', 
-              'new_all_day' 
-          ), 
-          'due_at_overridden' => array ( 
-              'enum', 
-              'same_due_at', 
-              'new_due_at' 
-          ), 
-          'lock_at_overridden' => array ( 
-              'enum', 
-              'same_lock_at', 
-              'new_lock_at' 
-          ), 
-          'set_type' => array ( 
-              'enum', 
-              'course_section', 
-              'group', 
-              'adhoc' 
-          ), 
-          'unlock_at_overridden' => array ( 
-              'enum', 
-              'same_unlock_at', 
-              'new_unlock_at' 
-          ), 
-          'workflow_state' => array ( 
-              'enum', 
-              'active', 
-              'deleted' 
-          ) 
-      ), 
       'requests' => array ( 
-          'KEYS' => array ( 
-              'primary' => 'pkid', 
-              'unique' => array ( 
-                  'id' => 'id' 
-              ) 
-          ), 
-          'NEW' => array ( 
-              array ( 
-                  'name' => 'pkid', 
-                  'type' => 'bigint', 
-                  'extra' => 'NOT NULL AUTO_INCREMENT', 
-                  'description' => 'Artificial primary key' 
-              ) 
-          ), 
           'web_applicaiton_action' => array ( 
               'rename', 
               'web_application_action' 
@@ -331,7 +284,9 @@ function table_overrides($T = NULL, $table_name = NULL) {
       ), 
       'quiz_question_answer_dim' => array ( 
           'KEYS' => array ( 
-              'primary' => 'id,quiz_question_id' 
+              'unique' => array ( 
+                  'id' => 'id,quiz_question_id' 
+              ) 
           ) 
       ) 
   );
@@ -380,7 +335,9 @@ function table_overrides($T = NULL, $table_name = NULL) {
   }
   if (! isset( $T['KEYS'] ) && preg_match( '/_dim$/', $table_name ) && $T['columns'][0]['name'] == 'id') {
     $T['KEYS'] = array ( 
-        'primary' => 'id' 
+        'unique' => array ( 
+            'id' => 'id' 
+        ) 
     );
   }
   return $T;
