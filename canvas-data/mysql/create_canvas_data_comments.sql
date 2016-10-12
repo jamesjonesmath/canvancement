@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.12.0
+# MySQL script to create database for Canvas Data schema version 1.13.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -702,8 +702,20 @@ CREATE TABLE IF NOT EXISTS group_membership_fact (
   `parent_account_id` BIGINT COMMENT 'Foreign key to accounts table.',
   `parent_course_account_id` BIGINT COMMENT 'Foreign key to the account dimension for the account associated with the course to which the group belongs to.',
   `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term table for the parent course.',
-  `user_id` BIGINT COMMENT 'Foreign key to the user dimension for the users in the group.'
+  `user_id` BIGINT COMMENT 'Foreign key to the user dimension for the users in the group.',
+  `group_membership_id` VARCHAR(256) COMMENT 'The ID of the membership object'
 ) COMMENT = "Measures for groups.";
+DROP TABLE IF EXISTS group_membership_dim;
+CREATE TABLE IF NOT EXISTS group_membership_dim (
+  `id` VARCHAR(256) COMMENT 'The ID of the membership object',
+  `canvas_id` VARCHAR(256) COMMENT 'The ID of the membership object as it appears in the db.',
+  `group_id` BIGINT COMMENT 'Foreign key to the group dimension for a particular group.',
+  `moderator` ENUM('is_moderator', 'not_moderator') COMMENT 'Whether or not the user is a moderator of the group.',
+  `workflow_state` ENUM('accepted', 'invited', 'requested', 'deleted') COMMENT 'The current state of the membership. Current possible values are \'accepted\', \'invited\', \'requested\', and \'deleted\'',
+  `created_at` DATETIME COMMENT 'Timestamp when the group membership was first saved in the system.',
+  `updated_at` DATETIME COMMENT 'Timestamp when the group membership was last updated in the system.',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes for groups_membership in canvas.";
 DROP TABLE IF EXISTS course_ui_canvas_navigation_dim;
 CREATE TABLE IF NOT EXISTS course_ui_canvas_navigation_dim (
   `id` BIGINT COMMENT 'Primary key for navigational item',
@@ -922,7 +934,7 @@ CREATE TABLE IF NOT EXISTS quiz_question_fact (
 ) COMMENT = "Measures of a question associated with a quiz.";
 DROP TABLE IF EXISTS quiz_question_answer_dim;
 CREATE TABLE IF NOT EXISTS quiz_question_answer_dim (
-  `id` BIGINT COMMENT 'Unique surrogate key for the quiz question answer.',
+  `id` BIGINT COMMENT 'Unique surrogate key for the quiz question answer. As with all surrogate keys in Canvas Data, there is no guarantee of stability. That said, this key is particularly unstable and will likely change from dump to dump even if there are no data change.',
   `canvas_id` BIGINT COMMENT 'Primary key for this quiz question answer. No table available in Canvas.',
   `quiz_question_id` BIGINT COMMENT 'Foreign key to the quiz question dimension column.',
   `text` LONGTEXT COMMENT 'Text of the answer.',
@@ -942,7 +954,7 @@ UNIQUE KEY id (id,quiz_question_id)
 ) COMMENT = "Attributes of an answer related to a quiz question.";
 DROP TABLE IF EXISTS quiz_question_answer_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_answer_fact (
-  `quiz_question_answer_id` BIGINT COMMENT 'Foreign key to the quiz question answer dimension table.',
+  `quiz_question_answer_id` BIGINT COMMENT 'Foreign key to the quiz question answer dimension table. As with all surrogate keys in Canvas Data, there is no guarantee of stability. That said, this key is particularly unstable and will likely change from dump to dump even if there are no data change.',
   `quiz_question_id` BIGINT COMMENT 'Foreign key to the quiz question dimension table.',
   `quiz_question_group_id` BIGINT COMMENT 'Foreign key to the quiz group dimension table.',
   `quiz_id` BIGINT COMMENT 'Foreign key to the quiz dimension table.',
@@ -1118,6 +1130,7 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('group_dim',0,NULL),
   ('group_fact',0,NULL),
   ('group_membership_fact',0,NULL),
+  ('group_membership_dim',0,NULL),
   ('course_ui_canvas_navigation_dim',0,NULL),
   ('course_ui_navigation_item_dim',0,NULL),
   ('course_ui_navigation_item_fact',0,NULL),
@@ -1140,4 +1153,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11200);
+  ('schema',-1,11300);
