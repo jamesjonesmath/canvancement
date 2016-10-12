@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.12.0
+# MySQL script to create database for Canvas Data schema version 1.13.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -702,7 +702,19 @@ CREATE TABLE IF NOT EXISTS group_membership_fact (
   `parent_account_id` BIGINT,
   `parent_course_account_id` BIGINT,
   `enrollment_term_id` BIGINT,
-  `user_id` BIGINT
+  `user_id` BIGINT,
+  `group_membership_id` VARCHAR(256)
+);
+DROP TABLE IF EXISTS group_membership_dim;
+CREATE TABLE IF NOT EXISTS group_membership_dim (
+  `id` VARCHAR(256),
+  `canvas_id` VARCHAR(256),
+  `group_id` BIGINT,
+  `moderator` ENUM('is_moderator', 'not_moderator'),
+  `workflow_state` ENUM('accepted', 'invited', 'requested', 'deleted'),
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS course_ui_canvas_navigation_dim;
 CREATE TABLE IF NOT EXISTS course_ui_canvas_navigation_dim (
@@ -1118,6 +1130,7 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('group_dim',0,NULL),
   ('group_fact',0,NULL),
   ('group_membership_fact',0,NULL),
+  ('group_membership_dim',0,NULL),
   ('course_ui_canvas_navigation_dim',0,NULL),
   ('course_ui_navigation_item_dim',0,NULL),
   ('course_ui_navigation_item_fact',0,NULL),
@@ -1140,4 +1153,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11200);
+  ('schema',-1,11300);
