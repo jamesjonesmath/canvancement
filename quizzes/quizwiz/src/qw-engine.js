@@ -92,7 +92,7 @@ var QuizWiz =
         }
       }
       if (install) {
-        var src = document.getElementById('grading-box-extended');
+        var src = document.getElementById('x_of_x_graded');
         if (!src) {
           return;
         }
@@ -102,7 +102,7 @@ var QuizWiz =
           }
         });
         observer.observe(src, {
-          'attributes' : true
+          'childList' : true
         });
       }
       return;
@@ -351,10 +351,15 @@ var QuizWiz =
     }
 
     function iframeLoaded(e) {
-      D = e.target.contentDocument;
-      if (isQuiz || D.body.classList.contains('quizzes')) {
-        isQuiz = true;
-        quizFeatures();
+      try {
+        var frame = e.target.contentDocument;
+        if (isQuiz || frame.body.classList.contains('quizzes')) {
+          D = frame;
+          isQuiz = true;
+          quizFeatures();
+        }
+      } catch (err) {
+        // cross-domain iframe; such as Turnitin
       }
     }
 
