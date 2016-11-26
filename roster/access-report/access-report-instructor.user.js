@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the access report for faculty in current courses in an account
 // @include     /^https://.*\.instructure\.com/accounts/[0-9]+$/
-// @version     1
+// @version     2
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -15,11 +15,27 @@
   addAccessReportButton();
 
   function addAccessReportButton() {
-    if ($('#jj_access_report')
-      .length === 0) {
-      $('#right-side-wrapper div.rs-margin-all')
-        .append('<a id="jj_access_report" class="btn button-sidebar button-sidebar-wide"><i class="icon-analytics"></i> Instructor Access Report Data</a>');
-      $('#jj_access_report')
+    var el = document.getElementById('jj_instructor_access_report');
+    if (!el) {
+      var rsMargins = document.querySelectorAll('div#right-side-wrapper div.rs-margin-bottom');
+      if (rsMargins) {
+        for (var i = 0; i <rsMargins.length; i++) {
+          var analytics = rsMargins[i].querySelector('i.icon-analytics');
+          if (analytics) {
+            var anchor = document.createElement('a');
+            anchor.id = 'jj_instructor_access_report';
+            anchor.classList.add('Button','button-sidebar-wide');
+            var icon = document.createElement('i');
+            icon.classList.add('icon-analytics');
+            anchor.appendChild(icon);
+            var text = document.createTextNode(' Instructor Access Report Data');
+            anchor.appendChild(text);
+            rsMargins[i].appendChild(anchor);
+            break;
+          }
+        }
+      }
+      $('#jj_instructor_access_report')
         .one('click', accessReport);
     }
     return;
@@ -172,7 +188,7 @@
         document.body.appendChild(el);
         el.click();
         document.body.removeChild(el);
-        $('#jj_access_report')
+        $('#jj_instructor_access_report')
           .one('click', accessReport);
       } else {
         throw new Error(Problemcreatingreport);
