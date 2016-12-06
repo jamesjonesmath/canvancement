@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.13.0
+# MySQL script to create database for Canvas Data schema version 1.13.2
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -1153,4 +1153,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11300);
+  ('schema',-1,11302);
