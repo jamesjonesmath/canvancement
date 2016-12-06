@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.13.0
+# MySQL script to create database for Canvas Data schema version 1.13.2
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -14,13 +14,13 @@ CREATE TABLE IF NOT EXISTS course_dim (
   `enrollment_term_id` BIGINT COMMENT 'Foreign key to enrollment term table',
   `name` VARCHAR(256) COMMENT 'The friendly name of the course.',
   `code` VARCHAR(256) COMMENT 'The code for the course (e.g. FA12 MATH 2000)',
-  `type` VARCHAR(256) COMMENT 'TBD',
+  `type` VARCHAR(256) COMMENT 'deprecated. No longer used, will always be NULL.',
   `created_at` DATETIME COMMENT 'Timestamp when the course object was created in Canvas',
   `start_at` DATETIME COMMENT 'Timestamp for when the course starts.',
   `conclude_at` DATETIME COMMENT 'Timestamp for when the course finishes',
   `publicly_visible` BOOLEAN COMMENT 'True if the course is publicly visible',
   `sis_source_id` VARCHAR(256) COMMENT 'Correlated id for the record for this course in the SIS system (assuming SIS integration is configured)',
-  `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating the current state of the course, valid values are: completed, created, deleted, available, claimed',
+  `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating the current state of the course, valid values are: completed (course has been hard concluded), created (course has been created, but not published), deleted (course has been deleted), available (course is published, and not hard concluded), claimed (course has been undeleted, and is not published).',
   `wiki_id` BIGINT COMMENT 'Foreign key to the wiki_dim table.',
 UNIQUE KEY id (id)
 ) COMMENT = "A course in the canvas system";
@@ -79,11 +79,11 @@ CREATE TABLE IF NOT EXISTS user_dim (
   `time_zone` VARCHAR(256) COMMENT 'User\'s primary timezone',
   `created_at` DATETIME COMMENT 'Timestamp when the user was created in the Canvas system',
   `visibility` VARCHAR(256) COMMENT '(Deprecated) No longer used in Canvas.',
-  `school_name` VARCHAR(256) COMMENT 'TBD',
-  `school_position` VARCHAR(256) COMMENT 'TBD',
+  `school_name` VARCHAR(256) COMMENT 'Used in Trial Versions of Canvas, the school the user is associated with',
+  `school_position` VARCHAR(256) COMMENT 'Used in Trial Versions of Canvas, the position the user has at the school. E.g. Admin',
   `gender` VARCHAR(256) COMMENT 'The user\'s gender. This is an optional field and may not be entered by the user.',
   `locale` VARCHAR(256) COMMENT 'The user\'s locale. This is an optional field and may not be entered by the user.',
-  `public` VARCHAR(256) COMMENT 'TBD',
+  `public` VARCHAR(256) COMMENT 'Used in Trial Versions of Canvas, the type of school the user is associated with',
   `birthdate` DATETIME COMMENT 'The user\'s birth date. This is an optional field and may not be entered by the user.',
   `country_code` VARCHAR(256) COMMENT 'The user\'s country code. This is an optional field and may not be entered by the user.',
   `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating the status of the user, valid values are: creation_pending, deleted, pre_registered, registered',
@@ -97,12 +97,12 @@ CREATE TABLE IF NOT EXISTS pseudonym_dim (
   `user_id` BIGINT COMMENT 'Id for the user associated with this pseudonym',
   `account_id` BIGINT COMMENT 'Id for the account associated with this pseudonym',
   `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating that pseudonym is [deleted] or [active]',
-  `last_request_at` DATETIME COMMENT 'TBD',
+  `last_request_at` DATETIME COMMENT 'Timestamp of when the user last logged in with this pseudonym',
   `last_login_at` DATETIME COMMENT 'Timestamp of last time a user logged in with this pseudonym',
-  `current_login_at` DATETIME COMMENT 'TBD',
+  `current_login_at` DATETIME COMMENT 'Timestamp of when the user logged in',
   `last_login_ip` VARCHAR(256) COMMENT 'IP address recorded the last time a user logged in with this pseudonym',
-  `current_login_ip` VARCHAR(256) COMMENT 'TBD',
-  `position` INTEGER UNSIGNED COMMENT 'TBD',
+  `current_login_ip` VARCHAR(256) COMMENT 'IP address of user\'s current/last login',
+  `position` INTEGER UNSIGNED COMMENT 'Position of user\'s login credentials',
   `created_at` DATETIME COMMENT 'Timestamp when this pseudonym was created in Canvas',
   `updated_at` DATETIME COMMENT 'Timestamp when this pseudonym was last updated in Canvas',
   `password_auto_generated` BOOLEAN COMMENT 'True if the password has been auto-generated',
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `automatic_peer_reviews` BOOLEAN COMMENT 'True if peer reviews are assigned algorithmically (vs. letting the instructor make manual assignments)',
   `all_day` BOOLEAN COMMENT 'True if A specific time for when the assignment is due was not given. The effective due time will be 11:59pm.',
   `all_day_date` DATE COMMENT 'The date version of the due date if the all_day flag is true.',
-  `could_be_locked` BOOLEAN COMMENT 'TBD',
+  `could_be_locked` BOOLEAN COMMENT 'True if the assignment is under a module that can be locked',
   `grade_group_students_individually` BOOLEAN COMMENT 'True if students who submit work as a group will each receive individual grades (vs one grade that is copied to all group members)',
   `anonymous_peer_reviews` BOOLEAN COMMENT '(currently unimplemented, do not use)',
   `muted` BOOLEAN COMMENT 'Student cannot see grades left on the assignment.',
@@ -219,10 +219,10 @@ CREATE TABLE IF NOT EXISTS submission_fact (
 );
 DROP TABLE IF EXISTS submission_comment_participant_fact;
 CREATE TABLE IF NOT EXISTS submission_comment_participant_fact (
-  `submission_comment_participant_id` BIGINT,
-  `submission_comment_id` BIGINT,
-  `user_id` BIGINT,
-  `submission_id` BIGINT,
+  `submission_comment_participant_id` BIGINT COMMENT 'Foreign key to the submission comment participant dimension',
+  `submission_comment_id` BIGINT COMMENT 'Foreign key to the submission comment dimension for the comment',
+  `user_id` BIGINT COMMENT 'Foreign key to the user dimension of the user who made the comment',
+  `submission_id` BIGINT COMMENT 'Foreign key to the submission dimension related to this participant\'s comment',
   `assignment_id` BIGINT COMMENT 'Foreign key to assignment dimension',
   `course_id` BIGINT COMMENT 'Foreign key to course dimension of course associated with the assignment.',
   `enrollment_term_id` BIGINT COMMENT 'Foreign Key to enrollment term table',
@@ -240,10 +240,10 @@ UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS submission_comment_fact;
 CREATE TABLE IF NOT EXISTS submission_comment_fact (
-  `submission_comment_id` BIGINT,
-  `submission_id` BIGINT,
+  `submission_comment_id` BIGINT COMMENT 'Foreign key to the submission comment dimension related to the comment',
+  `submission_id` BIGINT COMMENT 'Foreign key to the submission dimension related to the comment',
   `recipient_id` BIGINT COMMENT '(Deprecated) No longer used in Canvas.',
-  `author_id` BIGINT,
+  `author_id` BIGINT COMMENT 'Foreign key to the user dimension for the author of the comment',
   `assignment_id` BIGINT COMMENT 'Foreign key to assignment dimension',
   `course_id` BIGINT COMMENT 'Foreign key to course dimension of course associated with the assignment.',
   `enrollment_term_id` BIGINT COMMENT 'Foreign Key to enrollment term table',
@@ -301,7 +301,7 @@ CREATE TABLE IF NOT EXISTS assignment_override_user_dim (
   `id` BIGINT COMMENT 'Unique surrogate ID for the assignment_override_student.',
   `canvas_id` BIGINT COMMENT 'The ID of the user in the adhoc group table.',
   `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with. May be empty.',
-  `assignment_override_id` BIGINT,
+  `assignment_override_id` BIGINT COMMENT 'Foreign key to the assignment override dimension',
   `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with. May be empty.',
   `user_id` BIGINT COMMENT 'Foreign key to the user.',
   `created_at` DATETIME COMMENT 'Timestamp of when the assignment_override_student was created.',
@@ -312,9 +312,9 @@ DROP TABLE IF EXISTS assignment_override_user_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_user_fact (
   `assignment_override_user_id` BIGINT COMMENT 'Unique surrogate ID for the assignment_override_student. Is made up by adding a large number to the ID of the source table.',
   `account_id` BIGINT COMMENT 'Foreign key to the account associated with the course associated with this assignment.',
-  `assignment_group_id` BIGINT,
+  `assignment_group_id` BIGINT COMMENT 'Foreign key to the assignment group dimension this fact is related to',
   `assignment_id` BIGINT COMMENT 'Foreign key to the assignment the override is associated with. May be empty.',
-  `assignment_override_id` BIGINT,
+  `assignment_override_id` BIGINT COMMENT 'Foreign key to the assignment override dimension this fact is related to',
   `course_id` BIGINT COMMENT 'Foreign key to the course associated with this assignment.',
   `enrollment_term_id` BIGINT COMMENT 'Foreign Key to enrollment term table.',
   `quiz_id` BIGINT COMMENT 'Foreign key to the quiz the override is associated with. May be empty.',
@@ -432,8 +432,8 @@ CREATE TABLE IF NOT EXISTS conversation_message_participant_fact (
   `course_id` BIGINT COMMENT 'Foreign key to the course dimension for the associated course.',
   `enrollment_term_id` BIGINT COMMENT 'Foreign Key to enrollment term table',
   `course_account_id` BIGINT COMMENT 'Foreign Key to the course\'s account',
-  `group_id` BIGINT COMMENT 'TBD',
-  `account_id` BIGINT COMMENT 'TBD',
+  `group_id` BIGINT COMMENT 'Foreign key to the group dimension for a particular group',
+  `account_id` BIGINT COMMENT 'Foreign key to account_dim',
   `enrollment_rollup_id` BIGINT COMMENT 'Foreign key to the enrollment roll-up dimension table',
   `message_size_bytes` INTEGER UNSIGNED COMMENT 'The message size in bytes.',
   `message_character_count` INTEGER UNSIGNED COMMENT 'The message size in characters.',
@@ -467,7 +467,7 @@ CREATE TABLE IF NOT EXISTS discussion_topic_fact (
   `course_account_id` BIGINT COMMENT '(currently un-populated) Foreign key to the account dimension for the account associated with the associated course',
   `user_id` BIGINT COMMENT 'Foreign key to the user dimension for the user that created the discussion topic.',
   `assignment_id` BIGINT COMMENT 'Foreign key to the assignment dimension',
-  `editor_id` BIGINT COMMENT 'Foreign key to the user dimension. (TBD)',
+  `editor_id` BIGINT COMMENT 'Foreign key to the user to last edit the entry, if different than user_id',
   `enrollment_rollup_id` BIGINT COMMENT 'Foreign key to the enrollment roll-up dimension table',
   `message_length` INTEGER UNSIGNED COMMENT 'The length of the message in bytes.'
 ) COMMENT = "Measures for discussion topics/threads.";
@@ -518,7 +518,7 @@ CREATE TABLE IF NOT EXISTS course_section_dim (
   `enrollment_term_id` BIGINT COMMENT 'Foreign key to the associated enrollment term',
   `default_section` BOOLEAN COMMENT 'True if this is the default section',
   `accepting_enrollments` BOOLEAN COMMENT 'True if this section is open for enrollment',
-  `can_manually_enroll` BOOLEAN COMMENT 'TBD',
+  `can_manually_enroll` BOOLEAN COMMENT 'Deprecated',
   `start_at` DATETIME COMMENT 'Section start date',
   `end_at` DATETIME COMMENT 'Section end date',
   `created_at` DATETIME COMMENT 'Timestamp for when this section was entered into the system.',
@@ -533,14 +533,14 @@ DROP TABLE IF EXISTS role_dim;
 CREATE TABLE IF NOT EXISTS role_dim (
   `id` BIGINT COMMENT 'Unique surrogate id for the role.',
   `canvas_id` BIGINT COMMENT 'Primary key for this record in the Canvas roles table',
-  `root_account_id` BIGINT,
+  `root_account_id` BIGINT COMMENT 'Foreign key to the account dimension for this role\'s root account.',
   `account_id` BIGINT COMMENT 'The foreign key to the account that is in the role',
   `name` VARCHAR(256) COMMENT 'The name of role, previously was \"role_name\" on the enrollments_dim',
-  `base_role_type` VARCHAR(256),
-  `workflow_state` VARCHAR(256),
-  `created_at` DATETIME,
-  `updated_at` DATETIME,
-  `deleted_at` DATETIME,
+  `base_role_type` VARCHAR(256) COMMENT 'The built in type this role is based on.',
+  `workflow_state` VARCHAR(256) COMMENT 'Workflow status indicating that the role is [deleted] or [inactive]',
+  `created_at` DATETIME COMMENT 'Timestamp of the first time the role was entered into the system',
+  `updated_at` DATETIME COMMENT 'Timestamp of the last time the role was updated',
+  `deleted_at` DATETIME COMMENT 'Timestamp of when the role was removed from the system',
 UNIQUE KEY id (id)
 ) COMMENT = "Give the possible roles for an enrolled user";
 DROP TABLE IF EXISTS enrollment_dim;
@@ -997,7 +997,7 @@ CREATE TABLE IF NOT EXISTS requests (
   `user_agent_id` BIGINT COMMENT '(Not implemented) Foreign key to the user agent dimension table.',
   `http_status` VARCHAR(10) COMMENT 'HTTP status of the request.',
   `http_version` VARCHAR(256) COMMENT 'HTTP protocol version.'
-) COMMENT = "Pageview requests";
+) COMMENT = "Pageview requests. Disclaimer: The data in the requests table is a \'best effort\' attempt, and is not guaranteed to be complete or wholly accurate. This data is meant to be used for rollups and analysis in the aggregate, _not_ in isolation for auditing, or other high-stakes analysis involving examining single users or small samples. As this data is generated from the Canvas logs files, not a transactional database, there are many places along the way data can be lost and/or duplicated (though uncommon). Additionally, given the size of this data, our processes are often done on monthly cycles for many parts of the requests tables, so as errors occur they can only be rectified monthly.";
 DROP TABLE IF EXISTS external_tool_activation_dim;
 CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
   `id` BIGINT COMMENT 'Unique surrogate id for tool activations',
@@ -1153,4 +1153,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11300);
+  ('schema',-1,11302);
