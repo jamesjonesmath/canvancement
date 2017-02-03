@@ -4,7 +4,7 @@
 // @description Generates a .CSV download of the access report for all students
 // @include     https://*.instructure.com/courses/*/users
 // @require     https://github.com/eligrey/FileSaver.js/raw/master/FileSaver.js
-// @version     7
+// @version     8
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -303,7 +303,7 @@
     var item, user, userId, fieldInfo, value;
     for (var i = 0; i < accessData.length; i++) {
       item = accessData[i].asset_user_access;
-      if ((typeof (showViewStudent) === 'undefined' || !showViewStudent) && item.asset_class_name == 'student_enrollment') {
+      if ((typeof (showViewStudent) === 'undefined' || !showViewStudent) && item.asset_category == 'roster' && item.asset_class_name == 'student_enrollment') {
         continue;
       }
       userId = item.user_id;
@@ -314,7 +314,7 @@
         }
         fieldInfo = fields[j].src.split('.');
         value = fieldInfo[0] == 'a' ? item[fieldInfo[1]] : user[fieldInfo[1]];
-        if (value === null) {
+        if (typeof value === 'undefined' || value === null) {
           value = '';
         } else {
           if (typeof fields[j].fmt !== 'undefined') {
