@@ -4,7 +4,7 @@
 // @description Generates a .CSV download of the access report for all students using anonymized user data
 // @include     https://*.instructure.com/courses/*/users
 // @require     https://github.com/eligrey/FileSaver.js/raw/master/FileSaver.js
-// @version     6
+// @version     8
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -106,14 +106,6 @@
               user.section_name = section.name;
               user.sis_section_id = section.sis_section_id;
               user.sis_course_id = section.sis_course_id;
-              if (typeof section.enrollments !== 'undefined') {
-                for (var k = 0; k < section.enrollments.length; k++) {
-                  if (section.enrollments[k].role == 'StudentEnrollment') {
-                    user.enrollmentId = section.enrollments[k].id;
-                    break;
-                  }
-                }
-              }
               userData[user.id] = user;
             }
           }
@@ -195,12 +187,12 @@
 
   function makeReport() {
     try {
-      anonymizeUsers();
       if (aborted) {
         console.log('Process aborted');
         aborted = false;
         return;
       }
+      anonymizeUsers();
       progressbar();
       var csv = createCSV();
       if (csv) {
@@ -312,7 +304,7 @@
     var item, user, userId, fieldInfo, value;
     for (var i = 0; i < accessData.length; i++) {
       item = accessData[i].asset_user_access;
-      if ((typeof (showViewStudent) === 'undefined' || !showViewStudent) && item.asset_class_name == 'student_enrollment') {
+      if ((typeof (showViewStudent) === 'undefined' || !showViewStudent) && item.asset_category == 'roster' && item.asset_class_name == 'student_enrollment') {
         continue;
       }
       userId = item.user_id;
@@ -323,7 +315,7 @@
         }
         fieldInfo = fields[j].src.split('.');
         value = fieldInfo[0] == 'a' ? item[fieldInfo[1]] : user[fieldInfo[1]];
-        if (value === null) {
+        if (typeof value === 'undefined' || value === null) {
           value = '';
         } else {
           if (typeof fields[j].fmt !== 'undefined') {
@@ -581,19 +573,17 @@
         }
         sisIds.push(sisId);
         userNames[userData[id].name] = name;
-        userData[id] = {
-          'id' : newId,
-          'name' : name,
-          'sortable_name' : names[1] + ', ' + names[0],
-          'short_name' : name,
-          'sis_user_id' : sisId,
-          'sis_login_id' : login,
-          'login_id' : login
-        };
+        userData[id].id = newId;
+        userData[id].name = name;
+        userData[id].sortable_name = names[1] + ', ' + names[0];
+        userData[id].short_name = name;
+        userData[id].sis_user_id = sisId;
+        userData[id].sis_login_id = login;
+        userData[id].login_id = login;
       }
     }
-    for ( var j in accessData) {
-      if (accessData.hasOwnProperty(j)) {
+    if (typeof showViewStudent !== 'undefined' && showViewStudent) {
+      for (var j = 0; j < accessData.length; j++) {
         if (accessData[j].asset_user_access.asset_category == 'roster' && accessData[j].asset_user_access.asset_class_name == 'student_enrollment') {
           var userName = accessData[j].asset_user_access.readable_name;
           if (typeof userNames[userName] !== 'undefined') {
@@ -613,5 +603,4 @@
       return A;
     }
   }
-
 })();
