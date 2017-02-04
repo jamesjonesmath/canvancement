@@ -161,9 +161,9 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   if ($drop_schema) {
     $t .= c( 'DROP DATABASE IF EXISTS %s', $schema_name );
   }
-  $t .= c( 'CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8', $schema_name );
+  $t .= c( 'CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8mb4', $schema_name );
   $t .= c( 'USE %s', $schema_name );
-  $t .= c( 'SET NAMES utf8' );
+  $t .= c( 'SET NAMES utf8mb4' );
   $table_types = array ();
   foreach ( $cdschema['schema'] as $key => $table ) {
     $table_name = isset( $table['tableName'] ) ? $table['tableName'] : $key;
