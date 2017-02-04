@@ -1,10 +1,10 @@
-# MySQL script to create database for Canvas Data schema version 1.13.2
+# MySQL script to create database for Canvas Data schema version 1.13.3
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
-CREATE DATABASE IF NOT EXISTS canvas_data DEFAULT CHARACTER SET utf8;
+CREATE DATABASE IF NOT EXISTS canvas_data DEFAULT CHARACTER SET utf8mb4;
 USE canvas_data;
-SET NAMES utf8;
+SET NAMES utf8mb4;
 DROP TABLE IF EXISTS course_dim;
 CREATE TABLE IF NOT EXISTS course_dim (
   `id` BIGINT,
@@ -149,6 +149,7 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `anonymous_peer_reviews` BOOLEAN,
   `muted` BOOLEAN,
   `assignment_group_id` BIGINT,
+  `position` INTEGER UNSIGNED,
 UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS assignment_fact;
@@ -1153,4 +1154,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11302);
+  ('schema',-1,11303);
