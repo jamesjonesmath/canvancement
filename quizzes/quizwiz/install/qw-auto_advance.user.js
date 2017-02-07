@@ -5,10 +5,10 @@
 // @include     https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
 // @noframes
-// @version     3
+// @version     4
 // @grant       none
 // ==/UserScript==
-requirejs([ 'https://gitcdn.link/repo/jamesjonesmath/canvancement/master/quizzes/quizwiz/src/qw-engine.js' ], function(QuizWiz) {
+(function() {
   'use strict';
 
   var config = {
@@ -32,5 +32,13 @@ requirejs([ 'https://gitcdn.link/repo/jamesjonesmath/canvancement/master/quizzes
     'nextRubricExpanded' : false
   };
 
-  QuizWiz(config);
-});
+  $.ajax({
+    'url' : 'https://gitcdn.link/repo/jamesjonesmath/canvancement/master/quizzes/quizwiz/src/qw-engine.js',
+    'dataType' : 'script',
+    'cache' : true,
+    'success' : function() {
+      QuizWiz(config);
+    }
+  });
+
+})();
