@@ -4,15 +4,11 @@
 // @description Sort the list of sections alphabetically
 // @include     https://*.instructure.com/courses/*/gradebook
 // @include     https://*.instructure.com/courses/*/settings
-// @version     2
+// @require     https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort.min.js
+// @version     3
 // @grant       none
 // ==/UserScript==
-requirejs.config({
-  paths : {
-    'tinysort' : 'https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort'
-  }
-});
-requirejs([ 'tinysort' ], function(tinysort) {
+(function() {
   'use strict';
   try {
     checkGradebookClassView();
@@ -26,9 +22,9 @@ requirejs([ 'tinysort' ], function(tinysort) {
     // Make sure we're on the gradebook page
     if (!regex.test(window.location.pathname)) {
       return;
-    } // Check for the class view
-
-    if (!document.querySelector('body').classList.contains('gradebook2')) {
+    }
+    // Check for the class view
+    if (!document.querySelector('body').classList.contains('gradebook')) {
       return;
     }
     if (document.getElementById('section-to-show-menu')) {
@@ -61,7 +57,7 @@ requirejs([ 'tinysort' ], function(tinysort) {
       return;
     } // Check for the class view
 
-    if (document.querySelector('body').classList.contains('gradebook2')) {
+    if (document.querySelector('body').classList.contains('gradebook')) {
       return;
     }
     if (document.getElementById('section_select')) {
