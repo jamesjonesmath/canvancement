@@ -390,7 +390,7 @@
         if (words.length < 3) {
           // This may be a linked outcome
           if (block && isInteger(words[0])) {
-            if (words.length > 1 && isBoolean(words[1])) {
+            if (words.length > 1 && isBoolean(words[1], true)) {
               outcome = {
                 'id' : words[0],
                 'ignore' : boolean(words[1]) ? false : true
@@ -399,6 +399,9 @@
               outcome = {
                 'id' : words[0]
               };
+              if (words.length > 1) {
+                long = words[1];
+              }
             }
           } else {
             continue;
