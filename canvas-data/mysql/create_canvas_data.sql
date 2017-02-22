@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.13.3
+# MySQL script to create database for Canvas Data schema version 1.14.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -717,6 +717,171 @@ CREATE TABLE IF NOT EXISTS group_membership_dim (
   `updated_at` DATETIME,
 UNIQUE KEY id (id)
 );
+DROP TABLE IF EXISTS module_dim;
+CREATE TABLE IF NOT EXISTS module_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `course_id` BIGINT,
+  `require_sequential_progress` ENUM('required', 'not_required', 'unspecified'),
+  `workflow_state` ENUM('locked', 'completed', 'unlocked', 'started'),
+  `position` INTEGER UNSIGNED,
+  `name` LONGTEXT,
+  `created_at` DATETIME,
+  `deleted_at` DATETIME,
+  `unlock_at` DATETIME,
+  `updated_at` DATETIME,
+UNIQUE KEY id (id)
+);
+DROP TABLE IF EXISTS module_fact;
+CREATE TABLE IF NOT EXISTS module_fact (
+  `module_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `wiki_id` BIGINT
+);
+DROP TABLE IF EXISTS module_item_dim;
+CREATE TABLE IF NOT EXISTS module_item_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `assignment_id` BIGINT,
+  `course_id` BIGINT,
+  `discussion_topic_id` BIGINT,
+  `file_id` BIGINT,
+  `module_id` BIGINT,
+  `quiz_id` BIGINT,
+  `wiki_page_id` BIGINT,
+  `content_type` ENUM('Assignment', 'Attachment', 'DiscussionTopic', 'ContextExternalTool', 'ContextModuleSubHeader', 'ExternalUrl', 'LearningOutcome', 'Quiz', 'Rubric', 'WikiPage'),
+  `workflow_state` ENUM(),
+  `position` INTEGER UNSIGNED,
+  `title` LONGTEXT,
+  `url` LONGTEXT,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+UNIQUE KEY id (id)
+);
+DROP TABLE IF EXISTS module_item_fact;
+CREATE TABLE IF NOT EXISTS module_item_fact (
+  `module_item_id` BIGINT,
+  `account_id` BIGINT,
+  `assignment_id` BIGINT,
+  `assignment_group_id` BIGINT,
+  `course_id` BIGINT,
+  `discussion_topic_id` BIGINT,
+  `discussion_topic_editor_id` BIGINT,
+  `enrollment_rollup_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `file_id` BIGINT,
+  `module_id` BIGINT,
+  `quiz_id` BIGINT,
+  `user_id` BIGINT,
+  `wiki_id` BIGINT,
+  `wiki_page_id` BIGINT
+);
+DROP TABLE IF EXISTS module_progression_dim;
+CREATE TABLE IF NOT EXISTS module_progression_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `module_id` BIGINT,
+  `user_id` BIGINT,
+  `collapsed` ENUM(),
+  `is_current` ENUM(),
+  `workflow_state` ENUM(),
+  `current_position` INTEGER UNSIGNED,
+  `lock_version` INTEGER UNSIGNED,
+  `created_at` DATETIME,
+  `completed_at` DATETIME,
+  `evaluated_at` DATETIME,
+  `updated_at` DATETIME,
+UNIQUE KEY id (id)
+);
+DROP TABLE IF EXISTS module_progression_fact;
+CREATE TABLE IF NOT EXISTS module_progression_fact (
+  `module_progression_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `module_id` BIGINT,
+  `user_id` BIGINT,
+  `wiki_id` BIGINT
+);
+DROP TABLE IF EXISTS module_completion_requirement_dim;
+CREATE TABLE IF NOT EXISTS module_completion_requirement_dim (
+  `id` BIGINT,
+  `module_id` BIGINT,
+  `module_item_id` BIGINT,
+  `requirement_type` ENUM(),
+UNIQUE KEY id (id)
+);
+DROP TABLE IF EXISTS module_completion_requirement_fact;
+CREATE TABLE IF NOT EXISTS module_completion_requirement_fact (
+  `module_completion_requirement_id` BIGINT,
+  `account_id` BIGINT,
+  `assignment_id` BIGINT,
+  `assignment_group_id` BIGINT,
+  `course_id` BIGINT,
+  `discussion_topic_id` BIGINT,
+  `discussion_topic_editor_id` BIGINT,
+  `enrollment_rollup_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `file_id` BIGINT,
+  `module_id` BIGINT,
+  `module_item_id` BIGINT,
+  `quiz_id` BIGINT,
+  `user_id` BIGINT,
+  `wiki_id` BIGINT,
+  `wiki_page_id` BIGINT,
+  `min_score` DOUBLE
+);
+DROP TABLE IF EXISTS module_prerequisite_dim;
+CREATE TABLE IF NOT EXISTS module_prerequisite_dim (
+  `id` BIGINT,
+  `module_id` BIGINT,
+  `prerequisite_module_id` BIGINT,
+UNIQUE KEY id (id)
+);
+DROP TABLE IF EXISTS module_prerequisite_fact;
+CREATE TABLE IF NOT EXISTS module_prerequisite_fact (
+  `module_prerequisite_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `module_id` BIGINT,
+  `prerequisite_module_id` BIGINT,
+  `prerequisite_wiki_id` BIGINT,
+  `wiki_id` BIGINT
+);
+DROP TABLE IF EXISTS module_progression_completion_requirement_dim;
+CREATE TABLE IF NOT EXISTS module_progression_completion_requirement_dim (
+  `id` BIGINT,
+  `module_progression_id` BIGINT,
+  `module_item_id` BIGINT,
+  `requirement_type` ENUM(),
+  `completion_status` ENUM('complete', 'incomplete'),
+UNIQUE KEY id (id)
+);
+DROP TABLE IF EXISTS module_progression_completion_requirement_fact;
+CREATE TABLE IF NOT EXISTS module_progression_completion_requirement_fact (
+  `module_progression_completion_requirement_id` BIGINT,
+  `account_id` BIGINT,
+  `assignment_id` BIGINT,
+  `assignment_group_id` BIGINT,
+  `course_id` BIGINT,
+  `discussion_topic_id` BIGINT,
+  `discussion_topic_editor_id` BIGINT,
+  `enrollment_rollup_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `file_id` BIGINT,
+  `module_id` BIGINT,
+  `module_item_id` BIGINT,
+  `module_progression_id` BIGINT,
+  `quiz_id` BIGINT,
+  `user_id` BIGINT,
+  `wiki_id` BIGINT,
+  `wiki_page_id` BIGINT,
+  `min_score` DOUBLE,
+  `score` DOUBLE
+);
 DROP TABLE IF EXISTS course_ui_canvas_navigation_dim;
 CREATE TABLE IF NOT EXISTS course_ui_canvas_navigation_dim (
   `id` BIGINT,
@@ -1132,6 +1297,18 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('group_fact',0,NULL),
   ('group_membership_fact',0,NULL),
   ('group_membership_dim',0,NULL),
+  ('module_dim',0,NULL),
+  ('module_fact',0,NULL),
+  ('module_item_dim',0,NULL),
+  ('module_item_fact',0,NULL),
+  ('module_progression_dim',0,NULL),
+  ('module_progression_fact',0,NULL),
+  ('module_completion_requirement_dim',0,NULL),
+  ('module_completion_requirement_fact',0,NULL),
+  ('module_prerequisite_dim',0,NULL),
+  ('module_prerequisite_fact',0,NULL),
+  ('module_progression_completion_requirement_dim',0,NULL),
+  ('module_progression_completion_requirement_fact',0,NULL),
   ('course_ui_canvas_navigation_dim',0,NULL),
   ('course_ui_navigation_item_dim',0,NULL),
   ('course_ui_navigation_item_fact',0,NULL),
@@ -1154,4 +1331,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11303);
+  ('schema',-1,11400);
