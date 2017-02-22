@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.13.3
+# MySQL script to create database for Canvas Data schema version 1.14.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -717,6 +717,171 @@ CREATE TABLE IF NOT EXISTS group_membership_dim (
   `updated_at` DATETIME COMMENT 'Timestamp when the group membership was last updated in the system.',
 UNIQUE KEY id (id)
 ) COMMENT = "Attributes for groups_membership in canvas.";
+DROP TABLE IF EXISTS module_dim;
+CREATE TABLE IF NOT EXISTS module_dim (
+  `id` BIGINT COMMENT 'Unique surrogate ID for the module.',
+  `canvas_id` BIGINT COMMENT 'Original primary key for module in the Canvas table.',
+  `course_id` BIGINT COMMENT 'The course that owns this module.',
+  `require_sequential_progress` ENUM('required', 'not_required', 'unspecified') COMMENT 'Should module items be completed sequentially? Valid values are \'required\', \'not_required\', \'unspecified\'.',
+  `workflow_state` ENUM('locked', 'completed', 'unlocked', 'started') COMMENT 'Workflow state for submission lifetime values.',
+  `position` INTEGER UNSIGNED COMMENT 'Position of the module on the modules page.',
+  `name` LONGTEXT COMMENT 'The name of the module in Canvas.',
+  `created_at` DATETIME COMMENT 'Date/Time when the module was created.',
+  `deleted_at` DATETIME COMMENT 'Timestamp when the module was deleted.',
+  `unlock_at` DATETIME COMMENT 'Timestamp when the module will unlock.',
+  `updated_at` DATETIME COMMENT 'Date/Time when the module was last updated.',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes for a module.";
+DROP TABLE IF EXISTS module_fact;
+CREATE TABLE IF NOT EXISTS module_fact (
+  `module_id` BIGINT COMMENT 'Foreign key to assignment dimension.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account the module belongs to.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this assignment.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment_term associated with the module_fact course.',
+  `wiki_id` BIGINT COMMENT 'Foreign key to the wiki associated with the module_fact course.'
+) COMMENT = "Table containing measures related to modules.";
+DROP TABLE IF EXISTS module_item_dim;
+CREATE TABLE IF NOT EXISTS module_item_dim (
+  `id` BIGINT COMMENT 'Unique surrogate ID for the module_item.',
+  `canvas_id` BIGINT COMMENT 'Original primary key for module_item in the Canvas table.',
+  `assignment_id` BIGINT COMMENT 'Key into assignments table for \'Assignment\' type items.',
+  `course_id` BIGINT COMMENT 'The course that owns this module.',
+  `discussion_topic_id` BIGINT COMMENT 'Key into discussion_topics table for \'Discussion\' type items.',
+  `file_id` BIGINT COMMENT 'Key into file table for \'File\' type items.',
+  `module_id` BIGINT COMMENT 'Parent module for this module item.',
+  `quiz_id` BIGINT COMMENT 'Key into quizzes table for \'Quiz\' type items.',
+  `wiki_page_id` BIGINT COMMENT 'Key into wiki_pages table for \'Page\' type items.',
+  `content_type` ENUM('Assignment', 'Attachment', 'DiscussionTopic', 'ContextExternalTool', 'ContextModuleSubHeader', 'ExternalUrl', 'LearningOutcome', 'Quiz', 'Rubric', 'WikiPage') COMMENT 'The type of content linked to this item. One of: \'Assignment\', \'Attachment\', \'DiscussionTopic\', \'ContextExternalTool\', \'ContextModuleSubHeader\', \'ExternalUrl\', \'LearningOutcome\', \'Quiz\', \'Rubric\' or \'WikiPage\'.',
+  `workflow_state` ENUM() COMMENT 'State of the module item.',
+  `position` INTEGER UNSIGNED COMMENT 'Position of the module item within the module context.',
+  `title` LONGTEXT COMMENT 'Title of the module item.',
+  `url` LONGTEXT COMMENT 'Url for external url type module items.',
+  `created_at` DATETIME COMMENT 'Date/Time when the module item was created.',
+  `updated_at` DATETIME COMMENT 'Date/Time when the module item was last updated.',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes for a module item.";
+DROP TABLE IF EXISTS module_item_fact;
+CREATE TABLE IF NOT EXISTS module_item_fact (
+  `module_item_id` BIGINT COMMENT 'Unique surrogate ID for the module_item.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account the module belongs to.',
+  `assignment_id` BIGINT COMMENT 'Key into assignments table for \'Assignment\', \'DiscussionTopic\', \'File\', \'Quiz\' type items.',
+  `assignment_group_id` BIGINT COMMENT 'Key into assignment_groups for \'Assignment\', \'File\' type items.',
+  `course_id` BIGINT COMMENT 'The course that owns this module.',
+  `discussion_topic_id` BIGINT COMMENT 'Key into discussion_topics table for \'DiscussionTopic\' type items.',
+  `discussion_topic_editor_id` BIGINT COMMENT 'Key into users table for user who edited \'DiscussionTopic\' type items.',
+  `enrollment_rollup_id` BIGINT COMMENT 'Key into enrollment_rollup table for user associated with \'DiscussionTopic\', \'File\' type items.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment_term associated with the module course.',
+  `file_id` BIGINT COMMENT 'Key into file table for \'File\' type items.',
+  `module_id` BIGINT COMMENT 'Parent module for this module item.',
+  `quiz_id` BIGINT COMMENT 'Key into quizzes table for \'File\', \'Quiz\' type items.',
+  `user_id` BIGINT COMMENT 'Key into users table for \'DiscussionTopic\', \'File\', \'WikiPage\' type items.',
+  `wiki_id` BIGINT COMMENT 'Key into wiki table for \'WikiPage\' type items.',
+  `wiki_page_id` BIGINT COMMENT 'Key into wiki_pages table for \'WikiPage\' type items.'
+) COMMENT = "Table containing measures related to modules_items.";
+DROP TABLE IF EXISTS module_progression_dim;
+CREATE TABLE IF NOT EXISTS module_progression_dim (
+  `id` BIGINT COMMENT 'Unique surrogate ID for the module progression.',
+  `canvas_id` BIGINT COMMENT 'Original primary key for module progression in the Canvas table.',
+  `module_id` BIGINT COMMENT 'Parent module for this module progression.',
+  `user_id` BIGINT COMMENT 'User being tracked in the module progression.',
+  `collapsed` ENUM() COMMENT 'Collapsed state of the module progression.',
+  `is_current` ENUM() COMMENT 'The current state of the module progression.',
+  `workflow_state` ENUM() COMMENT 'The workflow state of the module progression.',
+  `current_position` INTEGER UNSIGNED COMMENT 'Represents the users current position in the module.',
+  `lock_version` INTEGER UNSIGNED COMMENT 'Lock version of the module progression.',
+  `created_at` DATETIME COMMENT 'Date/Time when the module progression was created.',
+  `completed_at` DATETIME COMMENT 'Date/Time when the module progression was completed.',
+  `evaluated_at` DATETIME COMMENT 'Date/Time when the module progression was evaluated.',
+  `updated_at` DATETIME COMMENT 'Date/Time when the module progression was last updated.',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes for a module progression.";
+DROP TABLE IF EXISTS module_progression_fact;
+CREATE TABLE IF NOT EXISTS module_progression_fact (
+  `module_progression_id` BIGINT COMMENT 'Unique surrogate ID for the module progression.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account the module belongs to.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this module.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment_term associated with the module course.',
+  `module_id` BIGINT COMMENT 'Parent module for this module progression.',
+  `user_id` BIGINT COMMENT 'User being tracked in the module progression.',
+  `wiki_id` BIGINT COMMENT 'Foreign key to the wiki associated with the module course.'
+) COMMENT = "Table containing measures related to modules_progression.";
+DROP TABLE IF EXISTS module_completion_requirement_dim;
+CREATE TABLE IF NOT EXISTS module_completion_requirement_dim (
+  `id` BIGINT COMMENT 'Unique surrogate ID for the module completion requirement.',
+  `module_id` BIGINT COMMENT 'Module that contains the completion requirement.',
+  `module_item_id` BIGINT COMMENT 'Item that is the subject of the completion requirement.',
+  `requirement_type` ENUM() COMMENT 'Type of completion event that must be achieved to consider item complete.',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes for a module completion.";
+DROP TABLE IF EXISTS module_completion_requirement_fact;
+CREATE TABLE IF NOT EXISTS module_completion_requirement_fact (
+  `module_completion_requirement_id` BIGINT COMMENT 'Unique surrogate ID for the module completion requirement.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account the module and the module item belong to.',
+  `assignment_id` BIGINT COMMENT 'Assignment associated with the module item.',
+  `assignment_group_id` BIGINT COMMENT 'Assignment group associated with the module item.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this module and the module item.',
+  `discussion_topic_id` BIGINT COMMENT 'Discussion topic associated with the module item.',
+  `discussion_topic_editor_id` BIGINT COMMENT 'Editor of the discussion topic associated with the module item.',
+  `enrollment_rollup_id` BIGINT COMMENT 'Enrollment rollup associated with the module item.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term associated with this module and the module item.',
+  `file_id` BIGINT COMMENT 'File associated with the module item.',
+  `module_id` BIGINT COMMENT 'Module that contains the completion requirement.',
+  `module_item_id` BIGINT COMMENT 'Item that is the subject of the completion requirement.',
+  `quiz_id` BIGINT COMMENT 'Quiz associated with the module item.',
+  `user_id` BIGINT COMMENT 'User associated with the module item.',
+  `wiki_id` BIGINT COMMENT 'Foreign key to the wiki associated with this module and the module item.',
+  `wiki_page_id` BIGINT COMMENT 'Wiki page associated with the module_item.',
+  `min_score` DOUBLE COMMENT 'For min_score type requirements, the score that must be attained for completion.'
+) COMMENT = "Table containing measures related to module completion requirements.";
+DROP TABLE IF EXISTS module_prerequisite_dim;
+CREATE TABLE IF NOT EXISTS module_prerequisite_dim (
+  `id` BIGINT COMMENT 'Unique surrogate ID for the module prerequisite.',
+  `module_id` BIGINT COMMENT 'Module that contains the prerequisite.',
+  `prerequisite_module_id` BIGINT COMMENT 'Module that must be completed to fulfill the prerequisite.',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes for a module prerequisite.";
+DROP TABLE IF EXISTS module_prerequisite_fact;
+CREATE TABLE IF NOT EXISTS module_prerequisite_fact (
+  `module_prerequisite_id` BIGINT COMMENT 'Unique surrogate ID for the module prerequisite.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account the module belongs to.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this assignment.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment_term associated with the module_fact course.',
+  `module_id` BIGINT COMMENT 'Module that contains the prerequisite.',
+  `prerequisite_module_id` BIGINT COMMENT 'Module that must be completed to fulfill the prerequisite.',
+  `prerequisite_wiki_id` BIGINT COMMENT 'Foreign key to the wiki associated with the module_fact course.',
+  `wiki_id` BIGINT COMMENT 'Foreign key to the wiki associated with the module_fact course.'
+) COMMENT = "Table containing measures related to module prerequisites.";
+DROP TABLE IF EXISTS module_progression_completion_requirement_dim;
+CREATE TABLE IF NOT EXISTS module_progression_completion_requirement_dim (
+  `id` BIGINT COMMENT 'Unique surrogate ID for the module progression completion requirement.',
+  `module_progression_id` BIGINT COMMENT 'Module progression referenced by completion requirement.',
+  `module_item_id` BIGINT COMMENT 'Item that the user has not completed.',
+  `requirement_type` ENUM() COMMENT 'Type of completion event that must be achieved to consider item complete.',
+  `completion_status` ENUM('complete', 'incomplete') COMMENT 'Denotes if the completion event is complete or not.',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes tracking a requirement that remains to be completed by a user. Not a comprehensive list, typically just holds requirements that have been attempted by the user.";
+DROP TABLE IF EXISTS module_progression_completion_requirement_fact;
+CREATE TABLE IF NOT EXISTS module_progression_completion_requirement_fact (
+  `module_progression_completion_requirement_id` BIGINT COMMENT 'Unique surrogate ID for the module progression completion requirement.',
+  `account_id` BIGINT COMMENT 'Key to the account associated with the module progression and the module item.',
+  `assignment_id` BIGINT COMMENT 'Key to the assignment associated with the module item.',
+  `assignment_group_id` BIGINT COMMENT 'Key to the assignment group associated with the module item.',
+  `course_id` BIGINT COMMENT 'Key to the course associated with the module progression and the module item.',
+  `discussion_topic_id` BIGINT COMMENT 'Key to the discussion topic associated with the module item.',
+  `discussion_topic_editor_id` BIGINT COMMENT 'Key to the user editing the discussion topic associated with the module item.',
+  `enrollment_rollup_id` BIGINT COMMENT 'Key to the enrollment rollup associated with the module item.',
+  `enrollment_term_id` BIGINT COMMENT 'Key to the enrollment term associated with the module progression and the module item.',
+  `file_id` BIGINT COMMENT 'Key to the file associated with the module item.',
+  `module_id` BIGINT COMMENT 'Parent module for this module progression and module item.',
+  `module_item_id` BIGINT COMMENT 'Item that the user has not completed.',
+  `module_progression_id` BIGINT COMMENT 'Module progression referenced by the completion requirement.',
+  `quiz_id` BIGINT COMMENT 'Key to the quiz associated with the module item.',
+  `user_id` BIGINT COMMENT 'Key to the user associated with the module progression and the module item.',
+  `wiki_id` BIGINT COMMENT 'Key to the wiki associated with the module progression and the module item.',
+  `wiki_page_id` BIGINT COMMENT 'Key to the wiki page associated with the module item.',
+  `min_score` DOUBLE COMMENT 'For min_score type requirements, the score that must be attained for completion.',
+  `score` DOUBLE COMMENT 'For min_score type requirements, the score that the user has currently achieved.'
+) COMMENT = "Table containing measures related to module progression completion requirements.";
 DROP TABLE IF EXISTS course_ui_canvas_navigation_dim;
 CREATE TABLE IF NOT EXISTS course_ui_canvas_navigation_dim (
   `id` BIGINT COMMENT 'Primary key for navigational item',
@@ -1132,6 +1297,18 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('group_fact',0,NULL),
   ('group_membership_fact',0,NULL),
   ('group_membership_dim',0,NULL),
+  ('module_dim',0,NULL),
+  ('module_fact',0,NULL),
+  ('module_item_dim',0,NULL),
+  ('module_item_fact',0,NULL),
+  ('module_progression_dim',0,NULL),
+  ('module_progression_fact',0,NULL),
+  ('module_completion_requirement_dim',0,NULL),
+  ('module_completion_requirement_fact',0,NULL),
+  ('module_prerequisite_dim',0,NULL),
+  ('module_prerequisite_fact',0,NULL),
+  ('module_progression_completion_requirement_dim',0,NULL),
+  ('module_progression_completion_requirement_fact',0,NULL),
   ('course_ui_canvas_navigation_dim',0,NULL),
   ('course_ui_navigation_item_dim',0,NULL),
   ('course_ui_navigation_item_fact',0,NULL),
@@ -1154,4 +1331,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11303);
+  ('schema',-1,11400);
