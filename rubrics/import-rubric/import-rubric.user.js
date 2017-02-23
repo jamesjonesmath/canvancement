@@ -4,7 +4,7 @@
 // @description Create a rubric by copying from a spreadsheet and pasting into Canvas
 // @include     https://*.instructure.com/courses/*/rubrics
 // @include     https://*.instructure.com/accounts/*/rubrics
-// @version     2
+// @version     3
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -131,10 +131,12 @@
     if (typeof item === 'undefined') {
       return false;
     }
+    var name = item.name.replace(/\s*\\n\s*/g, ' ').replace(/\s+/g, ' ');
+    var long = typeof item.long === 'undefined' ? '' : item.long.replace(/\\n/g, '\n');
     var ratings = addRatings(item.ratings, item.points);
     var criterion = {
-      'description' : item.name,
-      'long_description' : typeof item.long === 'undefined' ? '' : item.long,
+      'description' : name,
+      'long_description' : long
     };
     if (ratings !== false) {
       criterion.ratings = ratings;
@@ -164,9 +166,8 @@
     for (var i = 0; i < n; i++) {
       j = mono < 0 ? i : n - 1 - i;
       ratings.push({
-        'description' : descriptions[j].trim(),
-        'points' : points[j].trim(),
-      // 'id' : 'blank' + ((i > 0) ? '_' + i : '')
+        'description' : descriptions[j].replace(/\\n/g, ' ').replace(/\s+/g, ' '),
+        'points' : points[j],
       });
     }
     return ratings;
@@ -368,7 +369,8 @@
     var isValid = true;
     var isMethod = false;
     try {
-      var lines = txt.split(/\r?\n/);
+      var dequoted = dequote(txt);
+      var lines = dequoted.split(/\r?\n/);
       var block = false;
       var newblock;
       var i = 0;
@@ -522,8 +524,11 @@
     var criteria = [];
     var isValid = true;
     try {
-      var lines = txt.split(/\r?\n/);
-      var pointRegex = new RegExp('^([0-9]+|[0-9]+[.][0-9]+|0?[.][0-9]+)$');
+      var dequoted = dequote(txt);
+      console.log(dequoted);
+      var lines = dequoted.split(/\r?\n/);
+      console.log(dequoted);
+      console.log(lines);
       var i = 0;
       while (isValid && i < lines.length) {
         var words = lines[i].trim().split(/\t/);
@@ -615,7 +620,7 @@
                   isValid = false;
                 }
               }
-              if (!pointRegex.test(point)) {
+              if (!isPoints(point)) {
                 validLine = false;
                 if (i > 1) {
                   errors.push('Second item in pair is not a number in line ' + i + ', column ' + k);
@@ -702,6 +707,27 @@
       return false;
     }
     return /^([0-9]+|[0-9]+[.][0-9]+|0?[.][0-9]+)$/.test(t);
+  }
+
+  function dequote(txt) {
+    var regex = new RegExp('^(\\\\n)?["](.*)["](\\\\n)?$');
+    var s = txt.replace(/\r?\n/g, '\\n');
+    s = s.replace(/([^\t]+)/g, quoted);
+    return s;
+
+    function quoted(s) {
+      s = s.trim();
+      if (regex.test(s)) {
+        var match = regex.exec(s);
+        if (match) {
+          s = (typeof match[1] !== 'undefined' ? '\n' : '') + match[2].trim() + (typeof match[3] !== 'undefined' ? '\n' : '');
+          s = s.replace(/""/g, '"');
+        }
+      } else {
+        s = s.replace(/\\n/g, '\n');
+      }
+      return s;
+    }
   }
 
   function checkOutcomes() {
