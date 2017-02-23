@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.14.0
+# MySQL script to create database for Canvas Data schema version 1.15.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -603,6 +603,65 @@ CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
   `least_privileged_role` VARCHAR(256),
 UNIQUE KEY id (id)
 );
+DROP TABLE IF EXISTS score_fact;
+CREATE TABLE IF NOT EXISTS score_fact (
+  `score_id` BIGINT,
+  `canvas_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_id` BIGINT,
+  `grading_period_id` BIGINT,
+  `grading_period_group_id` BIGINT,
+  `grading_period_group_account_id` BIGINT,
+  `current_score` DOUBLE,
+  `final_score` DOUBLE
+);
+DROP TABLE IF EXISTS score_dim;
+CREATE TABLE IF NOT EXISTS score_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `enrollment_id` BIGINT,
+  `grading_period_id` BIGINT,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+  `workflow_state` VARCHAR(256),
+UNIQUE KEY id (id)
+);
+DROP TABLE IF EXISTS grading_period_fact;
+CREATE TABLE IF NOT EXISTS grading_period_fact (
+  `grading_period_id` BIGINT,
+  `canvas_id` BIGINT,
+  `grading_period_group_id` BIGINT,
+  `grading_period_group_account_id` BIGINT,
+  `grading_period_group_course_id` BIGINT,
+  `weight` DOUBLE
+);
+DROP TABLE IF EXISTS grading_period_dim;
+CREATE TABLE IF NOT EXISTS grading_period_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `grading_period_group_id` BIGINT,
+  `close_date` DATETIME,
+  `created_at` DATETIME,
+  `end_date` DATETIME,
+  `start_date` DATETIME,
+  `title` VARCHAR(256),
+  `updated_at` DATETIME,
+  `workflow_state` VARCHAR(256),
+UNIQUE KEY id (id)
+);
+DROP TABLE IF EXISTS grading_period_group_dim;
+CREATE TABLE IF NOT EXISTS grading_period_group_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `course_id` BIGINT,
+  `account_id` BIGINT,
+  `created_at` DATETIME,
+  `title` VARCHAR(256),
+  `updated_at` DATETIME,
+  `workflow_state` VARCHAR(256),
+UNIQUE KEY id (id)
+);
 DROP TABLE IF EXISTS file_dim;
 CREATE TABLE IF NOT EXISTS file_dim (
   `id` BIGINT,
@@ -752,7 +811,7 @@ CREATE TABLE IF NOT EXISTS module_item_dim (
   `quiz_id` BIGINT,
   `wiki_page_id` BIGINT,
   `content_type` ENUM('Assignment', 'Attachment', 'DiscussionTopic', 'ContextExternalTool', 'ContextModuleSubHeader', 'ExternalUrl', 'LearningOutcome', 'Quiz', 'Rubric', 'WikiPage'),
-  `workflow_state` ENUM(),
+  `workflow_state` ENUM('active', 'unpublished', 'deleted'),
   `position` INTEGER UNSIGNED,
   `title` LONGTEXT,
   `url` LONGTEXT,
@@ -784,9 +843,9 @@ CREATE TABLE IF NOT EXISTS module_progression_dim (
   `canvas_id` BIGINT,
   `module_id` BIGINT,
   `user_id` BIGINT,
-  `collapsed` ENUM(),
-  `is_current` ENUM(),
-  `workflow_state` ENUM(),
+  `collapsed` ENUM('collapsed', 'not_collapsed', 'unspecified'),
+  `is_current` ENUM('current', 'not_current', 'unspecified'),
+  `workflow_state` ENUM('locked', 'completed', 'unlocked', 'started'),
   `current_position` INTEGER UNSIGNED,
   `lock_version` INTEGER UNSIGNED,
   `created_at` DATETIME,
@@ -810,7 +869,7 @@ CREATE TABLE IF NOT EXISTS module_completion_requirement_dim (
   `id` BIGINT,
   `module_id` BIGINT,
   `module_item_id` BIGINT,
-  `requirement_type` ENUM(),
+  `requirement_type` ENUM('must_view', 'must_mark_done', 'min_score', 'must_submit'),
 UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS module_completion_requirement_fact;
@@ -856,7 +915,7 @@ CREATE TABLE IF NOT EXISTS module_progression_completion_requirement_dim (
   `id` BIGINT,
   `module_progression_id` BIGINT,
   `module_item_id` BIGINT,
-  `requirement_type` ENUM(),
+  `requirement_type` ENUM('must_view', 'must_mark_done', 'min_score', 'must_submit'),
   `completion_status` ENUM('complete', 'incomplete'),
 UNIQUE KEY id (id)
 );
@@ -1291,6 +1350,11 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('enrollment_dim',0,NULL),
   ('enrollment_fact',0,NULL),
   ('enrollment_rollup_dim',0,NULL),
+  ('score_fact',0,NULL),
+  ('score_dim',0,NULL),
+  ('grading_period_fact',0,NULL),
+  ('grading_period_dim',0,NULL),
+  ('grading_period_group_dim',0,NULL),
   ('file_dim',0,NULL),
   ('file_fact',0,NULL),
   ('group_dim',0,NULL),
@@ -1331,4 +1395,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11400);
+  ('schema',-1,11500);
