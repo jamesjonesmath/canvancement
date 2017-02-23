@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.14.0
+# MySQL script to create database for Canvas Data schema version 1.15.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -572,8 +572,8 @@ CREATE TABLE IF NOT EXISTS enrollment_fact (
   `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term table',
   `course_account_id` BIGINT COMMENT 'Foreign key to the account of the enrolled course',
   `course_section_id` BIGINT COMMENT 'Foreign key to the enrolled section',
-  `computed_final_score` DOUBLE COMMENT 'Final score for the enrollment',
-  `computed_current_score` DOUBLE COMMENT 'Current score for the enrollment'
+  `computed_final_score` DOUBLE COMMENT '(Deprecated Jan-28-2017) Final score for the enrollment (See score_fact)',
+  `computed_current_score` DOUBLE COMMENT '(Deprecated Jan-28-2017) Current score for the enrollment (See score_fact)'
 ) COMMENT = "Measures for enrollments";
 DROP TABLE IF EXISTS enrollment_rollup_dim;
 CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
@@ -603,6 +603,65 @@ CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
   `least_privileged_role` VARCHAR(256) COMMENT 'The least privileged role associated with the user in the course.',
 UNIQUE KEY id (id)
 ) COMMENT = "Would be an empty table. Roll-up aggregating the roles held by the users in the courses they are associated with.";
+DROP TABLE IF EXISTS score_fact;
+CREATE TABLE IF NOT EXISTS score_fact (
+  `score_id` BIGINT COMMENT 'Unique surrogate identifier for the score.',
+  `canvas_id` BIGINT COMMENT 'Primary key for the score.',
+  `account_id` BIGINT COMMENT 'Foreign key to the Account group table.',
+  `course_id` BIGINT COMMENT 'Foreign key to the Course group table.',
+  `enrollment_id` BIGINT COMMENT 'Foreign key to the Enrollment table.',
+  `grading_period_id` BIGINT COMMENT 'Foreign key to the grading period group table.',
+  `grading_period_group_id` BIGINT COMMENT 'Foreign key to the grading period group table.',
+  `grading_period_group_account_id` BIGINT COMMENT 'One hop ID to the Account table for the grading period group table.',
+  `current_score` DOUBLE COMMENT 'Current score.',
+  `final_score` DOUBLE COMMENT 'Final score.'
+) COMMENT = "Table containing measures for scores within Canvas gradebook.";
+DROP TABLE IF EXISTS score_dim;
+CREATE TABLE IF NOT EXISTS score_dim (
+  `id` BIGINT COMMENT 'Unique surrogate identifier for the score.',
+  `canvas_id` BIGINT COMMENT 'Primary key for the score.',
+  `enrollment_id` BIGINT COMMENT 'Foreign key to the Enrollment table.',
+  `grading_period_id` BIGINT COMMENT 'Foreign key to the grading period group table.',
+  `created_at` DATETIME COMMENT 'Timestamp when record was created.',
+  `updated_at` DATETIME COMMENT 'Timestamp when record was last updated.',
+  `workflow_state` VARCHAR(256) COMMENT 'workflow state for the score. Possibe values are \'active\', \'deleted\'',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes for scores. You can think of a score as synonymous with a cell inside the gradebook.";
+DROP TABLE IF EXISTS grading_period_fact;
+CREATE TABLE IF NOT EXISTS grading_period_fact (
+  `grading_period_id` BIGINT COMMENT 'Unique surrogate identifier for the grading period.',
+  `canvas_id` BIGINT COMMENT 'Primary key for the grading period.',
+  `grading_period_group_id` BIGINT COMMENT 'Foreign key to the grading period group table.',
+  `grading_period_group_account_id` BIGINT COMMENT 'One hop ID to the Account table for the grading period group',
+  `grading_period_group_course_id` BIGINT COMMENT 'One hop ID to the Course table for the grading period group',
+  `weight` DOUBLE COMMENT 'A weight value that contributes to the overall weight of a grading period set which is used to calculate how much assignments in this period contribute to the total grade.'
+) COMMENT = "Measures for grading periods.";
+DROP TABLE IF EXISTS grading_period_dim;
+CREATE TABLE IF NOT EXISTS grading_period_dim (
+  `id` BIGINT COMMENT 'Unique surrogate identifier for the grading period.',
+  `canvas_id` BIGINT COMMENT 'Primary key for the grading period.',
+  `grading_period_group_id` BIGINT COMMENT 'Surrogate ID to the grading period group table.',
+  `close_date` DATETIME COMMENT 'Grades can only be changed before the close date of the grading period.',
+  `created_at` DATETIME COMMENT 'Timestamp when record was created',
+  `end_date` DATETIME COMMENT 'End date of the grading period.',
+  `start_date` DATETIME COMMENT 'Start date of the grading period.',
+  `title` VARCHAR(256) COMMENT 'Title for the grading period.',
+  `updated_at` DATETIME COMMENT 'Timestamp when record was last updated.',
+  `workflow_state` VARCHAR(256) COMMENT 'current workflow state. Possibe values are \'active\', \'deleted\'',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes for grading period. A Grading period is like a \"term\", essentially used for splitting up the gradebook into \"periods\"";
+DROP TABLE IF EXISTS grading_period_group_dim;
+CREATE TABLE IF NOT EXISTS grading_period_group_dim (
+  `id` BIGINT COMMENT 'Unique surrogate identifier for the grading period groups',
+  `canvas_id` BIGINT COMMENT 'Primary key for the grading period groups',
+  `course_id` BIGINT COMMENT 'Foreign key to the Course table.',
+  `account_id` BIGINT COMMENT 'Foreign key to the Account table.',
+  `created_at` DATETIME COMMENT 'Timestamp when record was created.',
+  `title` VARCHAR(256) COMMENT 'Title for the grading period group.',
+  `updated_at` DATETIME COMMENT 'Timestamp when record was last updated.',
+  `workflow_state` VARCHAR(256) COMMENT 'Workflow state for the grading period group. Possibe values are \'active\', \'deleted\'',
+UNIQUE KEY id (id)
+) COMMENT = "Attributes for grading period groups. Which are a group of grading periods.";
 DROP TABLE IF EXISTS file_dim;
 CREATE TABLE IF NOT EXISTS file_dim (
   `id` BIGINT COMMENT 'Unique surrogate ID for this file.',
@@ -752,7 +811,7 @@ CREATE TABLE IF NOT EXISTS module_item_dim (
   `quiz_id` BIGINT COMMENT 'Key into quizzes table for \'Quiz\' type items.',
   `wiki_page_id` BIGINT COMMENT 'Key into wiki_pages table for \'Page\' type items.',
   `content_type` ENUM('Assignment', 'Attachment', 'DiscussionTopic', 'ContextExternalTool', 'ContextModuleSubHeader', 'ExternalUrl', 'LearningOutcome', 'Quiz', 'Rubric', 'WikiPage') COMMENT 'The type of content linked to this item. One of: \'Assignment\', \'Attachment\', \'DiscussionTopic\', \'ContextExternalTool\', \'ContextModuleSubHeader\', \'ExternalUrl\', \'LearningOutcome\', \'Quiz\', \'Rubric\' or \'WikiPage\'.',
-  `workflow_state` ENUM() COMMENT 'State of the module item.',
+  `workflow_state` ENUM('active', 'unpublished', 'deleted') COMMENT 'State of the module item.',
   `position` INTEGER UNSIGNED COMMENT 'Position of the module item within the module context.',
   `title` LONGTEXT COMMENT 'Title of the module item.',
   `url` LONGTEXT COMMENT 'Url for external url type module items.',
@@ -784,9 +843,9 @@ CREATE TABLE IF NOT EXISTS module_progression_dim (
   `canvas_id` BIGINT COMMENT 'Original primary key for module progression in the Canvas table.',
   `module_id` BIGINT COMMENT 'Parent module for this module progression.',
   `user_id` BIGINT COMMENT 'User being tracked in the module progression.',
-  `collapsed` ENUM() COMMENT 'Collapsed state of the module progression.',
-  `is_current` ENUM() COMMENT 'The current state of the module progression.',
-  `workflow_state` ENUM() COMMENT 'The workflow state of the module progression.',
+  `collapsed` ENUM('collapsed', 'not_collapsed', 'unspecified') COMMENT 'Collapsed state of the module progression.',
+  `is_current` ENUM('current', 'not_current', 'unspecified') COMMENT 'The current state of the module progression.',
+  `workflow_state` ENUM('locked', 'completed', 'unlocked', 'started') COMMENT 'The workflow state of the module progression.',
   `current_position` INTEGER UNSIGNED COMMENT 'Represents the users current position in the module.',
   `lock_version` INTEGER UNSIGNED COMMENT 'Lock version of the module progression.',
   `created_at` DATETIME COMMENT 'Date/Time when the module progression was created.',
@@ -810,7 +869,7 @@ CREATE TABLE IF NOT EXISTS module_completion_requirement_dim (
   `id` BIGINT COMMENT 'Unique surrogate ID for the module completion requirement.',
   `module_id` BIGINT COMMENT 'Module that contains the completion requirement.',
   `module_item_id` BIGINT COMMENT 'Item that is the subject of the completion requirement.',
-  `requirement_type` ENUM() COMMENT 'Type of completion event that must be achieved to consider item complete.',
+  `requirement_type` ENUM('must_view', 'must_mark_done', 'min_score', 'must_submit') COMMENT 'Type of completion event that must be achieved to consider item complete.',
 UNIQUE KEY id (id)
 ) COMMENT = "Attributes for a module completion.";
 DROP TABLE IF EXISTS module_completion_requirement_fact;
@@ -856,7 +915,7 @@ CREATE TABLE IF NOT EXISTS module_progression_completion_requirement_dim (
   `id` BIGINT COMMENT 'Unique surrogate ID for the module progression completion requirement.',
   `module_progression_id` BIGINT COMMENT 'Module progression referenced by completion requirement.',
   `module_item_id` BIGINT COMMENT 'Item that the user has not completed.',
-  `requirement_type` ENUM() COMMENT 'Type of completion event that must be achieved to consider item complete.',
+  `requirement_type` ENUM('must_view', 'must_mark_done', 'min_score', 'must_submit') COMMENT 'Type of completion event that must be achieved to consider item complete.',
   `completion_status` ENUM('complete', 'incomplete') COMMENT 'Denotes if the completion event is complete or not.',
 UNIQUE KEY id (id)
 ) COMMENT = "Attributes tracking a requirement that remains to be completed by a user. Not a comprehensive list, typically just holds requirements that have been attempted by the user.";
@@ -1291,6 +1350,11 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('enrollment_dim',0,NULL),
   ('enrollment_fact',0,NULL),
   ('enrollment_rollup_dim',0,NULL),
+  ('score_fact',0,NULL),
+  ('score_dim',0,NULL),
+  ('grading_period_fact',0,NULL),
+  ('grading_period_dim',0,NULL),
+  ('grading_period_group_dim',0,NULL),
   ('file_dim',0,NULL),
   ('file_fact',0,NULL),
   ('group_dim',0,NULL),
@@ -1331,4 +1395,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11400);
+  ('schema',-1,11500);
