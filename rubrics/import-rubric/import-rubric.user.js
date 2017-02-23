@@ -4,7 +4,7 @@
 // @description Create a rubric by copying from a spreadsheet and pasting into Canvas
 // @include     https://*.instructure.com/courses/*/rubrics
 // @include     https://*.instructure.com/accounts/*/rubrics
-// @version     3
+// @version     4
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -525,10 +525,7 @@
     var isValid = true;
     try {
       var dequoted = dequote(txt);
-      console.log(dequoted);
       var lines = dequoted.split(/\r?\n/);
-      console.log(dequoted);
-      console.log(lines);
       var i = 0;
       while (isValid && i < lines.length) {
         var words = lines[i].trim().split(/\t/);
@@ -710,8 +707,9 @@
   }
 
   function dequote(txt) {
-    var regex = new RegExp('^(\\\\n)?["](.*)["](\\\\n)?$');
+    var regex = new RegExp('([^"]*\\\\n)?["](.*)["](\\\\n[^*"])?$');
     var s = txt.replace(/\r?\n/g, '\\n');
+    console.log(s);
     s = s.replace(/([^\t]+)/g, quoted);
     return s;
 
@@ -720,8 +718,9 @@
       if (regex.test(s)) {
         var match = regex.exec(s);
         if (match) {
-          s = (typeof match[1] !== 'undefined' ? '\n' : '') + match[2].trim() + (typeof match[3] !== 'undefined' ? '\n' : '');
-          s = s.replace(/""/g, '"');
+          var prefix = typeof match[1] !== 'undefined' ? match[1].replace(/\\n/g, '\n') : '';
+          var postfix = typeof match[3] !== 'undefined' ? match[3].replace(/\\n/g, '\n') : '';
+          s = prefix + match[2].trim().replace(/""/g, '"') + postfix;
         }
       } else {
         s = s.replace(/\\n/g, '\n');
