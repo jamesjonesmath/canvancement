@@ -288,6 +288,53 @@ function table_overrides($T = NULL, $table_name = NULL) {
                   'id' => 'id,quiz_question_id' 
               ) 
           ) 
+      ), 
+      'module_item_dim' => array ( 
+          'workflow_state' => array ( 
+              'enum', 
+              'active', 
+              'unpublished', 
+              'deleted' 
+          ) 
+      ), 
+      'module_progression_dim' => array ( 
+          'collapsed' => array ( 
+              'enum', 
+              'collapsed', 
+              'not_collapsed', 
+              'unspecified' 
+          ), 
+          'is_current' => array ( 
+              'enum', 
+              'current', 
+              'not_current', 
+              'unspecified' 
+          ), 
+          'workflow_state' => array ( 
+              'enum', 
+              'locked', 
+              'completed', 
+              'unlocked', 
+              'started' 
+          ) 
+      ), 
+      'module_completion_requirement_dim' => array ( 
+          'requirement_type' => array ( 
+              'enum', 
+              'must_view', 
+              'must_mark_done', 
+              'min_score', 
+              'must_submit' 
+          ) 
+      ), 
+      'module_progression_completion_requirement_dim' => array ( 
+          'requirement_type' => array ( 
+              'enum', 
+              'must_view', 
+              'must_mark_done', 
+              'min_score', 
+              'must_submit' 
+          ) 
       ) 
   );
   if (isset( $overrides[$table_name] )) {
