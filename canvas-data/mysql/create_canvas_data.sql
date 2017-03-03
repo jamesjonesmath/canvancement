@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.15.0
+# MySQL script to create database for Canvas Data schema version 1.16.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -150,6 +150,7 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `muted` BOOLEAN,
   `assignment_group_id` BIGINT,
   `position` INTEGER UNSIGNED,
+  `visibility` ENUM('everyone', 'only_visible_to_overrides'),
 UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS assignment_fact;
@@ -458,6 +459,8 @@ CREATE TABLE IF NOT EXISTS discussion_topic_dim (
   `discussion_type` VARCHAR(256),
   `pinned` BOOLEAN,
   `locked` BOOLEAN,
+  `course_id` BIGINT,
+  `group_id` BIGINT,
 UNIQUE KEY id (id)
 );
 DROP TABLE IF EXISTS discussion_topic_fact;
@@ -470,7 +473,11 @@ CREATE TABLE IF NOT EXISTS discussion_topic_fact (
   `assignment_id` BIGINT,
   `editor_id` BIGINT,
   `enrollment_rollup_id` BIGINT,
-  `message_length` INTEGER UNSIGNED
+  `message_length` INTEGER UNSIGNED,
+  `group_id` BIGINT,
+  `group_parent_course_id` BIGINT,
+  `group_parent_account_id` BIGINT,
+  `group_parent_course_account_id` BIGINT
 );
 DROP TABLE IF EXISTS discussion_entry_dim;
 CREATE TABLE IF NOT EXISTS discussion_entry_dim (
@@ -1395,4 +1402,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11500);
+  ('schema',-1,11600);
