@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 1.15.0
+# MySQL script to create database for Canvas Data schema version 1.16.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -150,6 +150,7 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `muted` BOOLEAN COMMENT 'Student cannot see grades left on the assignment.',
   `assignment_group_id` BIGINT COMMENT 'Foreign key to the assignment group dimension table.',
   `position` INTEGER UNSIGNED COMMENT 'The sorting order of the assignment in the group',
+  `visibility` ENUM('everyone', 'only_visible_to_overrides') COMMENT 'User sets that can view the assignment.',
 UNIQUE KEY id (id)
 ) COMMENT = "Attributes for for assignments. There is one record in this table for each assignment. Individual submissions of the assignment are in the submission_dim and submission_fact tables.";
 DROP TABLE IF EXISTS assignment_fact;
@@ -458,6 +459,8 @@ CREATE TABLE IF NOT EXISTS discussion_topic_dim (
   `discussion_type` VARCHAR(256) COMMENT 'Type of discussion topic: default(blank), side_comment, threaded. threaded indicates that replies are threaded where side_comment indicates that replies in the discussion are flat. See related Canvas Guide https://guides.instructure.com/m/4152/l/60423-how-do-i-create-a-threaded-discussion',
   `pinned` BOOLEAN COMMENT 'True if the discussion topic has been pinned',
   `locked` BOOLEAN COMMENT 'True if the discussion topic has been locked',
+  `course_id` BIGINT COMMENT 'Foreign key to the course dimension',
+  `group_id` BIGINT COMMENT 'Foreign key to the group dimension',
 UNIQUE KEY id (id)
 ) COMMENT = "Attributes for discussion topics in Canvas. Discussion topics are logical discussion threads. They can have many discussion entries. They also have their own message text for the message that started the topic.";
 DROP TABLE IF EXISTS discussion_topic_fact;
@@ -470,7 +473,11 @@ CREATE TABLE IF NOT EXISTS discussion_topic_fact (
   `assignment_id` BIGINT COMMENT 'Foreign key to the assignment dimension',
   `editor_id` BIGINT COMMENT 'Foreign key to the user to last edit the entry, if different than user_id',
   `enrollment_rollup_id` BIGINT COMMENT 'Foreign key to the enrollment roll-up dimension table',
-  `message_length` INTEGER UNSIGNED COMMENT 'The length of the message in bytes.'
+  `message_length` INTEGER UNSIGNED COMMENT 'Best guess at the count of characters in the message. Special characters are treated differently in different systems. As a result, you may find variance in message length in your own systems. NULL messages are mapped to 0 length.',
+  `group_id` BIGINT COMMENT 'Foreign key to the group dimension',
+  `group_parent_course_id` BIGINT COMMENT 'Foreign key to course dimension.',
+  `group_parent_account_id` BIGINT COMMENT 'Foreign key to accounts table.',
+  `group_parent_course_account_id` BIGINT COMMENT 'Foreign key to the account dimension for the account associated with the course to which the group belongs to.'
 ) COMMENT = "Measures for discussion topics/threads.";
 DROP TABLE IF EXISTS discussion_entry_dim;
 CREATE TABLE IF NOT EXISTS discussion_entry_dim (
@@ -1395,4 +1402,4 @@ INSERT INTO versions (table_name, incremental, version) VALUES
   ('wiki_fact',0,NULL),
   ('wiki_page_dim',0,NULL),
   ('wiki_page_fact',0,NULL),
-  ('schema',-1,11500);
+  ('schema',-1,11600);
