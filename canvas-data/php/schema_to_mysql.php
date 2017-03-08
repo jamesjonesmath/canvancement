@@ -56,6 +56,15 @@ $options = array (
  */
 // $output_filename = 'create_canvas_data.sql';
 
+/*
+ * Set $enumerated_boolean to TRUE to simulate BOOLEAN with ENUM('false','true').
+ * Canvas Data sends the words true or false, but MySQL uses a TINYINT of 0 or 1
+ * for Boolean data. The LOAD DATA command is returning all 0's since the string
+ * 'true' is not the same as a Boolean true.
+ */
+
+$enumerated_boolean = TRUE;
+
 // END OF CONFIGURATION
 
 if (isset( $config_file ) && file_exists( $config_file )) {
@@ -139,7 +148,7 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   if (empty( $cdschema )) {
     return;
   }
-  
+  global $enumerated_boolean;
   $type_overrides = array ( 
       'int' => 'integer unsigned', 
       'integer' => 'integer unsigned', 
@@ -148,6 +157,9 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
       'guid' => 'varchar(36)', 
       'timestamp' => 'datetime' 
   );
+  if ($enumerated_boolean) {
+    $type_overrides['boolean'] = 'enumbool';
+  }
   $drop_schema = isset( $opts['drop_schema'] ) && $opts['drop_schema'] ? TRUE : FALSE;
   $add_comments = ! isset( $opts['comments'] ) || $opts['comments'] ? TRUE : FALSE;
   $mysql_engine = isset( $opts['engine'] ) ? $opts['engine'] : 'InnoDB';
@@ -190,6 +202,10 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
         $comment = trim( $comment );
         $enumvalues = join( ', ', $matches[0] );
         $colextra .= sprintf( '(%s)', $enumvalues );
+      }
+      if ($coltype == 'enumbool') {
+        $coltype = 'ENUM';
+        $colextra = "('false','true')";
       }
       if (isset( $column['extra'] )) {
         $colextra .= $column['extra'];
