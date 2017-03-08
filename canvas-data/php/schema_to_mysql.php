@@ -40,10 +40,12 @@ $cd_api_secret = getenv( 'CD_API_SECRET' ) !== FALSE ? getenv( 'CD_API_SECRET' )
  * drop: include a command to drop the database before creating the new one
  * comments: include the comments and descriptions in the SQL statements
  * engine: override the default MySQL engine, which is InnoDB
+ * enumerated_boolean: simulated boolean types with ENUM('false','true')
  */
 $options = array ( 
     'drop_schema' => TRUE, 
-    'comments' => TRUE 
+    'comments' => FALSE,
+    'enumerated_boolean' => TRUE,
 );
 
 /*
@@ -55,15 +57,6 @@ $options = array (
  * something important.
  */
 // $output_filename = 'create_canvas_data.sql';
-
-/*
- * Set $enumerated_boolean to TRUE to simulate BOOLEAN with ENUM('false','true').
- * Canvas Data sends the words true or false, but MySQL uses a TINYINT of 0 or 1
- * for Boolean data. The LOAD DATA command is returning all 0's since the string
- * 'true' is not the same as a Boolean true.
- */
-
-$enumerated_boolean = TRUE;
 
 // END OF CONFIGURATION
 
@@ -148,7 +141,7 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   if (empty( $cdschema )) {
     return;
   }
-  global $enumerated_boolean;
+
   $type_overrides = array ( 
       'int' => 'integer unsigned', 
       'integer' => 'integer unsigned', 
@@ -157,12 +150,13 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
       'guid' => 'varchar(36)', 
       'timestamp' => 'datetime' 
   );
+  $drop_schema = isset( $opts['drop_schema'] ) && $opts['drop_schema'] ? TRUE : FALSE;
+  $add_comments = ! isset( $opts['comments'] ) || $opts['comments'] ? TRUE : FALSE;
+  $enumerated_boolean = ! isset( $opts['enumerated_boolean'] ) || $opts['enumerated_boolean'] ? TRUE : FALSE;
+  $mysql_engine = isset( $opts['engine'] ) ? $opts['engine'] : 'InnoDB';
   if ($enumerated_boolean) {
     $type_overrides['boolean'] = 'enumbool';
   }
-  $drop_schema = isset( $opts['drop_schema'] ) && $opts['drop_schema'] ? TRUE : FALSE;
-  $add_comments = ! isset( $opts['comments'] ) || $opts['comments'] ? TRUE : FALSE;
-  $mysql_engine = isset( $opts['engine'] ) ? $opts['engine'] : 'InnoDB';
   
   $t = '';
   $t .= l( '# MySQL script to create database for Canvas Data schema version %s', $cdschema['version'] );
