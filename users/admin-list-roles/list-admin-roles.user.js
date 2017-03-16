@@ -9,11 +9,11 @@
 // ==/UserScript==
 (function() {
   'use strict';
-  var roles;
-  var rootAccount;
-  var rootUsers;
-  var subAccounts;
-  addAdminListReportButton();
+  
+  var locationRegex = new RegExp('^/accounts/[0-9]+$');
+  if (locationRegex.test(window.location.pathname)) {
+    addAdminListReportButton();
+  }
 
   // Define the order and location of the fields that you want in the
   // spreadsheet. Each src refers to a particular object and field
@@ -58,6 +58,8 @@
     'name' : 'Parent_ID',
     'src' : 'a.parent_account_id'
   } ];
+
+  var roles, rootAccount, rootUsers, subAccounts;
 
   function adminListReport() {
     var accountId = getAccountId();
