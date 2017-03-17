@@ -2,16 +2,16 @@
 // @name        List Admin Roles
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the admins and their roles in an account
-// @include     /^https://.*\.instructure\.com/accounts/[0-9]+$/
+// @include     /^https://.*\.instructure\.com/accounts/[0-9]+/?$/
 // @require     https://github.com/eligrey/FileSaver.js/raw/master/FileSaver.js
 // @version     1
 // @grant       none
 // ==/UserScript==
 (function() {
   'use strict';
-  
-  var locationRegex = new RegExp('^/accounts/[0-9]+$');
-  if (locationRegex.test(window.location.pathname)) {
+
+  var accountRegex = new RegExp('/accounts/([0-9]+)/?$');
+  if (accountRegex.test(window.location.pathname)) {
     addAdminListReportButton();
   }
 
@@ -29,7 +29,7 @@
     'src' : 'u.name'
   }, {
     'name' : 'Role',
-    'src' : 'r.label'
+    'src' : 'r.role'
   }, {
     'name' : 'Login',
     'src' : 'u.login_id'
@@ -59,16 +59,10 @@
     'src' : 'a.parent_account_id'
   } ];
 
-  var roles, rootAccount, rootUsers, subAccounts;
+  var rootAccount, rootUsers, subAccounts, subAccountUsers;
 
   function adminListReport() {
     var accountId = getAccountId();
-    roles = new GetData('/api/v1/accounts/' + accountId + '/roles', checkData, {
-      'filter' : validateRole,
-      'data' : {
-        'show_inherited' : true
-      }
-    });
     rootAccount = new GetData('/api/v1/accounts/' + accountId, checkData, {
       'filter' : validateWorkflow
     });
@@ -84,7 +78,7 @@
 
   function checkData() {
     var loaded = true;
-    var waitFor = [ roles, rootAccount, rootUsers, subAccounts ];
+    var waitFor = [ rootAccount, rootUsers, subAccounts ];
     var i = 0;
     while (loaded && i < waitFor.length) {
       if (typeof waitFor[i] === 'undefined' || !waitFor[i].isReady) {
@@ -98,25 +92,21 @@
   }
 
   function compileList() {
-    var roleHash = {};
-    roles.data.map(function(role) {
-      roleHash[role.id] = role;
-    });
-    var accountHash = {};
-    accountHash[rootAccount.data.id] = {
+    var accounts = {};
+    var rootId = rootAccount.data.id;
+    accounts[rootId] = {
       'account' : rootAccount.data,
       'users' : rootUsers.data
     };
     subAccounts.data.map(function(subAccount) {
-      var users = subAccount.users.data;
-      delete subAccount.users;
-      accountHash[subAccount.id] = {
+      var accountId = subAccount.id;
+      accounts[accountId] = {
         'account' : subAccount,
-        'users' : users
+        'users' : typeof subAccountUsers[accountId] === 'undefined' ? [] : subAccountUsers[accountId].data
       };
     });
-    var data = createDataTable(accountHash, roleHash, rootAccount.data.id);
-    if (data.length > 0) {
+    var data = createDataTable(accounts, rootAccount.data.id);
+    if (typeof data !== 'undefined' && data.length > 0) {
       makeReport(data);
     } else {
       console.log('NO DATA');
@@ -164,9 +154,10 @@
   function loadSubAccountAdmins() {
     if (subAccounts.data.length > 0) {
       // We have subaccounts. Loop through them and get the admin data
+      subAccountUsers = {};
       for (var j = 0; j < subAccounts.data.length; j++) {
         var subAccount = subAccounts.data[j];
-        subAccounts.data[j].users = new GetData('/api/v1/accounts/' + subAccount.id + '/admins', checkSubAccounts);
+        subAccountUsers[subAccount.id] = new GetData('/api/v1/accounts/' + subAccount.id + '/admins', checkSubAccounts);
       }
     } else {
       subAccounts.isReady = true;
@@ -177,8 +168,9 @@
   function checkSubAccounts() {
     var loaded = true;
     var i = 0;
-    while (loaded && i < subAccounts.data.length) {
-      if (!subAccounts.data[i++].users.isReady) {
+    var keys = Object.keys(subAccountUsers);
+    while (loaded && i < keys.length) {
+      if (!subAccountUsers[keys[i++]].isReady) {
         loaded = false;
       }
     }
@@ -186,11 +178,6 @@
       subAccounts.isReady = true;
       checkData();
     }
-  }
-
-  function validateRole(role) {
-    var validStates = validStates || [ 'built_in', 'active' ];
-    return role.base_role_type === 'AccountMembership' && validStates.indexOf(role.workflow_state) > -1;
   }
 
   function validateWorkflow(obj) {
@@ -348,7 +335,6 @@
   function getAccountId() {
     var accountId = null;
     try {
-      var accountRegex = new RegExp('/accounts/([0-9]+)$');
       var matches = accountRegex.exec(window.location.pathname);
       if (matches) {
         accountId = matches[1];
@@ -378,7 +364,7 @@
     }
   }
 
-  function createDataTable(accounts, roles, rootId) {
+  function createDataTable(accounts, rootId) {
     var sisTypes = getSisTypes(accounts);
     var srcRegex = new RegExp('^([aur])\.(.*)$');
     var sisRegex = new RegExp('\.sis_(.*?)_id$');
@@ -426,14 +412,13 @@
         // Skip accounts with no admin users
         return;
       }
-      account.users.sort(compareUsers);
+      account.users.sort(compareUserNames);
       for (var j = 0; j < account.users.length; j++) {
-        var roleId = account.users[j].role_id;
-        if (typeof roles[roleId] === 'undefined') {
-          continue;
-        }
+        var role = {
+          'id' : account.users[j].role_id,
+          'role' : account.users[j].role
+        };
         var user = account.users[j].user;
-        var role = roles[roleId];
         var row = [];
         for (k = 0; k < reportFields.length; k++) {
           var field = reportFields[k];
@@ -472,7 +457,7 @@
         }
       }
 
-      function compareUsers(a, b) {
+      function compareUserNames(a, b) {
         if (a.user.sortable_name && b.user.sortable_name) {
           return a.user.sortable_name.localeCompare(b.user.sortable_name);
         } else {
