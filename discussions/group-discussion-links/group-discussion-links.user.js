@@ -58,9 +58,8 @@
       });
     }
     if (config.switch_to_discussion) {
-      var groupSelector = 'div#left-side > ul > li a';
-      var groupLinks = document.querySelectorAll(groupSelector);
-      if (groupLinks.length) {
+      var groupLinks = document.querySelectorAll('div#left-side > ul > li a');
+      if (groupLinks) {
         for (var i = 0; i < groupLinks.length; i++) {
           groupLinks[i].href = groupLinks[i].href + '/discussion_topics?root_discussion_topic_id=' + discussionId;
         }
