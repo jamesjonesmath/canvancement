@@ -21,7 +21,7 @@
     // 0 : do not sort
     // 1 : courses first, then sort by name, then term
     // 2 : courses first, then sort by term, then name
-    // 3: accounts first, then sort by name, then term
+    // 3 : accounts first, then sort by name, then term
     // You may add your own custom sort order by specifying an array of keys.
     // You may specify a + or - at the end of each key to sort in ascending or
     // descending order for that key. For example, the following line would
@@ -223,7 +223,7 @@
     if (list.length > 1) {
       waitForLoad(list[0], 1);
       var parent = list[0].parentNode;
-      var currentContext = 'course_' + ENV.COURSE_ID;
+      var currentContext = ENV.context_asset_string;
       if (parent && typeof contextInfo[currentContext] !== 'undefined') {
         isCurrentFirst = true;
         var currentPosition = contextInfo[currentContext].row;
@@ -251,9 +251,6 @@
     var list = getContextList();
     if (list.length > 1) {
       list[0].click();
-      // var context = 'course_' + ENV.COURSE_ID;
-      // var item = list[contextInfo[context].row];
-      // item.click();
     }
   }
 
@@ -323,7 +320,7 @@
     if (!parent) {
       return;
     }
-    var currentContext = 'course_' + ENV.COURSE_ID;
+    var currentContext = ENV.context_asset_string;
     var items = [];
     var contextKeys = Object.keys(contextInfo);
     for (var i = 0; i < contextKeys.length; i++) {
@@ -342,7 +339,6 @@
     var top = list[start];
     for (k = rows.length - 1; k >= start; k--) {
       top = parent.insertBefore(rows[k], top);
-      // top = rows[k];
     }
     if (!isCurrentFirst) {
       // Activate the top one
@@ -458,7 +454,7 @@
     for (var i = 0; i < codes.length; i++) {
       hidden = false;
       context = contextInfo[codes[i]];
-      if (context.context === 'course' && context.id === ENV.COURSE_ID) {
+      if (context.code === ENV.context_asset_string) {
         continue;
       }
       if (hideAccounts && context.context === 'account') {
