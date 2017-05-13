@@ -4,7 +4,7 @@
 // @description Create a rubric by copying from a spreadsheet and pasting into Canvas
 // @include     https://*.instructure.com/courses/*/rubrics
 // @include     https://*.instructure.com/accounts/*/rubrics
-// @version     4
+// @version     5
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -99,7 +99,7 @@
   function addRubric(title, criteria, association) {
     var pointsPossible = 0;
     for (var i = 0; i < criteria.length; i++) {
-      if (typeof criteria[i].ignore_for_scoring === 'undefined' || !boolean(criteria[i].ignore_for_scoring)) {
+      if (typeof criteria[i].ignore_for_scoring === 'undefined' || !getBoolean(criteria[i].ignore_for_scoring)) {
         pointsPossible += Number(criteria[i].ratings[0].points);
       }
     }
@@ -132,11 +132,11 @@
       return false;
     }
     var name = item.name.replace(/\s*\\n\s*/g, ' ').replace(/\s+/g, ' ');
-    var long = typeof item.long === 'undefined' ? '' : item.long.replace(/\\n/g, '\n');
+    var longDesc = typeof item.longDesc === 'undefined' ? '' : item.longDesc.replace(/\\n/g, '\n');
     var ratings = addRatings(item.ratings, item.points);
     var criterion = {
       'description' : name,
-      'long_description' : long
+      'long_description' : longDesc
     };
     if (ratings !== false) {
       criterion.ratings = ratings;
@@ -386,7 +386,7 @@
         }
         var outcome = false;
         var name = '';
-        var long = '';
+        var longDesc = '';
         var descriptions = [];
         var points = [];
         if (words.length < 3) {
@@ -395,14 +395,14 @@
             if (words.length > 1 && isBoolean(words[1], true)) {
               outcome = {
                 'id' : words[0],
-                'ignore' : boolean(words[1]) ? false : true
+                'ignore' : getBoolean(words[1]) ? false : true
               };
             } else {
               outcome = {
                 'id' : words[0]
               };
               if (words.length > 1) {
-                long = words[1];
+                longDesc = words[1];
               }
             }
           } else {
@@ -431,19 +431,19 @@
             if (block.start > 1 && isBoolean(words[1], true)) {
               outcome = {
                 'id' : words[0],
-                'ignore' : boolean(words[1]) ? false : true
+                'ignore' : getBoolean(words[1]) ? false : true
               };
             } else {
               outcome = {
                 'id' : words[0]
               };
               if (block.start > 1) {
-                long = words[1];
+                longDesc = words[1];
               }
             }
           } else {
             name = words[0];
-            long = block.start > 1 ? words[1] : '';
+            longDesc = block.start > 1 ? words[1] : '';
           }
           var j = block.start;
           var endAt = words.length < 1 + block.end ? words.length : 1 + block.end;
@@ -473,7 +473,7 @@
             if (outcome) {
               // We already have an outcome
               if (typeof outcome.ignore === 'undefined' && isBoolean(extra[0])) {
-                outcome.ignore = boolean(extra[0]) ? false : true;
+                outcome.ignore = getBoolean(extra[0]) ? false : true;
               } else {
                 errors.push('Invalid content at the end of line ' + i);
                 isValid = false;
@@ -483,7 +483,7 @@
                 if (extra.length > 1 && isBoolean(extra[1])) {
                   outcome = {
                     'id' : extra[0],
-                    'ignore' : boolean(extra[1]) ? false : true
+                    'ignore' : getBoolean(extra[1]) ? false : true
                   };
                 } else {
                   outcome = {
@@ -500,7 +500,7 @@
         if (isValid) {
           var item = {
             'name' : name,
-            'long' : long,
+            'longDesc' : longDesc,
             'outcome' : outcome,
             'ratings' : descriptions,
             'points' : points
@@ -517,7 +517,7 @@
     } catch (e) {
       console.log(e);
     }
-    return isValid ? criteria : isMethod;
+    return isValid && criteria.length > 0 ? criteria : isMethod;
   }
 
   function flexRubric(txt) {
@@ -539,7 +539,7 @@
         });
         var outcome = false;
         var name = '';
-        var long = '';
+        var longDesc = '';
         var descriptions = [];
         var points = [];
         var validLine = true;
@@ -548,7 +548,7 @@
           if (words.length > k + 1 && isBoolean(words[k + 1], true)) {
             outcome = {
               'id' : words[k++],
-              'ignore' : boolean(words[k++]) ? false : true
+              'ignore' : getBoolean(words[k++]) ? false : true
             };
           } else {
             outcome = {
@@ -572,7 +572,7 @@
             if (words.length > k + 1 && isBoolean(words[k + 1], true)) {
               outcome = {
                 'id' : words[k++],
-                'ignore' : boolean(words[k++]) ? false : true
+                'ignore' : getBoolean(words[k++]) ? false : true
               };
             } else {
               outcome = {
@@ -584,9 +584,9 @@
         if (isValid && words.length > k) {
           if (!isPoints(words[k])) {
             if (words.length == k) {
-              long = words[k++];
+              longDesc = words[k++];
             } else if (words.length > k + 1 && !isPoints(words[k + 1])) {
-              long = words[k++];
+              longDesc = words[k++];
             }
           }
         }
@@ -606,7 +606,7 @@
               if (words.length == k) {
                 outcome = {
                   'id' : description,
-                  'ignore' : boolean(point) ? false : true
+                  'ignore' : getBoolean(point) ? false : true
                 };
               }
             } else {
@@ -644,7 +644,7 @@
               }
             } else {
               if (isBoolean(description)) {
-                var thisIgnore = boolean(description) ? false : true;
+                var thisIgnore = getBoolean(description) ? false : true;
                 if (typeof outcome.ignore === 'undefined') {
                   outcome.ignore = thisIgnore;
                 } else if (outcome.ignore !== thisIgnore) {
@@ -658,7 +658,7 @@
         if (isValid && validLine) {
           var item = {
             'name' : name,
-            'long' : long,
+            'longDesc' : longDesc,
             'outcome' : outcome,
             'ratings' : descriptions,
             'points' : points,
@@ -695,7 +695,7 @@
     return /^$|^[01]$/.test(t.trim());
   }
 
-  function boolean(t) {
+  function getBoolean(t) {
     return (t === false || t === null || t === '' || t === 0 || t === '0') ? false : true;
   }
 
@@ -709,7 +709,6 @@
   function dequote(txt) {
     var regex = new RegExp('([^"]*\\\\n)?["](.*)["](\\\\n[^*"])?$');
     var s = txt.replace(/\r?\n/g, '\\n');
-    console.log(s);
     s = s.replace(/([^\t]+)/g, quoted);
     return s;
 
