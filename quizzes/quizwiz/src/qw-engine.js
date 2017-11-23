@@ -134,7 +134,11 @@ var QuizWiz = function(config) {
         var status = false;
         mutations.forEach(function(mutation) {
           if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-            status = true;
+            for (var i = 0; i < mutation.addedNodes.length; i++) {
+              if (!mutation.addedNodes[i].classList.contains('draft')) {
+                status = true;
+              }
+            }
           }
         });
         if (status && advanceUser) {
