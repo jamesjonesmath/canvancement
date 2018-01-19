@@ -4,7 +4,7 @@
 // @description Generates a .CSV download of the access report for all students
 // @include     https://*.instructure.com/courses/*/users
 // @require     https://github.com/eligrey/FileSaver.js/raw/master/FileSaver.js
-// @version     8
+// @version     9
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -99,7 +99,7 @@
         url = nextURL(jqXHR.getResponseHeader('Link'));
         for (var i = 0; i < udata.length; i++) {
           var section = udata[i];
-          if (section.students.length > 0) {
+          if (section.students && section.students.length > 0) {
             for (var j = 0; j < section.students.length; j++) {
               var user = section.students[j];
               user.section_id = section.id;
