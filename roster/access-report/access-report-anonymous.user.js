@@ -4,7 +4,7 @@
 // @description Generates a .CSV download of the access report for all students using anonymized user data
 // @include     https://*.instructure.com/courses/*/users
 // @require     https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.js
-// @version     9
+// @version     10
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -99,7 +99,7 @@
         url = nextURL(jqXHR.getResponseHeader('Link'));
         for (var i = 0; i < udata.length; i++) {
           var section = udata[i];
-          if (section.students.length > 0) {
+          if (section.students && section.students.length > 0) {
             for (var j = 0; j < section.students.length; j++) {
               var user = section.students[j];
               user.section_id = section.id;
