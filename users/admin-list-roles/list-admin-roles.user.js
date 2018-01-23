@@ -2,15 +2,15 @@
 // @name        List Admin Roles
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the admins and their roles in an account
-// @include     /^https://.*\.instructure\.com/accounts/[0-9]+/?$/
-// @require     https://github.com/eligrey/FileSaver.js/raw/master/FileSaver.js
-// @version     1
+// @include     /^https://.*\.instructure\.com/accounts/[0-9]+/users/?$/
+// @require     https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.js
+// @version     2
 // @grant       none
 // ==/UserScript==
 (function() {
   'use strict';
 
-  var accountRegex = new RegExp('/accounts/([0-9]+)/?$');
+  var accountRegex = new RegExp('/accounts/([0-9]+)/users/?$');
   if (accountRegex.test(window.location.pathname)) {
     addAdminListReportButton();
   }
@@ -312,11 +312,11 @@
       var rsMargins = document.querySelectorAll('div#right-side-wrapper div.rs-margin-bottom');
       if (rsMargins) {
         for (var i = 0; i < rsMargins.length; i++) {
-          var analytics = rsMargins[i].querySelector('i.icon-analytics');
-          if (analytics) {
+          var findDiv = rsMargins[i].querySelector('i.icon-user');
+          if (findDiv) {
             var anchor = document.createElement('a');
             anchor.id = 'jj_admin_list_report';
-            anchor.classList.add('Button', 'button-sidebar-wide');
+            anchor.classList.add('btn', 'button-sidebar-wide');
             var icon = document.createElement('i');
             icon.classList.add('icon-export');
             anchor.appendChild(icon);
