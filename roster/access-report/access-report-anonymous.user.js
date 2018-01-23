@@ -3,8 +3,8 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the access report for all students using anonymized user data
 // @include     https://*.instructure.com/courses/*/users
-// @require     https://github.com/eligrey/FileSaver.js/raw/master/FileSaver.js
-// @version     8
+// @require     https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.js
+// @version     9
 // @grant       none
 // ==/UserScript==
 (function() {
