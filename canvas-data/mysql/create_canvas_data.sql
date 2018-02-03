@@ -1,11 +1,9 @@
-# MySQL script to create database for Canvas Data schema version 1.16.0
+# MySQL script to create database for Canvas Data schema version 1.18.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
-DROP DATABASE IF EXISTS canvas_data;
 CREATE DATABASE IF NOT EXISTS canvas_data DEFAULT CHARACTER SET utf8mb4;
 USE canvas_data;
 SET NAMES utf8mb4;
-DROP TABLE IF EXISTS course_dim;
 CREATE TABLE IF NOT EXISTS course_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -22,9 +20,14 @@ CREATE TABLE IF NOT EXISTS course_dim (
   `sis_source_id` VARCHAR(256),
   `workflow_state` VARCHAR(256),
   `wiki_id` BIGINT,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX root_account_id (root_account_id),
+INDEX account_id (account_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX sis_source_id (sis_source_id),
+INDEX wiki_id (wiki_id)
 );
-DROP TABLE IF EXISTS account_dim;
 CREATE TABLE IF NOT EXISTS account_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -68,9 +71,28 @@ CREATE TABLE IF NOT EXISTS account_dim (
   `subaccount15` VARCHAR(256),
   `subaccount15_id` BIGINT,
   `sis_source_id` VARCHAR(256),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX parent_account_id (parent_account_id),
+INDEX grandparent_account_id (grandparent_account_id),
+INDEX root_account_id (root_account_id),
+INDEX subaccount1_id (subaccount1_id),
+INDEX subaccount2_id (subaccount2_id),
+INDEX subaccount3_id (subaccount3_id),
+INDEX subaccount4_id (subaccount4_id),
+INDEX subaccount5_id (subaccount5_id),
+INDEX subaccount6_id (subaccount6_id),
+INDEX subaccount7_id (subaccount7_id),
+INDEX subaccount8_id (subaccount8_id),
+INDEX subaccount9_id (subaccount9_id),
+INDEX subaccount10_id (subaccount10_id),
+INDEX subaccount11_id (subaccount11_id),
+INDEX subaccount12_id (subaccount12_id),
+INDEX subaccount13_id (subaccount13_id),
+INDEX subaccount14_id (subaccount14_id),
+INDEX subaccount15_id (subaccount15_id),
+INDEX sis_source_id (sis_source_id)
 );
-DROP TABLE IF EXISTS user_dim;
 CREATE TABLE IF NOT EXISTS user_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -88,9 +110,12 @@ CREATE TABLE IF NOT EXISTS user_dim (
   `country_code` VARCHAR(256),
   `workflow_state` VARCHAR(256),
   `sortable_name` VARCHAR(256),
-UNIQUE KEY id (id)
+  `global_canvas_id` VARCHAR(256),
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX root_account_id (root_account_id),
+INDEX global_canvas_id (global_canvas_id)
 );
-DROP TABLE IF EXISTS pseudonym_dim;
 CREATE TABLE IF NOT EXISTS pseudonym_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -111,17 +136,24 @@ CREATE TABLE IF NOT EXISTS pseudonym_dim (
   `unique_name` VARCHAR(256),
   `integration_id` VARCHAR(256),
   `authentication_provider_id` BIGINT,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX user_id (user_id),
+INDEX account_id (account_id),
+INDEX sis_user_id (sis_user_id),
+INDEX integration_id (integration_id),
+INDEX authentication_provider_id (authentication_provider_id)
 );
-DROP TABLE IF EXISTS pseudonym_fact;
 CREATE TABLE IF NOT EXISTS pseudonym_fact (
   `pseudonym_id` BIGINT,
   `user_id` BIGINT,
   `account_id` BIGINT,
   `login_count` INTEGER UNSIGNED,
-  `failed_login_count` INTEGER UNSIGNED
+  `failed_login_count` INTEGER UNSIGNED,
+PRIMARY KEY (pseudonym_id),
+INDEX user_id (user_id),
+INDEX account_id (account_id)
 );
-DROP TABLE IF EXISTS assignment_dim;
 CREATE TABLE IF NOT EXISTS assignment_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -134,7 +166,7 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `points_possible` DOUBLE,
   `grading_type` VARCHAR(256),
   `submission_types` VARCHAR(256),
-  `workflow_state` VARCHAR(256),
+  `workflow_state` ENUM('unpublished', 'published', 'deleted'),
   `created_at` DATETIME,
   `updated_at` DATETIME,
   `peer_review_count` INTEGER UNSIGNED,
@@ -151,9 +183,11 @@ CREATE TABLE IF NOT EXISTS assignment_dim (
   `assignment_group_id` BIGINT,
   `position` INTEGER UNSIGNED,
   `visibility` ENUM('everyone', 'only_visible_to_overrides'),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX course_id (course_id),
+INDEX assignment_group_id (assignment_group_id)
 );
-DROP TABLE IF EXISTS assignment_fact;
 CREATE TABLE IF NOT EXISTS assignment_fact (
   `assignment_id` BIGINT,
   `course_id` BIGINT,
@@ -161,14 +195,18 @@ CREATE TABLE IF NOT EXISTS assignment_fact (
   `enrollment_term_id` BIGINT,
   `points_possible` DOUBLE,
   `peer_review_count` INTEGER UNSIGNED,
-  `assignment_group_id` BIGINT
+  `assignment_group_id` BIGINT,
+PRIMARY KEY (assignment_id),
+INDEX course_id (course_id),
+INDEX course_account_id (course_account_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX assignment_group_id (assignment_group_id)
 );
-DROP TABLE IF EXISTS assignment_rule_dim;
 CREATE TABLE IF NOT EXISTS assignment_rule_dim (
   `assignment_id` BIGINT,
-  `drop_rule` VARCHAR(256)
+  `drop_rule` VARCHAR(256),
+PRIMARY KEY (assignment_id)
 );
-DROP TABLE IF EXISTS submission_dim;
 CREATE TABLE IF NOT EXISTS submission_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -196,9 +234,14 @@ CREATE TABLE IF NOT EXISTS submission_dim (
   `quiz_submission_id` BIGINT,
   `user_id` BIGINT,
   `grade_state` ENUM('auto_graded', 'human_graded', 'not_graded'),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX assignment_id (assignment_id),
+INDEX grader_id (grader_id),
+INDEX group_id (group_id),
+INDEX quiz_submission_id (quiz_submission_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS submission_fact;
 CREATE TABLE IF NOT EXISTS submission_fact (
   `submission_id` BIGINT,
   `assignment_id` BIGINT,
@@ -217,9 +260,22 @@ CREATE TABLE IF NOT EXISTS submission_fact (
   `group_id` BIGINT,
   `quiz_id` BIGINT,
   `quiz_submission_id` BIGINT,
-  `wiki_id` BIGINT
+  `wiki_id` BIGINT,
+PRIMARY KEY (submission_id),
+INDEX assignment_id (assignment_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX user_id (user_id),
+INDEX grader_id (grader_id),
+INDEX course_account_id (course_account_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id),
+INDEX account_id (account_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX group_id (group_id),
+INDEX quiz_id (quiz_id),
+INDEX quiz_submission_id (quiz_submission_id),
+INDEX wiki_id (wiki_id)
 );
-DROP TABLE IF EXISTS submission_comment_participant_fact;
 CREATE TABLE IF NOT EXISTS submission_comment_participant_fact (
   `submission_comment_participant_id` BIGINT,
   `submission_comment_id` BIGINT,
@@ -229,18 +285,26 @@ CREATE TABLE IF NOT EXISTS submission_comment_participant_fact (
   `course_id` BIGINT,
   `enrollment_term_id` BIGINT,
   `course_account_id` BIGINT,
-  `enrollment_rollup_id` BIGINT
+  `enrollment_rollup_id` BIGINT,
+PRIMARY KEY (submission_comment_participant_id),
+INDEX submission_comment_id (submission_comment_id),
+INDEX user_id (user_id),
+INDEX submission_id (submission_id),
+INDEX assignment_id (assignment_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX course_account_id (course_account_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id)
 );
-DROP TABLE IF EXISTS submission_comment_participant_dim;
 CREATE TABLE IF NOT EXISTS submission_comment_participant_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
   `participation_type` VARCHAR(256),
   `created_at` DATETIME,
   `updated_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id)
 );
-DROP TABLE IF EXISTS submission_comment_fact;
 CREATE TABLE IF NOT EXISTS submission_comment_fact (
   `submission_comment_id` BIGINT,
   `submission_id` BIGINT,
@@ -253,9 +317,16 @@ CREATE TABLE IF NOT EXISTS submission_comment_fact (
   `message_size_bytes` INTEGER UNSIGNED,
   `message_character_count` INTEGER UNSIGNED,
   `message_word_count` INTEGER UNSIGNED,
-  `message_line_count` INTEGER UNSIGNED
+  `message_line_count` INTEGER UNSIGNED,
+PRIMARY KEY (submission_comment_id),
+INDEX submission_id (submission_id),
+INDEX recipient_id (recipient_id),
+INDEX author_id (author_id),
+INDEX assignment_id (assignment_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX course_account_id (course_account_id)
 );
-DROP TABLE IF EXISTS submission_comment_dim;
 CREATE TABLE IF NOT EXISTS submission_comment_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -271,34 +342,41 @@ CREATE TABLE IF NOT EXISTS submission_comment_dim (
   `anonymous` ENUM('false','true'),
   `teacher_only_comment` ENUM('false','true'),
   `hidden` ENUM('false','true'),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX submission_id (submission_id),
+INDEX recipient_id (recipient_id),
+INDEX author_id (author_id),
+INDEX assessment_request_id (assessment_request_id),
+INDEX group_comment_id (group_comment_id)
 );
-DROP TABLE IF EXISTS assignment_group_dim;
 CREATE TABLE IF NOT EXISTS assignment_group_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
   `course_id` BIGINT,
   `name` VARCHAR(256),
   `default_assignment_name` VARCHAR(256),
-  `workflow_state` VARCHAR(256),
+  `workflow_state` ENUM('available', 'deleted'),
   `position` INTEGER UNSIGNED,
   `created_at` DATETIME,
   `updated_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX course_id (course_id)
 );
-DROP TABLE IF EXISTS assignment_group_fact;
 CREATE TABLE IF NOT EXISTS assignment_group_fact (
   `assignment_group_id` BIGINT,
   `course_id` BIGINT,
-  `group_weight` DOUBLE
+  `group_weight` DOUBLE,
+PRIMARY KEY (assignment_group_id),
+INDEX course_id (course_id)
 );
-DROP TABLE IF EXISTS assignment_group_rule_dim;
 CREATE TABLE IF NOT EXISTS assignment_group_rule_dim (
   `assignment_group_id` BIGINT,
   `drop_lowest` INTEGER UNSIGNED,
-  `drop_highest` INTEGER UNSIGNED
+  `drop_highest` INTEGER UNSIGNED,
+PRIMARY KEY (assignment_group_id)
 );
-DROP TABLE IF EXISTS assignment_override_user_dim;
 CREATE TABLE IF NOT EXISTS assignment_override_user_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -308,9 +386,13 @@ CREATE TABLE IF NOT EXISTS assignment_override_user_dim (
   `user_id` BIGINT,
   `created_at` DATETIME,
   `updated_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX assignment_id (assignment_id),
+INDEX assignment_override_id (assignment_override_id),
+INDEX quiz_id (quiz_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS assignment_override_user_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_user_fact (
   `assignment_override_user_id` BIGINT,
   `account_id` BIGINT,
@@ -320,9 +402,17 @@ CREATE TABLE IF NOT EXISTS assignment_override_user_fact (
   `course_id` BIGINT,
   `enrollment_term_id` BIGINT,
   `quiz_id` BIGINT,
-  `user_id` BIGINT
+  `user_id` BIGINT,
+PRIMARY KEY (assignment_override_user_id),
+INDEX account_id (account_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX assignment_id (assignment_id),
+INDEX assignment_override_id (assignment_override_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX quiz_id (quiz_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS assignment_override_dim;
 CREATE TABLE IF NOT EXISTS assignment_override_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -345,9 +435,13 @@ CREATE TABLE IF NOT EXISTS assignment_override_dim (
   `updated_at` DATETIME,
   `quiz_version` INTEGER UNSIGNED,
   `workflow_state` ENUM('active', 'deleted'),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX assignment_id (assignment_id),
+INDEX course_section_id (course_section_id),
+INDEX group_id (group_id),
+INDEX quiz_id (quiz_id)
 );
-DROP TABLE IF EXISTS assignment_override_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_fact (
   `assignment_override_id` BIGINT,
   `account_id` BIGINT,
@@ -361,9 +455,21 @@ CREATE TABLE IF NOT EXISTS assignment_override_fact (
   `group_parent_account_id` BIGINT,
   `nonxlist_course_id` BIGINT,
   `quiz_id` BIGINT,
-  `group_wiki_id` BIGINT
+  `group_wiki_id` BIGINT,
+PRIMARY KEY (assignment_override_id),
+INDEX account_id (account_id),
+INDEX assignment_id (assignment_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX course_id (course_id),
+INDEX course_section_id (course_section_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX group_id (group_id),
+INDEX group_category_id (group_category_id),
+INDEX group_parent_account_id (group_parent_account_id),
+INDEX nonxlist_course_id (nonxlist_course_id),
+INDEX quiz_id (quiz_id),
+INDEX group_wiki_id (group_wiki_id)
 );
-DROP TABLE IF EXISTS assignment_override_user_rollup_fact;
 CREATE TABLE IF NOT EXISTS assignment_override_user_rollup_fact (
   `assignment_id` BIGINT,
   `assignment_override_id` BIGINT,
@@ -380,28 +486,45 @@ CREATE TABLE IF NOT EXISTS assignment_override_user_rollup_fact (
   `group_wiki_id` BIGINT,
   `nonxlist_course_id` BIGINT,
   `quiz_id` BIGINT,
-  `user_id` BIGINT
+  `user_id` BIGINT,
+INDEX assignment_id (assignment_id),
+INDEX assignment_override_id (assignment_override_id),
+INDEX assignment_override_user_adhoc_id (assignment_override_user_adhoc_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX course_id (course_id),
+INDEX course_account_id (course_account_id),
+INDEX course_section_id (course_section_id),
+INDEX enrollment_id (enrollment_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX group_category_id (group_category_id),
+INDEX group_id (group_id),
+INDEX group_parent_account_id (group_parent_account_id),
+INDEX group_wiki_id (group_wiki_id),
+INDEX nonxlist_course_id (nonxlist_course_id),
+INDEX quiz_id (quiz_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS communication_channel_dim;
 CREATE TABLE IF NOT EXISTS communication_channel_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
   `user_id` BIGINT,
   `address` VARCHAR(256),
-  `type` VARCHAR(256),
+  `type` ENUM('email', 'facebook', 'push', 'sms', 'twitter'),
   `position` INTEGER UNSIGNED,
-  `workflow_state` VARCHAR(256),
+  `workflow_state` ENUM('unconfirmed', 'active'),
   `created_at` DATETIME,
   `updated_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS communication_channel_fact;
 CREATE TABLE IF NOT EXISTS communication_channel_fact (
   `communication_channel_id` BIGINT,
   `user_id` BIGINT,
-  `bounce_count` INTEGER UNSIGNED
+  `bounce_count` INTEGER UNSIGNED,
+PRIMARY KEY (communication_channel_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS conversation_dim;
 CREATE TABLE IF NOT EXISTS conversation_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -411,9 +534,12 @@ CREATE TABLE IF NOT EXISTS conversation_dim (
   `course_id` BIGINT,
   `group_id` BIGINT,
   `account_id` BIGINT,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX course_id (course_id),
+INDEX group_id (group_id),
+INDEX account_id (account_id)
 );
-DROP TABLE IF EXISTS conversation_message_dim;
 CREATE TABLE IF NOT EXISTS conversation_message_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -424,9 +550,11 @@ CREATE TABLE IF NOT EXISTS conversation_message_dim (
   `has_attachments` ENUM('false','true'),
   `has_media_objects` ENUM('false','true'),
   `body` LONGTEXT,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX conversation_id (conversation_id),
+INDEX author_id (author_id)
 );
-DROP TABLE IF EXISTS conversation_message_participant_fact;
 CREATE TABLE IF NOT EXISTS conversation_message_participant_fact (
   `conversation_message_id` BIGINT,
   `conversation_id` BIGINT,
@@ -440,9 +568,18 @@ CREATE TABLE IF NOT EXISTS conversation_message_participant_fact (
   `message_size_bytes` INTEGER UNSIGNED,
   `message_character_count` INTEGER UNSIGNED,
   `message_word_count` INTEGER UNSIGNED,
-  `message_line_count` INTEGER UNSIGNED
+  `message_line_count` INTEGER UNSIGNED,
+PRIMARY KEY (conversation_message_id,user_id),
+INDEX conversation_message_id (conversation_message_id),
+INDEX conversation_id (conversation_id),
+INDEX user_id (user_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX course_account_id (course_account_id),
+INDEX group_id (group_id),
+INDEX account_id (account_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id)
 );
-DROP TABLE IF EXISTS discussion_topic_dim;
 CREATE TABLE IF NOT EXISTS discussion_topic_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -461,9 +598,11 @@ CREATE TABLE IF NOT EXISTS discussion_topic_dim (
   `locked` ENUM('false','true'),
   `course_id` BIGINT,
   `group_id` BIGINT,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX course_id (course_id),
+INDEX group_id (group_id)
 );
-DROP TABLE IF EXISTS discussion_topic_fact;
 CREATE TABLE IF NOT EXISTS discussion_topic_fact (
   `discussion_topic_id` BIGINT,
   `course_id` BIGINT,
@@ -477,9 +616,20 @@ CREATE TABLE IF NOT EXISTS discussion_topic_fact (
   `group_id` BIGINT,
   `group_parent_course_id` BIGINT,
   `group_parent_account_id` BIGINT,
-  `group_parent_course_account_id` BIGINT
+  `group_parent_course_account_id` BIGINT,
+PRIMARY KEY (discussion_topic_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX course_account_id (course_account_id),
+INDEX user_id (user_id),
+INDEX assignment_id (assignment_id),
+INDEX editor_id (editor_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id),
+INDEX group_id (group_id),
+INDEX group_parent_course_id (group_parent_course_id),
+INDEX group_parent_account_id (group_parent_account_id),
+INDEX group_parent_course_account_id (group_parent_course_account_id)
 );
-DROP TABLE IF EXISTS discussion_entry_dim;
 CREATE TABLE IF NOT EXISTS discussion_entry_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -489,9 +639,9 @@ CREATE TABLE IF NOT EXISTS discussion_entry_dim (
   `updated_at` DATETIME,
   `deleted_at` DATETIME,
   `depth` INTEGER UNSIGNED,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id)
 );
-DROP TABLE IF EXISTS discussion_entry_fact;
 CREATE TABLE IF NOT EXISTS discussion_entry_fact (
   `discussion_entry_id` BIGINT,
   `parent_discussion_entry_id` BIGINT,
@@ -504,9 +654,19 @@ CREATE TABLE IF NOT EXISTS discussion_entry_fact (
   `topic_assignment_id` BIGINT,
   `topic_editor_id` BIGINT,
   `enrollment_rollup_id` BIGINT,
-  `message_length` INTEGER UNSIGNED
+  `message_length` INTEGER UNSIGNED,
+PRIMARY KEY (discussion_entry_id),
+INDEX parent_discussion_entry_id (parent_discussion_entry_id),
+INDEX user_id (user_id),
+INDEX topic_id (topic_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX course_account_id (course_account_id),
+INDEX topic_user_id (topic_user_id),
+INDEX topic_assignment_id (topic_assignment_id),
+INDEX topic_editor_id (topic_editor_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id)
 );
-DROP TABLE IF EXISTS enrollment_term_dim;
 CREATE TABLE IF NOT EXISTS enrollment_term_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -515,9 +675,11 @@ CREATE TABLE IF NOT EXISTS enrollment_term_dim (
   `date_start` DATETIME,
   `date_end` DATETIME,
   `sis_source_id` VARCHAR(256),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX root_account_id (root_account_id),
+INDEX sis_source_id (sis_source_id)
 );
-DROP TABLE IF EXISTS course_section_dim;
 CREATE TABLE IF NOT EXISTS course_section_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -535,9 +697,13 @@ CREATE TABLE IF NOT EXISTS course_section_dim (
   `restrict_enrollments_to_section_dates` ENUM('false','true'),
   `nonxlist_course_id` BIGINT,
   `sis_source_id` VARCHAR(256),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX nonxlist_course_id (nonxlist_course_id),
+INDEX sis_source_id (sis_source_id)
 );
-DROP TABLE IF EXISTS role_dim;
 CREATE TABLE IF NOT EXISTS role_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -549,9 +715,11 @@ CREATE TABLE IF NOT EXISTS role_dim (
   `created_at` DATETIME,
   `updated_at` DATETIME,
   `deleted_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX root_account_id (root_account_id),
+INDEX account_id (account_id)
 );
-DROP TABLE IF EXISTS enrollment_dim;
 CREATE TABLE IF NOT EXISTS enrollment_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -569,9 +737,16 @@ CREATE TABLE IF NOT EXISTS enrollment_dim (
   `sis_source_id` VARCHAR(256),
   `course_id` BIGINT,
   `user_id` BIGINT,
-UNIQUE KEY id (id)
+  `last_activity_at` DATETIME,
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX root_account_id (root_account_id),
+INDEX course_section_id (course_section_id),
+INDEX role_id (role_id),
+INDEX sis_source_id (sis_source_id),
+INDEX course_id (course_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS enrollment_fact;
 CREATE TABLE IF NOT EXISTS enrollment_fact (
   `enrollment_id` BIGINT,
   `user_id` BIGINT,
@@ -580,9 +755,14 @@ CREATE TABLE IF NOT EXISTS enrollment_fact (
   `course_account_id` BIGINT,
   `course_section_id` BIGINT,
   `computed_final_score` DOUBLE,
-  `computed_current_score` DOUBLE
+  `computed_current_score` DOUBLE,
+PRIMARY KEY (enrollment_id),
+INDEX user_id (user_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX course_account_id (course_account_id),
+INDEX course_section_id (course_section_id)
 );
-DROP TABLE IF EXISTS enrollment_rollup_dim;
 CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
   `id` BIGINT,
   `user_id` BIGINT,
@@ -608,9 +788,18 @@ CREATE TABLE IF NOT EXISTS enrollment_rollup_dim (
   `no_permissions_enrollment_id` BIGINT,
   `most_privileged_role` VARCHAR(256),
   `least_privileged_role` VARCHAR(256),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+INDEX user_id (user_id),
+INDEX course_id (course_id),
+INDEX account_admin_enrollment_id (account_admin_enrollment_id),
+INDEX teacher_enrollment_enrollment_id (teacher_enrollment_enrollment_id),
+INDEX designer_enrollment_enrollment_id (designer_enrollment_enrollment_id),
+INDEX ta_enrollment_enrollment_id (ta_enrollment_enrollment_id),
+INDEX student_enrollment_enrollment_id (student_enrollment_enrollment_id),
+INDEX observer_enrollment_enrollment_id (observer_enrollment_enrollment_id),
+INDEX account_membership_enrollment_id (account_membership_enrollment_id),
+INDEX no_permissions_enrollment_id (no_permissions_enrollment_id)
 );
-DROP TABLE IF EXISTS score_fact;
 CREATE TABLE IF NOT EXISTS score_fact (
   `score_id` BIGINT,
   `canvas_id` BIGINT,
@@ -621,9 +810,16 @@ CREATE TABLE IF NOT EXISTS score_fact (
   `grading_period_group_id` BIGINT,
   `grading_period_group_account_id` BIGINT,
   `current_score` DOUBLE,
-  `final_score` DOUBLE
+  `final_score` DOUBLE,
+PRIMARY KEY (score_id),
+INDEX canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_id (enrollment_id),
+INDEX grading_period_id (grading_period_id),
+INDEX grading_period_group_id (grading_period_group_id),
+INDEX grading_period_group_account_id (grading_period_group_account_id)
 );
-DROP TABLE IF EXISTS score_dim;
 CREATE TABLE IF NOT EXISTS score_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -632,18 +828,117 @@ CREATE TABLE IF NOT EXISTS score_dim (
   `created_at` DATETIME,
   `updated_at` DATETIME,
   `workflow_state` VARCHAR(256),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX enrollment_id (enrollment_id),
+INDEX grading_period_id (grading_period_id)
 );
-DROP TABLE IF EXISTS grading_period_fact;
+CREATE TABLE IF NOT EXISTS assignment_group_score_fact (
+  `score_id` BIGINT,
+  `canvas_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `assignment_group_id` DOUBLE,
+  `enrollment_id` BIGINT,
+  `current_score` DOUBLE,
+  `final_score` DOUBLE,
+  `muted_current_score` DOUBLE,
+  `muted_final_score` DOUBLE,
+PRIMARY KEY (score_id),
+INDEX canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX enrollment_id (enrollment_id)
+);
+CREATE TABLE IF NOT EXISTS course_score_fact (
+  `score_id` BIGINT,
+  `canvas_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_id` BIGINT,
+  `current_score` DOUBLE,
+  `final_score` DOUBLE,
+  `muted_current_score` DOUBLE,
+  `muted_final_score` DOUBLE,
+PRIMARY KEY (score_id),
+INDEX canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_id (enrollment_id)
+);
+CREATE TABLE IF NOT EXISTS grading_period_score_fact (
+  `score_id` BIGINT,
+  `canvas_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_id` BIGINT,
+  `grading_period_id` BIGINT,
+  `grading_period_group_id` BIGINT,
+  `grading_period_group_account_id` BIGINT,
+  `current_score` DOUBLE,
+  `final_score` DOUBLE,
+  `muted_current_score` DOUBLE,
+  `muted_final_score` DOUBLE,
+INDEX score_id (score_id),
+INDEX canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_id (enrollment_id),
+INDEX grading_period_id (grading_period_id),
+INDEX grading_period_group_id (grading_period_group_id),
+INDEX grading_period_group_account_id (grading_period_group_account_id)
+);
+CREATE TABLE IF NOT EXISTS assignment_group_score_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `assignment_group_id` BIGINT,
+  `enrollment_id` BIGINT,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+  `workflow_state` ENUM('active', 'deleted'),
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX enrollment_id (enrollment_id)
+);
+CREATE TABLE IF NOT EXISTS course_score_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `enrollment_id` BIGINT,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+  `workflow_state` ENUM('active', 'deleted'),
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX enrollment_id (enrollment_id)
+);
+CREATE TABLE IF NOT EXISTS grading_period_score_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `enrollment_id` BIGINT,
+  `grading_period_id` BIGINT,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+  `workflow_state` ENUM('active', 'deleted'),
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX enrollment_id (enrollment_id),
+INDEX grading_period_id (grading_period_id)
+);
 CREATE TABLE IF NOT EXISTS grading_period_fact (
   `grading_period_id` BIGINT,
   `canvas_id` BIGINT,
   `grading_period_group_id` BIGINT,
   `grading_period_group_account_id` BIGINT,
   `grading_period_group_course_id` BIGINT,
-  `weight` DOUBLE
+  `weight` DOUBLE,
+PRIMARY KEY (grading_period_id),
+INDEX canvas_id (canvas_id),
+INDEX grading_period_group_id (grading_period_group_id),
+INDEX grading_period_group_account_id (grading_period_group_account_id),
+INDEX grading_period_group_course_id (grading_period_group_course_id)
 );
-DROP TABLE IF EXISTS grading_period_dim;
 CREATE TABLE IF NOT EXISTS grading_period_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -654,10 +949,11 @@ CREATE TABLE IF NOT EXISTS grading_period_dim (
   `start_date` DATETIME,
   `title` VARCHAR(256),
   `updated_at` DATETIME,
-  `workflow_state` VARCHAR(256),
-UNIQUE KEY id (id)
+  `workflow_state` ENUM('active', 'deleted'),
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX grading_period_group_id (grading_period_group_id)
 );
-DROP TABLE IF EXISTS grading_period_group_dim;
 CREATE TABLE IF NOT EXISTS grading_period_group_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -666,10 +962,12 @@ CREATE TABLE IF NOT EXISTS grading_period_group_dim (
   `created_at` DATETIME,
   `title` VARCHAR(256),
   `updated_at` DATETIME,
-  `workflow_state` VARCHAR(256),
-UNIQUE KEY id (id)
+  `workflow_state` ENUM('active', 'deleted'),
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX course_id (course_id),
+INDEX account_id (account_id)
 );
-DROP TABLE IF EXISTS file_dim;
 CREATE TABLE IF NOT EXISTS file_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -699,9 +997,22 @@ CREATE TABLE IF NOT EXISTS file_dim (
   `created_at` DATETIME,
   `updated_at` DATETIME,
   `deleted_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX assignment_id (assignment_id),
+INDEX conversation_message_id (conversation_message_id),
+INDEX course_id (course_id),
+INDEX folder_id (folder_id),
+INDEX group_id (group_id),
+INDEX quiz_id (quiz_id),
+INDEX quiz_submission_id (quiz_submission_id),
+INDEX replacement_file_id (replacement_file_id),
+INDEX root_file_id (root_file_id),
+INDEX submission_id (submission_id),
+INDEX uploader_id (uploader_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS file_fact;
 CREATE TABLE IF NOT EXISTS file_fact (
   `file_id` BIGINT,
   `account_id` BIGINT,
@@ -726,9 +1037,31 @@ CREATE TABLE IF NOT EXISTS file_fact (
   `uploader_id` BIGINT,
   `user_id` BIGINT,
   `wiki_id` BIGINT,
-  `size` BIGINT
+  `size` BIGINT,
+PRIMARY KEY (file_id),
+INDEX account_id (account_id),
+INDEX assignment_id (assignment_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX conversation_id (conversation_id),
+INDEX conversation_message_author_id (conversation_message_author_id),
+INDEX conversation_message_id (conversation_message_id),
+INDEX course_id (course_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX folder_id (folder_id),
+INDEX grader_id (grader_id),
+INDEX group_id (group_id),
+INDEX group_category_id (group_category_id),
+INDEX quiz_id (quiz_id),
+INDEX quiz_submission_id (quiz_submission_id),
+INDEX replacement_file_id (replacement_file_id),
+INDEX root_file_id (root_file_id),
+INDEX sis_source_id (sis_source_id),
+INDEX submission_id (submission_id),
+INDEX uploader_id (uploader_id),
+INDEX user_id (user_id),
+INDEX wiki_id (wiki_id)
 );
-DROP TABLE IF EXISTS group_dim;
 CREATE TABLE IF NOT EXISTS group_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -747,9 +1080,13 @@ CREATE TABLE IF NOT EXISTS group_dim (
   `group_category_id` BIGINT,
   `account_id` BIGINT,
   `wiki_id` BIGINT,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX sis_source_id (sis_source_id),
+INDEX group_category_id (group_category_id),
+INDEX account_id (account_id),
+INDEX wiki_id (wiki_id)
 );
-DROP TABLE IF EXISTS group_fact;
 CREATE TABLE IF NOT EXISTS group_fact (
   `group_id` BIGINT,
   `parent_course_id` BIGINT,
@@ -760,9 +1097,16 @@ CREATE TABLE IF NOT EXISTS group_fact (
   `storage_quota` BIGINT,
   `group_category_id` BIGINT,
   `account_id` BIGINT,
-  `wiki_id` BIGINT
+  `wiki_id` BIGINT,
+PRIMARY KEY (group_id),
+INDEX parent_course_id (parent_course_id),
+INDEX parent_account_id (parent_account_id),
+INDEX parent_course_account_id (parent_course_account_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX group_category_id (group_category_id),
+INDEX account_id (account_id),
+INDEX wiki_id (wiki_id)
 );
-DROP TABLE IF EXISTS group_membership_fact;
 CREATE TABLE IF NOT EXISTS group_membership_fact (
   `group_id` BIGINT,
   `parent_course_id` BIGINT,
@@ -770,9 +1114,15 @@ CREATE TABLE IF NOT EXISTS group_membership_fact (
   `parent_course_account_id` BIGINT,
   `enrollment_term_id` BIGINT,
   `user_id` BIGINT,
-  `group_membership_id` VARCHAR(256)
+  `group_membership_id` VARCHAR(256),
+INDEX group_id (group_id),
+INDEX parent_course_id (parent_course_id),
+INDEX parent_account_id (parent_account_id),
+INDEX parent_course_account_id (parent_course_account_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX user_id (user_id),
+PRIMARY KEY (group_membership_id)
 );
-DROP TABLE IF EXISTS group_membership_dim;
 CREATE TABLE IF NOT EXISTS group_membership_dim (
   `id` VARCHAR(256),
   `canvas_id` VARCHAR(256),
@@ -781,9 +1131,10 @@ CREATE TABLE IF NOT EXISTS group_membership_dim (
   `workflow_state` ENUM('accepted', 'invited', 'requested', 'deleted'),
   `created_at` DATETIME,
   `updated_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX group_id (group_id)
 );
-DROP TABLE IF EXISTS module_dim;
 CREATE TABLE IF NOT EXISTS module_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -796,17 +1147,22 @@ CREATE TABLE IF NOT EXISTS module_dim (
   `deleted_at` DATETIME,
   `unlock_at` DATETIME,
   `updated_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX course_id (course_id)
 );
-DROP TABLE IF EXISTS module_fact;
 CREATE TABLE IF NOT EXISTS module_fact (
   `module_id` BIGINT,
   `account_id` BIGINT,
   `course_id` BIGINT,
   `enrollment_term_id` BIGINT,
-  `wiki_id` BIGINT
+  `wiki_id` BIGINT,
+PRIMARY KEY (module_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX wiki_id (wiki_id)
 );
-DROP TABLE IF EXISTS module_item_dim;
 CREATE TABLE IF NOT EXISTS module_item_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -824,9 +1180,16 @@ CREATE TABLE IF NOT EXISTS module_item_dim (
   `url` LONGTEXT,
   `created_at` DATETIME,
   `updated_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX assignment_id (assignment_id),
+INDEX course_id (course_id),
+INDEX discussion_topic_id (discussion_topic_id),
+INDEX file_id (file_id),
+INDEX module_id (module_id),
+INDEX quiz_id (quiz_id),
+INDEX wiki_page_id (wiki_page_id)
 );
-DROP TABLE IF EXISTS module_item_fact;
 CREATE TABLE IF NOT EXISTS module_item_fact (
   `module_item_id` BIGINT,
   `account_id` BIGINT,
@@ -842,9 +1205,23 @@ CREATE TABLE IF NOT EXISTS module_item_fact (
   `quiz_id` BIGINT,
   `user_id` BIGINT,
   `wiki_id` BIGINT,
-  `wiki_page_id` BIGINT
+  `wiki_page_id` BIGINT,
+PRIMARY KEY (module_item_id),
+INDEX account_id (account_id),
+INDEX assignment_id (assignment_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX course_id (course_id),
+INDEX discussion_topic_id (discussion_topic_id),
+INDEX discussion_topic_editor_id (discussion_topic_editor_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX file_id (file_id),
+INDEX module_id (module_id),
+INDEX quiz_id (quiz_id),
+INDEX user_id (user_id),
+INDEX wiki_id (wiki_id),
+INDEX wiki_page_id (wiki_page_id)
 );
-DROP TABLE IF EXISTS module_progression_dim;
 CREATE TABLE IF NOT EXISTS module_progression_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -859,9 +1236,11 @@ CREATE TABLE IF NOT EXISTS module_progression_dim (
   `completed_at` DATETIME,
   `evaluated_at` DATETIME,
   `updated_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX module_id (module_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS module_progression_fact;
 CREATE TABLE IF NOT EXISTS module_progression_fact (
   `module_progression_id` BIGINT,
   `account_id` BIGINT,
@@ -869,17 +1248,24 @@ CREATE TABLE IF NOT EXISTS module_progression_fact (
   `enrollment_term_id` BIGINT,
   `module_id` BIGINT,
   `user_id` BIGINT,
-  `wiki_id` BIGINT
+  `wiki_id` BIGINT,
+PRIMARY KEY (module_progression_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX module_id (module_id),
+INDEX user_id (user_id),
+INDEX wiki_id (wiki_id)
 );
-DROP TABLE IF EXISTS module_completion_requirement_dim;
 CREATE TABLE IF NOT EXISTS module_completion_requirement_dim (
   `id` BIGINT,
   `module_id` BIGINT,
   `module_item_id` BIGINT,
   `requirement_type` ENUM('must_view', 'must_mark_done', 'min_score', 'must_submit'),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+INDEX module_id (module_id),
+INDEX module_item_id (module_item_id)
 );
-DROP TABLE IF EXISTS module_completion_requirement_fact;
 CREATE TABLE IF NOT EXISTS module_completion_requirement_fact (
   `module_completion_requirement_id` BIGINT,
   `account_id` BIGINT,
@@ -897,16 +1283,32 @@ CREATE TABLE IF NOT EXISTS module_completion_requirement_fact (
   `user_id` BIGINT,
   `wiki_id` BIGINT,
   `wiki_page_id` BIGINT,
-  `min_score` DOUBLE
+  `min_score` DOUBLE,
+PRIMARY KEY (module_completion_requirement_id),
+INDEX account_id (account_id),
+INDEX assignment_id (assignment_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX course_id (course_id),
+INDEX discussion_topic_id (discussion_topic_id),
+INDEX discussion_topic_editor_id (discussion_topic_editor_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX file_id (file_id),
+INDEX module_id (module_id),
+INDEX module_item_id (module_item_id),
+INDEX quiz_id (quiz_id),
+INDEX user_id (user_id),
+INDEX wiki_id (wiki_id),
+INDEX wiki_page_id (wiki_page_id)
 );
-DROP TABLE IF EXISTS module_prerequisite_dim;
 CREATE TABLE IF NOT EXISTS module_prerequisite_dim (
   `id` BIGINT,
   `module_id` BIGINT,
   `prerequisite_module_id` BIGINT,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+INDEX module_id (module_id),
+INDEX prerequisite_module_id (prerequisite_module_id)
 );
-DROP TABLE IF EXISTS module_prerequisite_fact;
 CREATE TABLE IF NOT EXISTS module_prerequisite_fact (
   `module_prerequisite_id` BIGINT,
   `account_id` BIGINT,
@@ -915,18 +1317,26 @@ CREATE TABLE IF NOT EXISTS module_prerequisite_fact (
   `module_id` BIGINT,
   `prerequisite_module_id` BIGINT,
   `prerequisite_wiki_id` BIGINT,
-  `wiki_id` BIGINT
+  `wiki_id` BIGINT,
+PRIMARY KEY (module_prerequisite_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX module_id (module_id),
+INDEX prerequisite_module_id (prerequisite_module_id),
+INDEX prerequisite_wiki_id (prerequisite_wiki_id),
+INDEX wiki_id (wiki_id)
 );
-DROP TABLE IF EXISTS module_progression_completion_requirement_dim;
 CREATE TABLE IF NOT EXISTS module_progression_completion_requirement_dim (
   `id` BIGINT,
   `module_progression_id` BIGINT,
   `module_item_id` BIGINT,
   `requirement_type` ENUM('must_view', 'must_mark_done', 'min_score', 'must_submit'),
   `completion_status` ENUM('complete', 'incomplete'),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+INDEX module_progression_id (module_progression_id),
+INDEX module_item_id (module_item_id)
 );
-DROP TABLE IF EXISTS module_progression_completion_requirement_fact;
 CREATE TABLE IF NOT EXISTS module_progression_completion_requirement_fact (
   `module_progression_completion_requirement_id` BIGINT,
   `account_id` BIGINT,
@@ -946,26 +1356,42 @@ CREATE TABLE IF NOT EXISTS module_progression_completion_requirement_fact (
   `wiki_id` BIGINT,
   `wiki_page_id` BIGINT,
   `min_score` DOUBLE,
-  `score` DOUBLE
+  `score` DOUBLE,
+PRIMARY KEY (module_progression_completion_requirement_id),
+INDEX account_id (account_id),
+INDEX assignment_id (assignment_id),
+INDEX assignment_group_id (assignment_group_id),
+INDEX course_id (course_id),
+INDEX discussion_topic_id (discussion_topic_id),
+INDEX discussion_topic_editor_id (discussion_topic_editor_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX file_id (file_id),
+INDEX module_id (module_id),
+INDEX module_item_id (module_item_id),
+INDEX module_progression_id (module_progression_id),
+INDEX quiz_id (quiz_id),
+INDEX user_id (user_id),
+INDEX wiki_id (wiki_id),
+INDEX wiki_page_id (wiki_page_id)
 );
-DROP TABLE IF EXISTS course_ui_canvas_navigation_dim;
 CREATE TABLE IF NOT EXISTS course_ui_canvas_navigation_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
   `name` VARCHAR(256),
   `default` VARCHAR(256),
   `original_position` VARCHAR(256),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id)
 );
-DROP TABLE IF EXISTS course_ui_navigation_item_dim;
 CREATE TABLE IF NOT EXISTS course_ui_navigation_item_dim (
   `id` BIGINT,
   `root_account_id` BIGINT,
   `visible` VARCHAR(256),
   `position` INTEGER UNSIGNED,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+INDEX root_account_id (root_account_id)
 );
-DROP TABLE IF EXISTS course_ui_navigation_item_fact;
 CREATE TABLE IF NOT EXISTS course_ui_navigation_item_fact (
   `root_account_id` BIGINT,
   `course_ui_navigation_item_id` BIGINT,
@@ -973,9 +1399,15 @@ CREATE TABLE IF NOT EXISTS course_ui_navigation_item_fact (
   `external_tool_activation_id` BIGINT,
   `course_id` BIGINT,
   `course_account_id` BIGINT,
-  `enrollment_term_id` BIGINT
+  `enrollment_term_id` BIGINT,
+INDEX root_account_id (root_account_id),
+INDEX course_ui_canvas_navigation_id (course_ui_canvas_navigation_id),
+INDEX external_tool_activation_id (external_tool_activation_id),
+INDEX course_id (course_id),
+INDEX course_account_id (course_account_id),
+INDEX enrollment_term_id (enrollment_term_id),
+PRIMARY KEY (course_ui_navigation_item_id)
 );
-DROP TABLE IF EXISTS quiz_dim;
 CREATE TABLE IF NOT EXISTS quiz_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -983,22 +1415,22 @@ CREATE TABLE IF NOT EXISTS quiz_dim (
   `name` VARCHAR(256),
   `points_possible` DOUBLE,
   `description` LONGTEXT,
-  `quiz_type` VARCHAR(256),
+  `quiz_type` ENUM('practice_quiz', 'assignment', 'graded_survey', 'survey', 'NULL'),
   `course_id` BIGINT,
   `assignment_id` BIGINT,
-  `workflow_state` VARCHAR(256),
-  `scoring_policy` VARCHAR(256),
-  `anonymous_submissions` VARCHAR(256),
-  `display_questions` VARCHAR(256),
-  `answer_display_order` VARCHAR(256),
-  `go_back_to_previous_question` VARCHAR(256),
-  `could_be_locked` VARCHAR(256),
-  `browser_lockdown` VARCHAR(256),
-  `browser_lockdown_for_displaying_results` VARCHAR(256),
-  `browser_lockdown_monitor` VARCHAR(256),
+  `workflow_state` ENUM('unpublished', 'published', 'deleted'),
+  `scoring_policy` ENUM('keep_highest', 'keep_latest', 'keep_average'),
+  `anonymous_submissions` ENUM('allow_anonymous_submissions', 'disallow_anonymous_submissions'),
+  `display_questions` ENUM('multiple_at_a_time', 'one_at_a_time', 'one_question_at_a_time'),
+  `answer_display_order` ENUM('in_order', 'shuffled', 'shuffle_answers'),
+  `go_back_to_previous_question` ENUM('display_questions', 'one_at_a_time', 'allow_going_back', 'disallow_going_back', 'cant_go_back'),
+  `could_be_locked` ENUM('allow_locking', 'disallow_locking'),
+  `browser_lockdown` ENUM('required', 'not_required'),
+  `browser_lockdown_for_displaying_results` ENUM('hide_results', 'never', 'until_after_last_attempt', 'required', 'not_required'),
+  `browser_lockdown_monitor` ENUM('required', 'not_required'),
   `ip_filter` VARCHAR(256),
-  `show_results` VARCHAR(256),
-  `show_correct_answers` VARCHAR(256),
+  `show_results` ENUM('always', 'never', 'dw_quiz_fact.allowed_attempts > 1', 'always_after_last_attempt', 'only_once_after_last_attempt', 'hide_results', 'one_time_results'),
+  `show_correct_answers` ENUM('s valid only if ', ' is set to ', '. Possible values are ', ', ', ' and ', ' (Last two are only valid if ', ') which have a behavior similar to ', '. Defaults to ', '. Equivalent Canvas API field -> ', ' combined with '),
   `show_correct_answers_at` DATETIME,
   `hide_correct_answers_at` DATETIME,
   `created_at` DATETIME,
@@ -1008,9 +1440,12 @@ CREATE TABLE IF NOT EXISTS quiz_dim (
   `lock_at` DATETIME,
   `due_at` DATETIME,
   `deleted_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX root_account_id (root_account_id),
+INDEX course_id (course_id),
+INDEX assignment_id (assignment_id)
 );
-DROP TABLE IF EXISTS quiz_fact;
 CREATE TABLE IF NOT EXISTS quiz_fact (
   `quiz_id` BIGINT,
   `points_possible` DOUBLE,
@@ -1021,9 +1456,13 @@ CREATE TABLE IF NOT EXISTS quiz_fact (
   `course_id` BIGINT,
   `assignment_id` BIGINT,
   `course_account_id` BIGINT,
-  `enrollment_term_id` BIGINT
+  `enrollment_term_id` BIGINT,
+PRIMARY KEY (quiz_id),
+INDEX course_id (course_id),
+INDEX assignment_id (assignment_id),
+INDEX course_account_id (course_account_id),
+INDEX enrollment_term_id (enrollment_term_id)
 );
-DROP TABLE IF EXISTS quiz_submission_historical_dim;
 CREATE TABLE IF NOT EXISTS quiz_submission_historical_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -1031,11 +1470,11 @@ CREATE TABLE IF NOT EXISTS quiz_submission_historical_dim (
   `submission_id` BIGINT,
   `user_id` BIGINT,
   `version_number` INTEGER UNSIGNED,
-  `submission_state` VARCHAR(256),
-  `workflow_state` VARCHAR(256),
+  `submission_state` ENUM('current_submission', 'previous_submission'),
+  `workflow_state` ENUM('untaken', 'complete', 'pending_review', 'preview', 'settings_only'),
   `quiz_state_during_submission` VARCHAR(256),
-  `submission_scoring_policy` VARCHAR(256),
-  `submission_source` VARCHAR(256),
+  `submission_scoring_policy` ENUM('s scoring policy. Possible values are ', ' or the general quiz scoring policies', ', ', ' and '),
+  `submission_source` ENUM('student', 'test_preview'),
   `has_seen_results` VARCHAR(256),
   `temporary_user_code` VARCHAR(256),
   `created_at` DATETIME,
@@ -1043,9 +1482,12 @@ CREATE TABLE IF NOT EXISTS quiz_submission_historical_dim (
   `started_at` DATETIME,
   `finished_at` DATETIME,
   `due_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX quiz_id (quiz_id),
+INDEX submission_id (submission_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS quiz_submission_historical_fact;
 CREATE TABLE IF NOT EXISTS quiz_submission_historical_fact (
   `score` DOUBLE,
   `kept_score` DOUBLE,
@@ -1065,19 +1507,27 @@ CREATE TABLE IF NOT EXISTS quiz_submission_historical_fact (
   `total_attempts` INTEGER UNSIGNED,
   `extra_attempts` INTEGER UNSIGNED,
   `extra_time` INTEGER UNSIGNED,
-  `time_taken` INTEGER UNSIGNED
+  `time_taken` INTEGER UNSIGNED,
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX course_account_id (course_account_id),
+INDEX quiz_id (quiz_id),
+INDEX assignment_id (assignment_id),
+INDEX user_id (user_id),
+INDEX submission_id (submission_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id),
+PRIMARY KEY (quiz_submission_historical_id)
 );
-DROP TABLE IF EXISTS quiz_submission_dim;
 CREATE TABLE IF NOT EXISTS quiz_submission_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
   `quiz_id` BIGINT,
   `submission_id` BIGINT,
   `user_id` BIGINT,
-  `workflow_state` VARCHAR(256),
+  `workflow_state` ENUM('untaken', 'complete', 'pending_review', 'preview', 'settings_only', 'essay_question'),
   `quiz_state_during_submission` VARCHAR(256),
-  `submission_scoring_policy` VARCHAR(256),
-  `submission_source` VARCHAR(256),
+  `submission_scoring_policy` ENUM('s scoring policy. Possible values are ', ' or the general quiz scoring policies', ', ', ' and '),
+  `submission_source` ENUM('student', 'test_preview'),
   `has_seen_results` VARCHAR(256),
   `temporary_user_code` VARCHAR(256),
   `created_at` DATETIME,
@@ -1085,9 +1535,12 @@ CREATE TABLE IF NOT EXISTS quiz_submission_dim (
   `started_at` DATETIME,
   `finished_at` DATETIME,
   `due_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX quiz_id (quiz_id),
+INDEX submission_id (submission_id),
+INDEX user_id (user_id)
 );
-DROP TABLE IF EXISTS quiz_submission_fact;
 CREATE TABLE IF NOT EXISTS quiz_submission_fact (
   `score` DOUBLE,
   `kept_score` DOUBLE,
@@ -1107,9 +1560,17 @@ CREATE TABLE IF NOT EXISTS quiz_submission_fact (
   `total_attempts` INTEGER UNSIGNED,
   `extra_attempts` INTEGER UNSIGNED,
   `extra_time` INTEGER UNSIGNED,
-  `time_taken` INTEGER UNSIGNED
+  `time_taken` INTEGER UNSIGNED,
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX course_account_id (course_account_id),
+INDEX quiz_id (quiz_id),
+INDEX assignment_id (assignment_id),
+INDEX user_id (user_id),
+INDEX submission_id (submission_id),
+INDEX enrollment_rollup_id (enrollment_rollup_id),
+PRIMARY KEY (quiz_submission_id)
 );
-DROP TABLE IF EXISTS quiz_question_group_dim;
 CREATE TABLE IF NOT EXISTS quiz_question_group_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -1118,9 +1579,10 @@ CREATE TABLE IF NOT EXISTS quiz_question_group_dim (
   `position` INTEGER UNSIGNED,
   `created_at` DATETIME,
   `updated_at` DATETIME,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX quiz_id (quiz_id)
 );
-DROP TABLE IF EXISTS quiz_question_group_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_group_fact (
   `quiz_question_group_id` BIGINT,
   `pick_count` INTEGER UNSIGNED,
@@ -1129,30 +1591,38 @@ CREATE TABLE IF NOT EXISTS quiz_question_group_fact (
   `course_id` BIGINT,
   `assignment_id` BIGINT,
   `course_account_id` BIGINT,
-  `enrollment_term_id` BIGINT
+  `enrollment_term_id` BIGINT,
+PRIMARY KEY (quiz_question_group_id),
+INDEX quiz_id (quiz_id),
+INDEX course_id (course_id),
+INDEX assignment_id (assignment_id),
+INDEX course_account_id (course_account_id),
+INDEX enrollment_term_id (enrollment_term_id)
 );
-DROP TABLE IF EXISTS quiz_question_dim;
 CREATE TABLE IF NOT EXISTS quiz_question_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
   `quiz_id` BIGINT,
   `quiz_question_group_id` BIGINT,
   `position` INTEGER UNSIGNED,
-  `workflow_state` VARCHAR(256),
+  `workflow_state` ENUM('unpublished', 'published', 'deleted'),
   `created_at` DATETIME,
   `updated_at` DATETIME,
   `assessment_question_id` BIGINT,
   `assessment_question_version` INTEGER UNSIGNED,
   `name` VARCHAR(256),
-  `question_type` VARCHAR(256),
+  `question_type` ENUM('calculated_question', 'essay_question', 'file_upload_question', 'fill_in_multiple_blanks_question', 'matching_question', 'multiple_answers_question', 'multiple_choice_question', 'multiple_dropdowns_question', 'numerical_question', 'short_answer_question', 'text_only_question', 'true_false_question'),
   `question_text` LONGTEXT,
-  `regrade_option` VARCHAR(256),
+  `regrade_option` ENUM('available', 'unavailable', 'multiple_answers_question', 'multiple_choice_question', 'true_false_question', 'NULL'),
   `correct_comments` LONGTEXT,
   `incorrect_comments` LONGTEXT,
   `neutral_comments` LONGTEXT,
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX quiz_id (quiz_id),
+INDEX quiz_question_group_id (quiz_question_group_id),
+INDEX assessment_question_id (assessment_question_id)
 );
-DROP TABLE IF EXISTS quiz_question_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_fact (
   `quiz_question_id` BIGINT,
   `quiz_id` BIGINT,
@@ -1162,9 +1632,16 @@ CREATE TABLE IF NOT EXISTS quiz_question_fact (
   `assignment_id` BIGINT,
   `course_account_id` BIGINT,
   `enrollment_term_id` BIGINT,
-  `points_possible` DOUBLE
+  `points_possible` DOUBLE,
+PRIMARY KEY (quiz_question_id),
+INDEX quiz_id (quiz_id),
+INDEX quiz_question_group_id (quiz_question_group_id),
+INDEX assessment_question_id (assessment_question_id),
+INDEX course_id (course_id),
+INDEX assignment_id (assignment_id),
+INDEX course_account_id (course_account_id),
+INDEX enrollment_term_id (enrollment_term_id)
 );
-DROP TABLE IF EXISTS quiz_question_answer_dim;
 CREATE TABLE IF NOT EXISTS quiz_question_answer_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -1176,15 +1653,17 @@ CREATE TABLE IF NOT EXISTS quiz_question_answer_dim (
   `answer_match_left` VARCHAR(256),
   `answer_match_right` VARCHAR(256),
   `matching_answer_incorrect_matches` VARCHAR(256),
-  `numerical_answer_type` VARCHAR(256),
+  `numerical_answer_type` ENUM('numerical_question', 'NULL', 'exact_answer', 'range_answer'),
   `blank_id` VARCHAR(256),
   `exact` DOUBLE,
   `margin` DOUBLE,
   `starting_range` DOUBLE,
   `ending_range` DOUBLE,
-UNIQUE KEY id (id,quiz_question_id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX quiz_question_id (quiz_question_id),
+INDEX blank_id (blank_id)
 );
-DROP TABLE IF EXISTS quiz_question_answer_fact;
 CREATE TABLE IF NOT EXISTS quiz_question_answer_fact (
   `quiz_question_answer_id` BIGINT,
   `quiz_question_id` BIGINT,
@@ -1199,11 +1678,21 @@ CREATE TABLE IF NOT EXISTS quiz_question_answer_fact (
   `exact` DOUBLE,
   `margin` DOUBLE,
   `starting_range` DOUBLE,
-  `ending_range` DOUBLE
+  `ending_range` DOUBLE,
+PRIMARY KEY (quiz_question_answer_id),
+INDEX quiz_question_id (quiz_question_id),
+INDEX quiz_question_group_id (quiz_question_group_id),
+INDEX quiz_id (quiz_id),
+INDEX assessment_question_id (assessment_question_id),
+INDEX course_id (course_id),
+INDEX assignment_id (assignment_id),
+INDEX course_account_id (course_account_id),
+INDEX enrollment_term_id (enrollment_term_id)
 );
+DROP TABLE IF EXISTS requests;
 CREATE TABLE IF NOT EXISTS requests (
   `id` VARCHAR(36),
-  `timestamp` DATETIME,
+  `timestamp` DATETIME(3),
   `timestamp_year` VARCHAR(256),
   `timestamp_month` VARCHAR(256),
   `timestamp_day` VARCHAR(256),
@@ -1230,7 +1719,6 @@ CREATE TABLE IF NOT EXISTS requests (
   `http_status` VARCHAR(10),
   `http_version` VARCHAR(256)
 );
-DROP TABLE IF EXISTS external_tool_activation_dim;
 CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -1246,18 +1734,26 @@ CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
   `updated_at` DATETIME,
   `tool_id` VARCHAR(256),
   `selectable_all` ENUM('false','true'),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX course_id (course_id),
+INDEX account_id (account_id),
+INDEX tool_id (tool_id)
 );
-DROP TABLE IF EXISTS external_tool_activation_fact;
 CREATE TABLE IF NOT EXISTS external_tool_activation_fact (
   `external_tool_activation_id` BIGINT,
   `course_id` BIGINT,
   `account_id` BIGINT,
   `root_account_id` BIGINT,
   `enrollment_term_id` BIGINT,
-  `course_account_id` BIGINT
+  `course_account_id` BIGINT,
+PRIMARY KEY (external_tool_activation_id),
+INDEX course_id (course_id),
+INDEX account_id (account_id),
+INDEX root_account_id (root_account_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX course_account_id (course_account_id)
 );
-DROP TABLE IF EXISTS wiki_dim;
 CREATE TABLE IF NOT EXISTS wiki_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -1267,9 +1763,9 @@ CREATE TABLE IF NOT EXISTS wiki_dim (
   `updated_at` DATETIME,
   `front_page_url` LONGTEXT,
   `has_no_front_page` ENUM('false','true'),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id)
 );
-DROP TABLE IF EXISTS wiki_fact;
 CREATE TABLE IF NOT EXISTS wiki_fact (
   `wiki_id` BIGINT,
   `parent_course_id` BIGINT,
@@ -1279,9 +1775,17 @@ CREATE TABLE IF NOT EXISTS wiki_fact (
   `account_id` BIGINT,
   `root_account_id` BIGINT,
   `enrollment_term_id` BIGINT,
-  `group_category_id` BIGINT
+  `group_category_id` BIGINT,
+PRIMARY KEY (wiki_id),
+INDEX parent_course_id (parent_course_id),
+INDEX parent_group_id (parent_group_id),
+INDEX parent_course_account_id (parent_course_account_id),
+INDEX parent_group_account_id (parent_group_account_id),
+INDEX account_id (account_id),
+INDEX root_account_id (root_account_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX group_category_id (group_category_id)
 );
-DROP TABLE IF EXISTS wiki_page_dim;
 CREATE TABLE IF NOT EXISTS wiki_page_dim (
   `id` BIGINT,
   `canvas_id` BIGINT,
@@ -1295,9 +1799,9 @@ CREATE TABLE IF NOT EXISTS wiki_page_dim (
   `editing_roles` VARCHAR(256),
   `revised_at` DATETIME,
   `could_be_locked` ENUM('false','true'),
-UNIQUE KEY id (id)
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id)
 );
-DROP TABLE IF EXISTS wiki_page_fact;
 CREATE TABLE IF NOT EXISTS wiki_page_fact (
   `wiki_page_id` BIGINT,
   `wiki_id` BIGINT,
@@ -1311,95 +1815,16 @@ CREATE TABLE IF NOT EXISTS wiki_page_fact (
   `enrollment_term_id` BIGINT,
   `group_category_id` BIGINT,
   `wiki_page_comments_count` INTEGER UNSIGNED,
-  `view_count` INTEGER UNSIGNED
+  `view_count` INTEGER UNSIGNED,
+PRIMARY KEY (wiki_page_id),
+INDEX wiki_id (wiki_id),
+INDEX parent_course_id (parent_course_id),
+INDEX parent_group_id (parent_group_id),
+INDEX parent_course_account_id (parent_course_account_id),
+INDEX parent_group_account_id (parent_group_account_id),
+INDEX user_id (user_id),
+INDEX account_id (account_id),
+INDEX root_account_id (root_account_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX group_category_id (group_category_id)
 );
-DROP TABLE IF EXISTS versions;
-CREATE TABLE IF NOT EXISTS versions (
-  table_name VARCHAR(127) PRIMARY KEY NOT NULL,
-  version BIGINT DEFAULT NULL,
-  incremental TINYINT DEFAULT NULL
-);
-INSERT INTO versions (table_name, incremental, version) VALUES
-  ('course_dim',0,NULL),
-  ('account_dim',0,NULL),
-  ('user_dim',0,NULL),
-  ('pseudonym_dim',0,NULL),
-  ('pseudonym_fact',0,NULL),
-  ('assignment_dim',0,NULL),
-  ('assignment_fact',0,NULL),
-  ('assignment_rule_dim',0,NULL),
-  ('submission_dim',0,NULL),
-  ('submission_fact',0,NULL),
-  ('submission_comment_participant_fact',0,NULL),
-  ('submission_comment_participant_dim',0,NULL),
-  ('submission_comment_fact',0,NULL),
-  ('submission_comment_dim',0,NULL),
-  ('assignment_group_dim',0,NULL),
-  ('assignment_group_fact',0,NULL),
-  ('assignment_group_rule_dim',0,NULL),
-  ('assignment_override_user_dim',0,NULL),
-  ('assignment_override_user_fact',0,NULL),
-  ('assignment_override_dim',0,NULL),
-  ('assignment_override_fact',0,NULL),
-  ('assignment_override_user_rollup_fact',0,NULL),
-  ('communication_channel_dim',0,NULL),
-  ('communication_channel_fact',0,NULL),
-  ('conversation_dim',0,NULL),
-  ('conversation_message_dim',0,NULL),
-  ('conversation_message_participant_fact',0,NULL),
-  ('discussion_topic_dim',0,NULL),
-  ('discussion_topic_fact',0,NULL),
-  ('discussion_entry_dim',0,NULL),
-  ('discussion_entry_fact',0,NULL),
-  ('enrollment_term_dim',0,NULL),
-  ('course_section_dim',0,NULL),
-  ('role_dim',0,NULL),
-  ('enrollment_dim',0,NULL),
-  ('enrollment_fact',0,NULL),
-  ('enrollment_rollup_dim',0,NULL),
-  ('score_fact',0,NULL),
-  ('score_dim',0,NULL),
-  ('grading_period_fact',0,NULL),
-  ('grading_period_dim',0,NULL),
-  ('grading_period_group_dim',0,NULL),
-  ('file_dim',0,NULL),
-  ('file_fact',0,NULL),
-  ('group_dim',0,NULL),
-  ('group_fact',0,NULL),
-  ('group_membership_fact',0,NULL),
-  ('group_membership_dim',0,NULL),
-  ('module_dim',0,NULL),
-  ('module_fact',0,NULL),
-  ('module_item_dim',0,NULL),
-  ('module_item_fact',0,NULL),
-  ('module_progression_dim',0,NULL),
-  ('module_progression_fact',0,NULL),
-  ('module_completion_requirement_dim',0,NULL),
-  ('module_completion_requirement_fact',0,NULL),
-  ('module_prerequisite_dim',0,NULL),
-  ('module_prerequisite_fact',0,NULL),
-  ('module_progression_completion_requirement_dim',0,NULL),
-  ('module_progression_completion_requirement_fact',0,NULL),
-  ('course_ui_canvas_navigation_dim',0,NULL),
-  ('course_ui_navigation_item_dim',0,NULL),
-  ('course_ui_navigation_item_fact',0,NULL),
-  ('quiz_dim',0,NULL),
-  ('quiz_fact',0,NULL),
-  ('quiz_submission_historical_dim',0,NULL),
-  ('quiz_submission_historical_fact',0,NULL),
-  ('quiz_submission_dim',0,NULL),
-  ('quiz_submission_fact',0,NULL),
-  ('quiz_question_group_dim',0,NULL),
-  ('quiz_question_group_fact',0,NULL),
-  ('quiz_question_dim',0,NULL),
-  ('quiz_question_fact',0,NULL),
-  ('quiz_question_answer_dim',0,NULL),
-  ('quiz_question_answer_fact',0,NULL),
-  ('requests',1,NULL),
-  ('external_tool_activation_dim',0,NULL),
-  ('external_tool_activation_fact',0,NULL),
-  ('wiki_dim',0,NULL),
-  ('wiki_fact',0,NULL),
-  ('wiki_page_dim',0,NULL),
-  ('wiki_page_fact',0,NULL),
-  ('schema',-1,11600);
