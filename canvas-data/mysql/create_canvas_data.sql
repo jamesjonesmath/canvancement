@@ -880,7 +880,7 @@ CREATE TABLE IF NOT EXISTS grading_period_score_fact (
   `final_score` DOUBLE,
   `muted_current_score` DOUBLE,
   `muted_final_score` DOUBLE,
-INDEX score_id (score_id),
+PRIMARY KEY (score_id),
 INDEX canvas_id (canvas_id),
 INDEX account_id (account_id),
 INDEX course_id (course_id),
