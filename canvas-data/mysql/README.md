@@ -12,7 +12,7 @@ that has been loaded. It is used by the import script to make sure that only new
 You can set the *versions.version* to a really large value to skip loading a table. 
 This may be useful if you don't want to load the requests table, which is quite large.
 
-## Import Script
+## Import Script (outdated)
 This is a BASH script that will import the data into the MySQL database. You can configure the settings, but as it comes, 
 it should be executed from a folder containing a subfolder *dataFiles* that contains the data downloaded from Canvas Data.
 
@@ -26,3 +26,5 @@ UPDATE versions SET version = 1000 WHERE table_name = 'requests';
 ```
 
 You can also set the sequence number lower to load just a few days of the *requests* table. It will load any files with a sequence number greater than the corresponding *versions.version* value, so look in your *requests* folder and see what sequence numbers you have and then set the value accordingly.
+
+Note that the Import Script will probably not work. I wrote it before Canvas changed the naming scheme on their files. I'm working on an updated version, but it's slow going. 2017-02-02
