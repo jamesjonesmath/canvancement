@@ -5,7 +5,7 @@
 // @include     https://*.instructure.com/courses/*/users
 // @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @require     https://cdn.rawgit.com/Mottie/tablesorter/v2.22.5/js/jquery.tablesorter.js
-// @version     3
+// @version     4
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -119,7 +119,7 @@
             var tm = '';
             var matches = shortDateTimeRegex.exec(s);
             if (matches) {
-              var month = months.indexOf(matches[1]) / 4 + 1;
+              var month = months.indexOf(matches[1]) / 4;
               var day = parseInt(matches[2]);
               var year = parseInt(matches[3]) || thisYear;
               var hour = parseInt(matches[4]);
