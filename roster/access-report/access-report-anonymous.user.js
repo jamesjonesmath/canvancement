@@ -106,6 +106,7 @@
               user.section_name = section.name;
               user.sis_section_id = section.sis_section_id;
               user.sis_course_id = section.sis_course_id;
+              user.enrollment_status["*"] = section.enrollment_status["*"];
               userData[user.id] = user;
             }
           }
