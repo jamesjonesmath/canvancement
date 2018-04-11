@@ -4,7 +4,7 @@ This is a user script that adds a **Create Photo Roster** button to the Course R
 This script has been tested in Firefox. It does not work in Chrome.
 
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [pdf-roster.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/roster/photo-roster/photo-roster.user.js) file
 
 ## About

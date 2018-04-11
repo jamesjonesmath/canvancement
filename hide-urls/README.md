@@ -3,7 +3,7 @@ When you print pages from within Canvas, any hyperlinks have their URL added aft
 
 These scripts will remove the URL from after the link when printing a document.
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the desired script [Hide all URLs](https://github.com/jamesjonesmath/canvancement/raw/master/hide-urls/hide-all-urls.user.js) or [Hide some URLs](https://github.com/jamesjonesmath/canvancement/raw/master/hide-urls/hide-some-urls.user.js)
 
 ## Hide all URLs

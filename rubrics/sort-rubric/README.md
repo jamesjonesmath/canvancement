@@ -2,7 +2,7 @@
 This is a user script that will allow users to rearrange the rows of a rubric.
 
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [sort-rubric.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/rubrics/sort-rubric/sort-rubric.user.js) file
 
 ## About

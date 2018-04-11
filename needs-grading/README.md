@@ -2,7 +2,7 @@
 This is a user script that will replace the 9+ in the To-Do list with the actual number of assignments needed grading.
 
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [needs-grading.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/needs-grading/needs-grading.user.js) file
  
 This script has been tested with Firefox and Chrome on Windows and Safari on a Mac.

@@ -2,7 +2,7 @@
 This is a user script that will allow the user to drag and drop the course cards on the dashboard into a new position.
 
 ## Quick Install - Individuals
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [dashcard_sorter.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/dashboard/dashcard_sorter.user.js) file
 
 This installation approach should work for Firefox, Chrome, and Safari.

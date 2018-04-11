@@ -2,7 +2,7 @@
 This is a user script that add a user's Login ID and SIS User ID to the Account > Users search page in Canvas.
 
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [user-search-details.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/users/admin-search/user-search-details.user.js) file
  
 This script has been tested with Firefox and Chrome on Windows and Safari on a Mac.

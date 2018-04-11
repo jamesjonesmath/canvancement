@@ -4,7 +4,7 @@ This script will show the names of the students who have received assignment ove
 This script has been tested in Firefox, Chrome, and Safari. It works with Assignments, Quizzes, or Discussions that have multiple due dates.
 
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [show-overrides.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/assignments/show-overrides/show-overrides.user.js) file
 
 ## About

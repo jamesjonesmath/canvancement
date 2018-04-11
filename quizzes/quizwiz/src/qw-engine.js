@@ -4,7 +4,7 @@
  * It was co-developed by Avi Naiman and James Jones
  *
  * This is the engine that does all of the work, but should not be directly installed.
- * It is loaded by a separate user script that installed into Greasemonkey or Tampermonkey.
+ * It is loaded by a separate user script that installed into Tampermonkey.
  *
  * See https://github.com/jamesjonesmath/canvancement/tree/master/quizzes/quizwiz
  * for more information about QuizWiz

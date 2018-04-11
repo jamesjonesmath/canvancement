@@ -2,7 +2,7 @@
 This is a user script that will allow users to copy/paste a rubric from a spreadsheet into Canvas.
 
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [import-rubric.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/rubrics/import-rubric/import-rubric.user.js) file
 
 ## About

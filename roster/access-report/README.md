@@ -5,7 +5,7 @@ This script has been tested in Firefox, Chrome, and Safari.
 Mac users may need to save the download (Cmd-S) and then open it.
 
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [access-report.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/roster/access-report/access-report.user.js) file
 
 ## About

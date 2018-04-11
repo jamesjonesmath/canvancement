@@ -1,10 +1,10 @@
 # Print a PDF Roster
 This is a user script that adds a **Download Roster as PDF** button to the Course Roster Page. In addition, it adds the sorting functionality of the [Sort a Roster](../sort-roster/) script to the Roster Page.
 
-This script has been tested in Firefox. It does not work in Chrome.
+** DEPRECATED ** This script does not currently work. Do not install it.
 
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [pdf-roster.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/roster/pdf-roster/pdf-roster.user.js) file
 
 ## About

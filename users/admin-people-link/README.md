@@ -8,7 +8,7 @@ The script comes in two varieties.
 ### User Script
 A user script is code that an individual user can add to their browser. This version of the script allows users that want this functionality to add it on their own without modifying the global JavaScript file for the entire institution.
 
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [people_link.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/users/admin-people-link/people_link.user.js) file
 
 This script will automatically run on any Canvas instance hosted at ``*.instructure.com``. If you have a custom domain, then you will need to modify the `\\ @include` line to refer to your site.

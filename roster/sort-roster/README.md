@@ -4,7 +4,7 @@ This is a user script that will allow users to sort a Course Roster from the Peo
 This script has been tested in Firefox and Chrome.
 
 ## Quick Install
-1. Make sure [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox or [Tampermonkey](http://tampermonkey.net/) for Chrome or Safari is installed and enabled
+1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [sort-roster.users.js](https://github.com/jamesjonesmath/canvancement/raw/master/roster/sort-roster/sort-roster.user.js) file
 
 ## About
