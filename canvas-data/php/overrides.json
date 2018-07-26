@@ -1,0 +1,231 @@
+{
+	"course_dim": {
+		"workflow_state": [
+			"enum",
+			"completed",
+			"created",
+			"deleted",
+			"available",
+			"claimed"
+		]
+	},
+	"account_dim": {
+		"workflow_state": [
+			"enum",
+			"active",
+			"deleted"
+		]
+	},
+	"user_dim": {
+		"workflow_state": [
+			"enum",
+			"creation_pending",
+			"deleted",
+			"pre_registered",
+			"registered"
+		]
+	},
+	"pseudonym_dim": {
+		"workflow_state": [
+			"enum",
+			"active",
+			"deleted"
+		]
+	},
+	"discussion_topic_dim": {
+		"workflow_state": [
+			"enum",
+			"unpublished",
+			"active",
+			"locked",
+			"deleted",
+			"post_delayed"
+		]
+	},
+	"discussion_entry_dim": {
+		"workflow_state": [
+			"enum",
+			"active",
+			"deleted"
+		]
+	},
+	"course_section_dim": {
+		"workflow_state": [
+			"enum",
+			"deleted",
+			"inactive"
+		]
+	},
+	"enrollment_dim": {
+		"workflow_state": [
+			"enum",
+			"active",
+			"completed",
+			"rejected",
+			"deleted",
+			"invited",
+			"creation_pending"
+		]
+	},
+	"role_dim": {
+		"workflow_state": [
+			"enum",
+			"active",
+			"deleted"
+		]
+	},
+	"group_dim": {
+		"workflow_state": [
+			"enum",
+			"active",
+			"deleted"
+		]
+	},
+	"external_tool_activation_dim": {
+		"workflow_state": [
+			"enum",
+			"active",
+			"deleted"
+		]
+	},
+	"wiki_page_dim": {
+		"workflow_state": [
+			"enum",
+			"active",
+			"unpublished",
+			"deleted",
+			"unpublished"
+		]
+	},
+	"requests": {
+		"NEW": [
+			{
+				"name": "pkey",
+				"type": "BIGINT NOT NULL AUTO_INCREMENT",
+				"description": "Fake primary key"
+			}
+		],
+		"KEYS": {
+			"primary": "pkey",
+			"index": [
+				"web_application_controller",
+				"web_application_action",
+				"web_application_context_type"
+			]
+		},
+		"timestamp": [
+			"type",
+			"DATETIME(3)"
+		],
+		"http_methods": [
+			"enum",
+			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
+			"HEAD",
+			"CONNECT",
+			"OPTIONS",
+			"TRACE",
+			"PATCH"
+		],
+		"http_status": [
+			"type",
+			"integer"
+		]
+	},
+	"module_item_dim": {
+		"workflow_state": [
+			"enum",
+			"active",
+			"unpublished",
+			"deleted"
+		]
+	},
+	"module_progression_dim": {
+		"collapsed": [
+			"enum",
+			"collapsed",
+			"not_collapsed",
+			"unspecified"
+		],
+		"is_current": [
+			"enum",
+			"current",
+			"not_current",
+			"unspecified"
+		],
+		"workflow_state": [
+			"enum",
+			"locked",
+			"completed",
+			"unlocked",
+			"started"
+		]
+	},
+	"module_completion_requirement_dim": {
+		"requirement_type": [
+			"enum",
+			"must_view",
+			"must_mark_done",
+			"min_score",
+			"must_submit"
+		]
+	},
+	"module_progression_completion_requirement_dim": {
+		"requirement_type": [
+			"enum",
+			"must_view",
+			"must_mark_done",
+			"min_score",
+			"must_submit"
+		]
+	},
+	"assignment_rule_dim": {
+		"KEYS": {
+			"primary": "assignment_id"
+		}
+	},
+	"assignment_group_rule_dim": {
+		"KEYS": {
+			"primary": "assignment_group_id"
+		}
+	},
+	"conversation_message_participant_fact": {
+		"KEYS": {
+			"primary": "conversation_message_id,user_id"
+		}
+	},
+	"assignment_group_score_fact": {
+		"assignment_group_id": {
+			"type": "BIGINT"
+		},
+		"KEYS": {
+			"primary": "score_id"
+		}
+	},
+	"course_score_fact": {
+		"KEYS": {
+			"primary": "score_id"
+		}
+	},
+	"grading_period_score_fact": {
+		"KEYS": {
+			"primary": "score_id"
+		}
+	},
+	"score_fact": "DEPRECATED",
+	"score_dim": "DEPRECATED",
+	"assignment_override_user_rollup_fact": {
+		"NEW": [
+			{
+				"name": "pkey",
+				"type": "BIGINT NOT NULL AUTO_INCREMENT",
+				"description": "Fake primary key"
+			}
+		],
+		"KEYS": {
+			"primary": "pkey"
+		}
+	}
+}
