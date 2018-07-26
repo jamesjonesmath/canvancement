@@ -20,3 +20,7 @@ $dumps = $CD->get_dump(['limit' => 100]);
 $latest = $CD->get_file_latest();
 $schema = $CD->get_schema_latest();
 ```
+## Schema to MySQL
+The schema_to_mysql.php script attempts to parse the Canvas schema and create a DDL file that can be used to create the tables in MySQL. You will also need the overrides.json file to run this.
+
+Alternatively, the output of the script can be found in the [canvas-data/mysql](../mysql) folder.
