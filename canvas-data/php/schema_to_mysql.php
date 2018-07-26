@@ -22,6 +22,11 @@ $schema_name = 'canvas_data';
 $schema_file = 'schema.json';
 
 /*
+ * $schema_overrides_file is a JSON file that contains overrides to the schema
+ */
+$schema_overrides_file = 'overrides.json';
+
+/*
  * If you do not use the Canvas Data Command Line Interface tool
  * and do not have a schema.json file available to you, then you
  * this script will attempt to download the latest version, but it
@@ -32,6 +37,7 @@ $schema_file = 'schema.json';
  * You can leave this part blank if you point $schema_file to the proper file.
  * Otherwise, replace the constant at the end of each line with the appropriate value.
  */
+
 $cd_api_key = getenv( 'CD_API_KEY' ) !== FALSE ? getenv( 'CD_API_KEY' ) : 'ENTER CANVAS DATA API KEY HERE';
 $cd_api_secret = getenv( 'CD_API_SECRET' ) !== FALSE ? getenv( 'CD_API_SECRET' ) : 'ENTER CANVAS DATA API SECRET HERE';
 
@@ -41,11 +47,14 @@ $cd_api_secret = getenv( 'CD_API_SECRET' ) !== FALSE ? getenv( 'CD_API_SECRET' )
  * comments: include the comments and descriptions in the SQL statements
  * engine: override the default MySQL engine, which is InnoDB
  * enumerated_boolean: simulated boolean types with ENUM('false','true')
+ * import_table: create _import table to hold information about schema
  */
-$options = array ( 
-    'drop_schema' => TRUE, 
-    'comments' => FALSE,
-    'enumerated_boolean' => TRUE,
+$options = array (
+  'drop_schema' => TRUE,
+  'comments' => TRUE,
+  'enumerated_boolean' => TRUE,
+  'add_indices' => TRUE,
+  'import_table' => FALSE
 );
 
 /*
@@ -60,10 +69,10 @@ $options = array (
 
 // END OF CONFIGURATION
 
-if (isset( $config_file ) && file_exists( $config_file )) {
-}
+if (isset( $config_file ) && file_exists( $config_file )) {}
 
 $schema = NULL;
+$overrides = NULL;
 $json_schema = NULL;
 if (file_exists( $schema_file )) {
   $contents = file_get_contents( $schema_file );
@@ -71,7 +80,7 @@ if (file_exists( $schema_file )) {
     $schema = json_decode( $contents, TRUE );
   }
 }
-if (! isset( $schema )) {
+if (!isset( $schema )) {
   if (empty( $cd_api_key ) || empty( $cd_api_secret )) {
     die( 'Must specify Canvas Data API and Secret before running' );
   }
@@ -84,7 +93,7 @@ if (! isset( $schema )) {
   }
 }
 
-if (! isset( $schema ) || ! is_array( $schema )) {
+if (!isset( $schema ) || !is_array( $schema )) {
   die( 'Unable to obtain a Canvas Data schema' );
 }
 
@@ -101,9 +110,16 @@ if (isset( $json_schema ) && isset( $schema_file )) {
   }
 }
 
+if (isset( $schema_overrides_file ) && file_exists( $schema_overrides_file )) {
+  $contents = file_get_contents( $schema_overrides_file );
+  if ($contents !== FALSE) {
+    $overrides = json_decode( $contents, TRUE );
+  }
+}
+
 $sql = create_mysql_schema( $schema, $schema_name, $options );
 
-if (! empty( $output_filename )) {
+if (!empty( $output_filename )) {
   $fh = fopen( $output_filename, 'w' );
   if ($fh === FALSE) {
     die( 'Unable to open output ' . $output_filename . ' for writing' );
@@ -141,19 +157,20 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   if (empty( $cdschema )) {
     return;
   }
-
-  $type_overrides = array ( 
-      'int' => 'integer unsigned', 
-      'integer' => 'integer unsigned', 
-      'double precision' => 'double', 
-      'text' => 'longtext', 
-      'guid' => 'varchar(36)', 
-      'timestamp' => 'datetime' 
+  
+  $type_overrides = array (
+    'int' => 'integer unsigned',
+    'integer' => 'integer unsigned',
+    'double precision' => 'double',
+    'text' => 'longtext',
+    'guid' => 'varchar(36)',
+    'timestamp' => 'datetime'
   );
   $drop_schema = isset( $opts['drop_schema'] ) && $opts['drop_schema'] ? TRUE : FALSE;
-  $add_comments = ! isset( $opts['comments'] ) || $opts['comments'] ? TRUE : FALSE;
-  $enumerated_boolean = ! isset( $opts['enumerated_boolean'] ) || $opts['enumerated_boolean'] ? TRUE : FALSE;
+  $add_comments = !isset( $opts['comments'] ) || $opts['comments'] ? TRUE : FALSE;
+  $enumerated_boolean = !isset( $opts['enumerated_boolean'] ) || $opts['enumerated_boolean'] ? TRUE : FALSE;
   $mysql_engine = isset( $opts['engine'] ) ? $opts['engine'] : 'InnoDB';
+  $import_table = isset( $opts['import_table'] ) ? $opts['import_table'] : TRUE;
   if ($enumerated_boolean) {
     $type_overrides['boolean'] = 'enumbool';
   }
@@ -170,11 +187,14 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   $t .= c( 'CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8mb4', $schema_name );
   $t .= c( 'USE %s', $schema_name );
   $t .= c( 'SET NAMES utf8mb4' );
-  $table_types = array ();
+  $table_info = array ();
   foreach ( $cdschema['schema'] as $key => $table ) {
     $table_name = isset( $table['tableName'] ) ? $table['tableName'] : $key;
     $table = table_overrides( $table, $table_name );
-    $table_types[$table_name] = isset( $table['incremental'] ) ? $table['incremental'] : FALSE;
+    if (empty( $table )) {
+      continue;
+    }
+    $incremental = isset( $table['incremental'] ) ? $table['incremental'] : FALSE;
     $columns = array ();
     foreach ( $table['columns'] as $colkey => $column ) {
       $colname = strtolower( $column['name'] );
@@ -185,16 +205,30 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
         $coltype = $type_overrides[$coltype];
       }
       if ($coltype == 'varchar') {
-        $coltype .= sprintf( '(%d)', $column['length'] );
+        if (preg_match( '/Possible values(.*?)(\.|$)/', $comment, $commatch )) {
+          $comment = preg_replace( '/, i\.e\. /', '', $comment );
+          $comment = preg_replace( '/unpublished, published and deleted/', "'unpublished', 'published' and 'deleted'", $comment );
+          $coltype = 'enum';
+        } else {
+          $coltype .= sprintf( '(%d)', $column['length'] );
+        }
       }
       if ($coltype == 'enum') {
         preg_match_all( '/\'(.*?)\'/', $comment, $matches );
-        if (empty( $matches )) {
+        if (empty( $matches[0] )) {
+          print ("$comment\n") ;
+          print_r( $column );
           die( "Invalid match in enumerated field for $key.$colname" );
+        }
+        $enumitems = array ();
+        foreach ( $matches[0] as $enumitem ) {
+          if (!in_array( $enumitem, $enumitems )) {
+            $enumitems[] = $enumitem;
+          }
         }
         $comment = preg_replace( '/\s*Possible values.*?(\.|$)/', '', $comment );
         $comment = trim( $comment );
-        $enumvalues = join( ', ', $matches[0] );
+        $enumvalues = join( ', ', $enumitems );
         $colextra .= sprintf( '(%s)', $enumvalues );
       }
       if ($coltype == 'enumbool') {
@@ -204,27 +238,43 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
       if (isset( $column['extra'] )) {
         $colextra .= $column['extra'];
       }
-      $columndef = sprintf( '  `%s` %s', $column['name'], strtoupper( $coltype ) );
-      if (! empty( $colextra )) {
+      $columndef = sprintf( '  `%s` %s', $colname, strtoupper( $coltype ) );
+      if (!empty( $colextra )) {
         $colextra = trim( $colextra );
-        if (! preg_match( '/^\(/', $colextra )) {
+        if (!preg_match( '/^\(/', $colextra )) {
           $columndef .= ' ';
         }
         $columndef .= $colextra;
       }
-      if ($add_comments && ! empty( $comment )) {
+      if ($add_comments && !empty( $comment )) {
         $comment = preg_replace( '/\n/', ' ', $comment );
         $comment = preg_replace( '/\s+/', ' ', $comment );
         $columndef .= sprintf( " COMMENT '%s'", addslashes( trim( $comment ) ) );
       }
       $columns[] = $columndef;
     }
+    $sort_order = '';
     if (count( $columns ) > 0) {
+      if (!isset( $table['KEYS'] ) || !isset( $table['KEYS']['primary'] )) {
+        printf( "## NO PRIMARY KEY for %s\n", $table_name );
+      }
       if (isset( $table['KEYS'] )) {
         foreach ( $table['KEYS'] as $keytype => $keyinfo ) {
           switch ($keytype) {
             case 'primary' :
               $columns[] = sprintf( 'PRIMARY KEY (%s)', $keyinfo );
+              $pkeys = explode( ',', $keyinfo );
+              foreach ( $pkeys as $pkey ) {
+                $colno = 0;
+                foreach ( $table['columns'] as $colkey => $column ) {
+                  $colno++;
+                  if (strtolower( $column['name'] ) == $pkey) {
+                    $sort_order .= sprintf( '-k %d,%d ', $colno, $colno );
+                    break;
+                  }
+                }
+              }
+              $sort_order = trim( $sort_order );
               break;
             case 'unique' :
               foreach ( $keyinfo as $keyname => $keyfields ) {
@@ -233,7 +283,10 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
               break;
             case 'index' :
               foreach ( $keyinfo as $keyname => $keyfields ) {
-                $columns[] = sprintf( 'INDEX %s (%s)', $keyname, $keyfields );
+                if (!isset( $table['KEYS']['primary'] ) || $keyfields != $table['KEYS']['primary']) {
+                  // Make sure this is not already a primary key;
+                  $columns[] = sprintf( 'INDEX %s (%s)', $keyname, $keyfields );
+                }
               }
               break;
             default :
@@ -241,40 +294,49 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
           }
         }
       }
-      if (! isset( $table['incremental'] ) || $table['incremental'] == FALSE) {
+      $table_info[] = array (
+        'table_name' => $table_name,
+        'enabled' => 1,
+        'sort_keys' => $sort_order,
+        'incremental' => $incremental
+      );
+      if ($incremental) {
         $t .= c( 'DROP TABLE IF EXISTS %s', $table_name );
       }
       $create = l( 'CREATE TABLE IF NOT EXISTS %s (', $table_name );
       $create .= join( ",\n", $columns ) . "\n";
       $create .= ')';
-      if ($add_comments && ! empty( $table['description'] )) {
+      if ($add_comments && !empty( $table['description'] )) {
         $comment = preg_replace( '/\n/', ' ', $table['description'] );
         $comment = preg_replace( '/\s+/', ' ', $comment );
-        $create .= sprintf( ' COMMENT = "%s"', addslashes( trim( $comment ) ) );
+        $create .= sprintf( " COMMENT = '%s'", addslashes( trim( $comment ) ) );
       }
       $t .= c( $create );
     }
   }
-  $t .= c( 'DROP TABLE IF EXISTS versions' );
-  $create = l( 'CREATE TABLE IF NOT EXISTS versions (' );
-  $create .= l( '  table_name VARCHAR(127) PRIMARY KEY NOT NULL%s,', $add_comments ? " COMMENT 'Name of Canvas Data table'" : '' );
-  $create .= l( '  version BIGINT DEFAULT NULL%s,', $add_comments ? " COMMENT 'Latest version downloaded'" : '' );
-  $create .= l( '  incremental TINYINT DEFAULT NULL%s', $add_comments ? " COMMENT 'Incremental (1) or complete (0)?'" : '' );
-  $create .= ')';
-  $create .= $add_comments ? ' COMMENT = "Used by import script"' : '';
-  $t .= c( $create );
-  $version_code = explode( '.', $cdschema['version'] );
-  $version = 0;
-  foreach ( $version_code as $version_part ) {
-    $version = $version * 100 + $version_part;
+  if ($import_table) {
+    $import = c( 'DROP TABLE IF EXISTS _import' );
+    $import .= l( 'CREATE TABLE IF NOT EXISTS _import (' );
+    $import .= l( '  `table_name` VARCHAR(127) PRIMARY KEY NOT NULL%s,', $add_comments ? " COMMENT 'Name of Canvas Data table'" : '' );
+    $import .= l( '  `enabled` TINYINT DEFAULT 1%s,', $add_comments ? " COMMENT 'Should this table be loaded?'" : '' );
+    $import .= l( '  `sort_keys` VARCHAR(21) NOT NULL DEFAULT ""%s,', $add_comments ? " COMMENT 'Key specification for sort command'" : '' );
+    $import .= l( '  `incremental` TINYINT DEFAULT NULL%s,', $add_comments ? " COMMENT 'Incremental (1) or complete (0)?'" : '' );
+    $import .= l( '  `last_import` DATETIME%s', $add_comments ? " COMMENT 'Timestamp of last load'" : '' );
+    $import .= ')' . ($add_comments ? " COMMENT 'Used by import script'" : '');
+    $t .= c( $import );
+    $impdata = "INSERT INTO _import (table_name, enabled, sort_keys, incremental) VALUES";
+    $add_comma = FALSE;
+    foreach ( $table_info as $tinfo ) {
+      if ($add_comma) {
+        $impdata .= ',';
+      } else {
+        $add_comma = TRUE;
+      }
+      $impdata .= "\n";
+      $impdata .= sprintf( "('%s',%d,'%s',%d)", $tinfo['table_name'], $tinfo['enabled'], $tinfo['sort_keys'], $tinfo['incremental'] );
+    }
+    $t .= c( $impdata );
   }
-  $versions = "INSERT INTO versions (table_name, incremental, version) VALUES\n";
-  foreach ( $table_types as $table_name => $incremental ) {
-    $versions .= sprintf( "  ('%s',%d,%s),\n", $table_name, $incremental ? 1 : 0, 'NULL' );
-  }
-  $versions .= sprintf( "  ('%s',%d,%d)", 'schema', - 1, $version );
-  $t .= c( $versions );
-  
   return $t;
 }
 
@@ -282,87 +344,32 @@ function table_overrides($T = NULL, $table_name = NULL) {
   if (empty( $T )) {
     return;
   }
-  if (! isset( $table_name )) {
+  if (!isset( $table_name )) {
     $table_name = $T['tableName'] || '';
   }
-  $overrides = array ( 
-      'requests' => array ( 
-          'web_applicaiton_action' => array ( 
-              'rename', 
-              'web_application_action' 
-          ) 
-      ), 
-      'quiz_question_answer_dim' => array ( 
-          'KEYS' => array ( 
-              'unique' => array ( 
-                  'id' => 'id,quiz_question_id' 
-              ) 
-          ) 
-      ), 
-      'module_item_dim' => array ( 
-          'workflow_state' => array ( 
-              'enum', 
-              'active', 
-              'unpublished', 
-              'deleted' 
-          ) 
-      ), 
-      'module_progression_dim' => array ( 
-          'collapsed' => array ( 
-              'enum', 
-              'collapsed', 
-              'not_collapsed', 
-              'unspecified' 
-          ), 
-          'is_current' => array ( 
-              'enum', 
-              'current', 
-              'not_current', 
-              'unspecified' 
-          ), 
-          'workflow_state' => array ( 
-              'enum', 
-              'locked', 
-              'completed', 
-              'unlocked', 
-              'started' 
-          ) 
-      ), 
-      'module_completion_requirement_dim' => array ( 
-          'requirement_type' => array ( 
-              'enum', 
-              'must_view', 
-              'must_mark_done', 
-              'min_score', 
-              'must_submit' 
-          ) 
-      ), 
-      'module_progression_completion_requirement_dim' => array ( 
-          'requirement_type' => array ( 
-              'enum', 
-              'must_view', 
-              'must_mark_done', 
-              'min_score', 
-              'must_submit' 
-          ) 
-      ) 
-  );
+  global $overrides;
   if (isset( $overrides[$table_name] )) {
     $ov = $overrides[$table_name];
+    if (is_string( $ov ) && $ov == 'DEPRECATED') {
+      return;
+    }
     foreach ( $T['columns'] as $key => $data ) {
       $name = $data['name'];
-      if (! isset( $ov[$name] )) {
+      if (!isset( $ov[$name] )) {
         continue;
       }
       $parms = $ov[$name];
       $action = array_shift( $parms );
       switch ($action) {
+        case 'type' :
+          $T['columns'][$key]['type'] = $parms[0];
+          break;
         case 'rename' :
           $T['columns'][$key]['name'] = $parms[0];
           break;
         case 'enum' :
           $t = '';
-          for($i = 0; $i < count( $parms ); $i ++) {
+          for($i = 0; $i < count( $parms ); $i++) {
             if ($i > 0) {
               if ($i < count( $parms ) - 1) {
                 $t .= ', ';
@@ -390,12 +397,53 @@ function table_overrides($T = NULL, $table_name = NULL) {
       }
     }
   }
-  if (! isset( $T['KEYS'] ) && preg_match( '/_dim$/', $table_name ) && $T['columns'][0]['name'] == 'id') {
-    $T['KEYS'] = array ( 
-        'unique' => array ( 
-            'id' => 'id' 
-        ) 
-    );
+  if (preg_match( '/^(.*)_(dim|fact)$/', $table_name, $matches )) {
+    $keys = isset( $T['KEYS'] ) ? $T['KEYS'] : array ();
+    $basetable = $matches[1];
+    $colno = 0;
+    foreach ( $T['columns'] as $colkey => $col ) {
+      $colname = $col['name'];
+      $is_id = preg_match( '/^(.*)_id$/', $colname, $colmatch );
+      $type = NULL;
+      switch ($T['dw_type']) {
+        case 'fact' :
+          if ($colname == $basetable . '_id') {
+            $keys['primary'] = $basetable . '_id';
+          } else {
+            if ($is_id) {
+              $type = 'index';
+            }
+          }
+          break;
+        case 'dimension' :
+          if ($colno == 0) {
+            if ($colname == 'id') {
+              $keys['primary'] = 'id';
+            }
+          } elseif ($is_id) {
+            if ($colname == 'canvas_id') {
+              $type = 'unique';
+            } else {
+              $type = 'index';
+            }
+          } else {
+            if ($colname == 'workflow_state') {
+              $type = 'index';
+            }
+          }
+          break;
+      }
+      if (isset( $type )) {
+        if (!isset( $keys[$type] )) {
+          $keys[$type] = array ();
+        }
+        $keys[$type][$colname] = $colname;
+      }
+      $colno++;
+    }
+    if (!empty( $keys )) {
+      $T['KEYS'] = $keys;
+    }
   }
   return $T;
 }
