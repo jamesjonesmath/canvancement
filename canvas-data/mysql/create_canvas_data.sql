@@ -1769,9 +1769,9 @@ CREATE TABLE IF NOT EXISTS requests (
   `developer_key_id` BIGINT,
   `pkey` BIGINT NOT NULL AUTO_INCREMENT,
 PRIMARY KEY (pkey),
-INDEX 0 (web_application_controller),
-INDEX 1 (web_application_action),
-INDEX 2 (web_application_context_type)
+INDEX web_application_controller (web_application_controller),
+INDEX web_application_action (web_application_action),
+INDEX web_application_context_type (web_application_context_type)
 );
 CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
   `id` BIGINT,
