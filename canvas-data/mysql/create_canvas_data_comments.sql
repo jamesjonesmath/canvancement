@@ -1769,9 +1769,9 @@ CREATE TABLE IF NOT EXISTS requests (
   `developer_key_id` BIGINT COMMENT 'ID of the developer who accessed this page if the request was made by a developer.',
   `pkey` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Fake primary key',
 PRIMARY KEY (pkey),
-INDEX 0 (web_application_controller),
-INDEX 1 (web_application_action),
-INDEX 2 (web_application_context_type)
+INDEX web_application_controller (web_application_controller),
+INDEX web_application_action (web_application_action),
+INDEX web_application_context_type (web_application_context_type)
 ) COMMENT = 'Pageview requests. Disclaimer: The data in the requests table is a \'best effort\' attempt, and is not guaranteed to be complete or wholly accurate. This data is meant to be used for rollups and analysis in the aggregate, _not_ in isolation for auditing, or other high-stakes analysis involving examining single users or small samples. As this data is generated from the Canvas logs files, not a transactional database, there are many places along the way data can be lost and/or duplicated (though uncommon). Additionally, given the size of this data, our processes are often done on monthly cycles for many parts of the requests tables, so as errors occur they can only be rectified monthly.';
 CREATE TABLE IF NOT EXISTS external_tool_activation_dim (
   `id` BIGINT COMMENT 'Unique surrogate id for tool activations',
