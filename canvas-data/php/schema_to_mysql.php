@@ -157,7 +157,7 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   if (empty( $cdschema )) {
     return;
   }
-  
+
   $type_overrides = array (
     'int' => 'integer unsigned',
     'integer' => 'integer unsigned',
@@ -174,7 +174,7 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
   if ($enumerated_boolean) {
     $type_overrides['boolean'] = 'enumbool';
   }
-  
+
   $t = '';
   $t .= l( '# MySQL script to create database for Canvas Data schema version %s', $cdschema['version'] );
   $t .= c( 'SET default_storage_engine=%s', $mysql_engine );
@@ -285,7 +285,15 @@ function create_mysql_schema($cdschema = NULL, $schema_name = 'canvas_data', $op
               foreach ( $keyinfo as $keyname => $keyfields ) {
                 if (!isset( $table['KEYS']['primary'] ) || $keyfields != $table['KEYS']['primary']) {
                   // Make sure this is not already a primary key;
-                  $columns[] = sprintf( 'INDEX %s (%s)', $keyname, $keyfields );
+                  $final_keyname = $keyname;
+                  if (preg_match( '/^[0-9]+$/', $keyname )) {
+                    if (preg_match( '/,/', $keyfields )) {
+                      $final_keyname = sprintf( 'index%d', $keyname + 1 );
+                    } else {
+                      $final_keyname = preg_replace( '/\s+/', '', $keyfields );
+                    }
+                  }
+                  $columns[] = sprintf( 'INDEX %s (%s)', $final_keyname, $keyfields );
                 }
               }
               break;
