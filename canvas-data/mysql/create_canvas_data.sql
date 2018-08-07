@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 3.0.1
+# MySQL script to create database for Canvas Data schema version 4.0.0
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
