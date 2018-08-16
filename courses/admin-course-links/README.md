@@ -3,7 +3,7 @@ This is a user script that will modify the administrative course search page and
 
 ## Quick Install
 1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
-2. Install the [admin-course-links.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/courses/admin/admin-course-links.user.js) file
+2. Install the [admin-course-links.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/courses/admin-course-links/course-admin-links.user.js) file
 
 ## About
 A long time ago, someone had asked about adding a direct link to the course search to the course roster within a course. 
