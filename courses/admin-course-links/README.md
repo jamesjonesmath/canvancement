@@ -21,11 +21,10 @@ Along the way, I completely refactored it doing it the way I would have done it.
 where we looked at each other's code, made suggestions for improvements, and even held a live chat where we put the finishing touches
 on everything, talking about defaults and best ways to handle things. Overall, it was one of the best experiences I've had developing a script -- especially considering I didn't set out to develop one.
 
-I'm making the user script version I wrote available here and I will link to Robert's version once it becomes available.
-Both provide the same solution and the user should be able to run either one.
+This is the page for the user script version I wrote. Here is [Robert's version of Admin Course Links](https://github.com/robert-carroll/ccsd-canvas/tree/master/admin-course-links). Both provide the same solution and the user should be able to run either one.
 
 Mine is developed as a user script so that a user can run it without installing it into the global JavaScript. It should run without modification if placed into the custom JavaScript, although I have not tested this.
-Robert's version is designed to be run in the custom global JavaScript, but it should run as a user script if someone adds the Tampermonkey headers to it.
+Robert's version is designed to be run in the custom global JavaScript with other changes you have made through the Theme Editor, but it should run as a user script if someone adds the Tampermonkey headers to it. Robert does a much better job explaining the differences between the scripts on his site than I could ever do.
 
 ## Customization
 This script will automatically run on any Canvas instance hosted at ``*.instructure.com``. If you have a custom domain, then you will need to modify the `\\ @include` line to refer to your site.
