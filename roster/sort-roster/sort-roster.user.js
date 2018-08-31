@@ -3,13 +3,18 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Allows sorting on any column of the Canvas Course Roster
 // @include     https://*.instructure.com/courses/*/users
-// @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @require     https://cdn.rawgit.com/Mottie/tablesorter/v2.22.5/js/jquery.tablesorter.js
-// @version     4
+// @version     5
 // @grant       none
 // ==/UserScript==
 (function() {
   'use strict';
+
+  var pageRegex = new RegExp('^/courses/\\d+/users/?$');
+  if (!pageRegex.test(window.location.pathname)) {
+    return;
+  }
+
   var rosterColumns = {
     'avatar' : {
       'col' : 0,
@@ -62,12 +67,30 @@
       }
     }
   };
-  waitForKeyElements('table.roster', rosterSort);
-  function rosterSort() {
+
+  rosterSort();
+
+  function rosterSort(mutations, tableObserver) {
+    var roster = document.querySelector('table.roster tbody');
+    if (!roster) {
+      if (typeof tableObserver === 'undefined') {
+        var sel = document.getElementById('content');
+        var obs = new MutationObserver(rosterSort);
+        obs.observe(sel, {
+          'childList' : true,
+          'subtree' : true
+        });
+      }
+      return;
+    }
+    if (roster && typeof tableObserver !== 'undefined') {
+      tableObserver.disconnect();
+    }
     try {
-      var tableColumns = $('table.roster thead tr th');
+      var tableColumns = document.querySelectorAll('table.roster thead tr th');
       var sortHeaders = {};
       var needParser = false;
+      var styles = {};
       for (var c = 0; c < tableColumns.length; c++) {
         var columnText = tableColumns[c].textContent.trim();
         var match = false;
@@ -88,8 +111,8 @@
               rosterColumns[field].col = c;
               if (typeof info.align !== 'undefined') {
                 var nthchildSelector = ':nth-child(' + (1 + c) + ')';
-                var style = '<style type="text/css">table.roster tr th' + nthchildSelector + ',table.roster tr td' + nthchildSelector + '{text-align:right;}</style>';
-                $(style).appendTo('head');
+                styles['table.roster tr th' + nthchildSelector] = 'text-align:' + info.align + ';';
+                styles['table.roster tr td' + nthchildSelector] = 'text-align:' + info.align + ';';
               }
               if (typeof info.tablesorter !== 'undefined') {
                 sortHeaders[c] = info.tablesorter;
@@ -109,29 +132,53 @@
           };
         }
       }
+      addCSS(styles);
       if (needParser) {
         $.tablesorter.addParser({
           'id' : 'shortDateTime',
           'format' : function(s, table, cell, cellIndex) {
             var months = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec';
-            var thisYear = new Date().getFullYear();
-            var shortDateTimeRegex = new RegExp('^(' + months + ') ([0-9]+)(?:, ([0-9]{4}))? at ([0-9]+):([0-9][0-9])(am|pm)');
+            var now = new Date();
+            var dateRegex = new RegExp('^(?:(' + months + ') (\\d+)|(\\d+) (' + months + '))(?:,? (\\d{4}))?');
+            var timeRegex = new RegExp('(\\d+):(\\d{2})(am|pm)?$');
             var tm = '';
-            var matches = shortDateTimeRegex.exec(s);
-            if (matches) {
-              var month = months.indexOf(matches[1]) / 4;
-              var day = parseInt(matches[2]);
-              var year = parseInt(matches[3]) || thisYear;
-              var hour = parseInt(matches[4]);
-              if (hour == 12) {
-                hour = 0;
+            var monthStr, dayStr, month, day, hour, min;
+            var year = now.getFullYear();
+            if (dateRegex.test(s)) {
+              var dateMatch = dateRegex.exec(s);
+              if (typeof dateMatch[1] === 'undefined') {
+                dayStr = dateMatch[3];
+                monthStr = dateMatch[4];
+              } else {
+                monthStr = dateMatch[1];
+                dayStr = dateMatch[2];
               }
-              if (matches[6] == 'pm') {
-                hour += 12;
+              month = months.indexOf(monthStr) / 4;
+              day = parseInt(dayStr);
+              if (typeof dateMatch[5] !== 'undefined') {
+                year = parseInt(dateMatch[5]);
               }
-              var min = parseInt(matches[5]);
-              tm = new Date(year, month, day, hour, min, 0).toISOString();
+            } else {
+              month = now.getMonth();
+              day = now.getDay();
             }
+            if (timeRegex.test(s)) {
+              var timeMatch = timeRegex.exec(s);
+              hour = parseInt(timeMatch[1]);
+              if (typeof timeMatch[3] !== 'undefined') {
+                if (hour == 12) {
+                  hour = 0;
+                }
+                if (timeMatch[3] == 'pm') {
+                  hour += 12;
+                }
+              }
+              min = parseInt(timeMatch[2]);
+            } else {
+              hour = 0;
+              min = 0;
+            }
+            tm = new Date(year, month, day, hour, min, 0).toISOString();
             return tm;
           },
           'parsed' : false,
@@ -155,7 +202,6 @@
           'type' : 'numeric'
         });
       }
-      console.log('configuration done');
       var observerTarget = document.querySelector('table.roster tbody');
       var rowsInRosterTable = observerTarget.rows.length;
       if (rowsInRosterTable >= 50) {
@@ -175,6 +221,21 @@
       });
     } catch (e) {
       console.log(e);
+    }
+  }
+
+  function addCSS(styles) {
+    if (typeof styles !== 'undefined' && Object.keys(styles).length > 0) {
+      var key, rule;
+      var style = document.createElement('style');
+      document.head.appendChild(style);
+      var sheet = style.sheet;
+      var keys = Object.keys(styles);
+      for (var i = 0; i < keys.length; i++) {
+        key = keys[i];
+        rule = ' {' + styles[key] + '}';
+        sheet.insertRule(key + rule, sheet.cssRules.length);
+      }
     }
   }
 })();
