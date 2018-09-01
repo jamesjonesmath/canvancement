@@ -83,7 +83,7 @@
       }
       return;
     }
-    if (roster && typeof tableObserver !== 'undefined') {
+    if (typeof tableObserver !== 'undefined') {
       tableObserver.disconnect();
     }
     try {
