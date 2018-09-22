@@ -169,7 +169,7 @@ var QuizWiz = function(config) {
   }
 
   function commentAdvance() {
-    var comment = document.getElementById('speedgrader_comment_textarea');
+    var comment = document.getElementById('speed_grader_comment_textarea') || document.getElementById('speedgrader_comment_textarea');
     if (!comment || comment.value.trim().length === 0) {
       advanceUser = true;
       advanceSrc = false;
