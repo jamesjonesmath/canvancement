@@ -1,6 +1,13 @@
 # Sort the Dashboard Course Cards
 This is a user script that will allow the user to drag and drop the course cards on the dashboard into a new position.
 
+## No Longer Necessary!
+With the December 8, 2018, production release, Canvas now offers a native solution and this script is not needed. The script appears to continue to work, but you should remove it from your system and just use the Canvas solution.
+
+Removing this script will cause the dashboard course card order to reset to the default, but you can now set it using the Canvas solution.
+
+I'm leaving it here for people who might be using a self-hosted version who have not yet updated.
+
 ## Quick Install - Individuals
 1. Install and enable the [Tampermonkey](http://tampermonkey.net/) browser extension
 2. Install the [dashcard_sorter.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/dashboard/dashcard_sorter.user.js) file
