@@ -3,8 +3,8 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Allows sorting on any column of the Canvas Course Roster
 // @include     https://*.instructure.com/courses/*/users
-// @require     https://cdn.rawgit.com/Mottie/tablesorter/v2.22.5/js/jquery.tablesorter.js
-// @version     5
+// @require     https://cdn.jsdelivr.net/gh/Mottie/tablesorter@v2.22.5/js/jquery.tablesorter.js
+// @version     6
 // @grant       none
 // ==/UserScript==
 (function() {
