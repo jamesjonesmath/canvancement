@@ -287,12 +287,8 @@ var QuizWiz = function(config) {
     }
     var src = document.getElementById('x_of_x_students_frd');
     var observer = new MutationObserver(function() {
-      switch (advanceSrc) {
-      case 'rubric':
-        if (typeof config.nextRubricExpanded !== 'undefined' && config.nextRubricExpanded) {
-          openRubric();
-        }
-        break;
+      if (advanceSrc === 'rubric' && typeof config.nextRubricExpanded !== 'undefined' && config.nextRubricExpanded) {
+        openRubric();
       }
       advanceSrc = false;
     });
@@ -444,10 +440,17 @@ var QuizWiz = function(config) {
     if (typeof config.duplicateQuestionHeader !== 'undefined' && !config.duplicateQuestionHeader) {
       return;
     }
+    var questionIdRegex = new RegExp('^question_([0-9]+)$');
+    var questionId;
     var nodes = D.querySelectorAll('div#questions > div.question_holder > div.display_question > div.header');
     for (var i = 0; i < nodes.length; i++) {
       var original = nodes[i];
       var parent = original.parentNode;
+      var questionIdMatch = questionIdRegex.exec(parent.id);
+      if (!questionIdMatch) {
+        continue;
+      }
+      questionId = questionIdMatch[1];
       var commentNode = false;
       for (var j = parent.children.length - 1; j >= 0; j--) {
         if (parent.children[j].classList.contains('quiz_comment')) {
@@ -460,6 +463,14 @@ var QuizWiz = function(config) {
         continue;
       }
       var duplicate = original.cloneNode(true);
+      var hidden = duplicate.querySelector('input.question_input_hidden');
+      console.log(duplicate);
+      console.log(hidden);
+      if (hidden) {
+        hidden.remove();
+        console.log(duplicate);
+        console.log('-------');
+      }
       var existingStyles = window.getComputedStyle(original);
       var styles = [ 'Color', 'Style', 'Width' ];
       for (var k = 0; k < styles.length; k++) {
@@ -471,6 +482,7 @@ var QuizWiz = function(config) {
       var userPoints = duplicate.querySelector('div.user_points');
       userPoints.removeAttribute('class');
       var input = userPoints.querySelector('input.question_input');
+      input.name = 'x_question_score_' + questionId;
       var originalInput = original.querySelector('div.user_points > input.question_input');
       input.addEventListener('change', userPointsUpdate, true);
       originalInput.addEventListener('change', userPointsUpdate, false);
@@ -481,26 +493,48 @@ var QuizWiz = function(config) {
   function userPointsUpdate(e) {
     var name = e.target.name;
     var value = e.target.value;
-    var parent = e.target.parentNode;
+    var questionIdRegex = new RegExp('^(?:x_)?question_(?:score_)?([0-9]+)$');
+    var questionId;
+    var questionIdMatch;
+    var dst;
+    var hiddenInput;
+    var parent;
+    var dstName;
+    parent = e.target.parentNode;
     var isPrimary = parent.classList.contains('user_points');
     if (isPrimary) {
       // This is a change to the primary value.
       // Change secondaries but don't propagate events
-      var dsts = D.querySelectorAll('div.header div:not(.user_points) > input.question_input[name="' + name + '"]');
-      for (var i = 0; i < dsts.length; i++) {
-        if (dsts[i].value !== value) {
-          dsts[i].value = value;
+      hiddenInput = parent.querySelector('input.question_input_hidden');
+      name = hiddenInput.name;
+      value = hiddenInput.value;
+      questionIdMatch = questionIdRegex.exec(name);
+      if (questionIdMatch) {
+        questionId = questionIdMatch[1];
+        dstName = 'x_question_score_' + questionId;
+        dst = D.querySelector('div.header div:not(.user_points) > input.question_input[name="' + dstName + '"]');
+        if (dst) {
+          if (dst.value !== value) {
+            dst.value = value;
+          }
         }
       }
     } else {
       // This is a change to the secondary point.
       // Update the main one and trigger its events
-      var dst = D.querySelector('div.header div.user_points > input.question_input[name="' + name + '"]');
-      if (dst.value !== value) {
-        dst.value = value;
-        dst.dispatchEvent(new Event('change', {
-          'bubbles' : true
-        }));
+      questionIdMatch = questionIdRegex.exec(name);
+      if (questionIdMatch) {
+        questionId = questionIdMatch[1];
+        dstName = 'question_score_' + questionId;
+        hiddenInput = D.querySelector('div.header div.user_points > input.question_input_hidden[name="' + dstName + '"]');
+        parent = hiddenInput.parentNode;
+        dst = parent.querySelector('input.question_input');
+        if (dst.value !== value) {
+          dst.value = value;
+          dst.dispatchEvent(new Event('change', {
+            'bubbles' : true
+          }));
+        }
       }
     }
   }
