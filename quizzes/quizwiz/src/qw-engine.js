@@ -464,12 +464,8 @@ var QuizWiz = function(config) {
       }
       var duplicate = original.cloneNode(true);
       var hidden = duplicate.querySelector('input.question_input_hidden');
-      console.log(duplicate);
-      console.log(hidden);
       if (hidden) {
         hidden.remove();
-        console.log(duplicate);
-        console.log('-------');
       }
       var existingStyles = window.getComputedStyle(original);
       var styles = [ 'Color', 'Style', 'Width' ];
