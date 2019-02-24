@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Create links from a group discussion that will return you back to the main course page or the discussion page
 // @include     https://*.instructure.com/groups/*/discussion_topics/*
-// @version     1
+// @version     2
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -29,7 +29,7 @@
     }
     var courseId = ENV.DISCUSSION.SEQUENCE.COURSE_ID;
     var discussionId = ENV.DISCUSSION.SEQUENCE.ASSET_ID;
-    var infoElement = document.querySelector('div.discussion-subtitle + span.discussion-subtitle');
+    var infoElement = document.querySelector('div.discussion-subtitle ~ span.discussion-subtitle');
     if (!infoElement) {
       return;
     }
