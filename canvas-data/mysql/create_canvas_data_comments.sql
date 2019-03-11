@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 4.0.0
+# MySQL script to create database for Canvas Data schema version 4.2.2
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -509,6 +509,88 @@ INDEX grader_id (grader_id),
 INDEX course_id (course_id),
 INDEX enrollment_term_id (enrollment_term_id)
 ) COMMENT = 'A junction table that associates files and submissions';
+CREATE TABLE IF NOT EXISTS catalog_dim (
+  `id` BIGINT COMMENT 'Unique surrogate ID for the catalog',
+  `parent_id` BIGINT COMMENT 'Self-referencing key that points to the parent catalog for this catalog. Null if this catalog has no parent.',
+  `name` VARCHAR(256) COMMENT 'Name of the catalog',
+  `currency` VARCHAR(256) COMMENT 'Type of currency used in the catalog',
+  `country` VARCHAR(256) COMMENT 'Country used in this catalog',
+  `time_zone` VARCHAR(256) COMMENT 'Timezone used in this catalog',
+  `created_at` DATETIME COMMENT 'When the catalog was created',
+  `updated_at` DATETIME COMMENT 'When the catalog was last updated',
+PRIMARY KEY (id),
+INDEX parent_id (parent_id)
+) COMMENT = 'Attributes for catalogs in Canvas Catalog';
+CREATE TABLE IF NOT EXISTS catalog_product_dim (
+  `id` BIGINT COMMENT 'Unique surrogate key for the catalog product',
+  `catalog_id` BIGINT COMMENT 'foreign key to the catalog dim',
+  `start_date` DATETIME COMMENT 'The start date for the course or program',
+  `end_date` DATETIME COMMENT 'The end date for the course or program',
+  `course_id` BIGINT COMMENT 'Foreign key to the course dim if this product is a course',
+  `product_type` VARCHAR(256) COMMENT 'Can be either \"Program\" or \"Course\"',
+  `title` VARCHAR(256) COMMENT 'The title of the course or program listing',
+  `visibility` VARCHAR(256) COMMENT 'Can be one of \"listed\", \"unlisted\", or \"hidden\"',
+  `enrollment_open` ENUM('false','true') COMMENT 'Whether the course or program is open for enrollment',
+  `has_waitlist` ENUM('false','true') COMMENT 'Whether the course or program has a waitlist',
+  `created_at` DATETIME COMMENT 'The date when the product was created',
+  `updated_at` DATETIME COMMENT 'The date when the product was last updated',
+PRIMARY KEY (id),
+INDEX catalog_id (catalog_id),
+INDEX course_id (course_id)
+) COMMENT = 'Attributes for products in Canvas Catalog. A product can be either a course or a program listing.';
+CREATE TABLE IF NOT EXISTS catalog_product_fact (
+  `catalog_product_id` BIGINT COMMENT 'Foreign key to the catalog product dim',
+  `catalog_id` BIGINT COMMENT 'Foreign key to the catalog dim',
+  `parent_catalog_id` BIGINT COMMENT 'Foreign key to the catalog dim. References the parent of the catalog that this product belongs to',
+  `course_id` BIGINT COMMENT 'Foreign key to the course dim if this product is a course',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term dim',
+  `enrollment_fee` DOUBLE COMMENT 'Cost of the catalog product. Units are found in catalog_dim.currency',
+  `credits` DOUBLE COMMENT 'Number of credits the course is worth if the product is a course',
+  `waitlist_capacity` INTEGER UNSIGNED COMMENT 'The maximum capacity of the waitlist. Null if the waitlist has no maximum capacity',
+  `enrollment_capacity` INTEGER UNSIGNED COMMENT 'The maximum enrollment capacity for the course or program',
+PRIMARY KEY (catalog_product_id),
+INDEX catalog_id (catalog_id),
+INDEX parent_catalog_id (parent_catalog_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id)
+) COMMENT = 'Facts for products in Canvas Catalog. A product can be either a course or a program listing';
+CREATE TABLE IF NOT EXISTS catalog_enrollment_dim (
+  `id` BIGINT COMMENT 'Unique surrogate key for the catalog enrollment',
+  `catalog_product_id` BIGINT COMMENT 'Foreign key to the catalog product dim. Refers to the course or program associated with the enrollment',
+  `user_id` BIGINT COMMENT 'Foreign key to the user dim. Refers to the user associated with this enrollment',
+  `root_program_id` BIGINT COMMENT 'Foreign key to the catalog product dim. Refers to the root program associated with this enrollment',
+  `status` VARCHAR(256) COMMENT 'The status of the enrollment. One of either \"active\" or \"dropped\".',
+  `requirements_completed_at` DATETIME COMMENT 'Time when the user completed all requirements for the course or program. Null if the requirements have not yet been met',
+  `ends_at` DATETIME COMMENT 'Time by which the user must complete the course or program requirements. Null if there is no required end date.',
+  `created_at` DATETIME COMMENT 'Time when the enrollment record was created',
+  `updated_at` DATETIME COMMENT 'Time when the enrollment record was last updated',
+PRIMARY KEY (id),
+INDEX catalog_product_id (catalog_product_id),
+INDEX user_id (user_id),
+INDEX root_program_id (root_program_id)
+) COMMENT = 'Attributes for an enrollment in a Canvas Catalog program or course';
+CREATE TABLE IF NOT EXISTS catalog_user_registration_dim (
+  `id` BIGINT COMMENT 'Unique surrogate key for the catalog user registration',
+  `catalog_id` BIGINT COMMENT 'Foreign key to the catalog dim. Refers to the catalog that this registration belongs to',
+  `user_id` BIGINT COMMENT 'Foreign key to the user dim. Refers to the registered user',
+  `created_at` DATETIME COMMENT 'Time when the user registration record was created',
+  `updated_at` DATETIME COMMENT 'Time when the user registration record was last updated',
+PRIMARY KEY (id),
+INDEX catalog_id (catalog_id),
+INDEX user_id (user_id)
+) COMMENT = 'Attributes for user registration in a Canvas Catalog. See catalog_enrollment for data about programs and courses the user is enrolled in';
+CREATE TABLE IF NOT EXISTS catalog_program_requirement_fact (
+  `id` BIGINT COMMENT 'Unique surrogate key for the program requirement',
+  `catalog_id` BIGINT COMMENT 'Foreign key to the catalog dim. Refers to the catalog in which this requirement is defined',
+  `catalog_program_id` BIGINT COMMENT 'Foreign key to the catalog product dim. This ID refers to the program that requires the program or course referred to by \"catalog_product_id\"',
+  `catalog_product_id` BIGINT COMMENT 'Foreign key to the catalog product dim. This ID refers to the program or course required by the program referred to by \"catalog_program_id\"',
+  `course_id` BIGINT COMMENT 'Foreign key to the course dim. Refers to the required course if the requirement refers to a course',
+PRIMARY KEY (id),
+INDEX catalog_id (catalog_id),
+INDEX catalog_program_id (catalog_program_id),
+INDEX catalog_product_id (catalog_product_id),
+INDEX course_id (course_id)
+) COMMENT = 'Facts for the courses or programs required for completion of a program';
 CREATE TABLE IF NOT EXISTS communication_channel_dim (
   `id` BIGINT COMMENT 'Unique surrogate ID for the communication channel.',
   `canvas_id` BIGINT COMMENT 'Primary key for this communication channel in the communication_channel table.',
@@ -1452,6 +1534,210 @@ INDEX course_account_id (course_account_id),
 INDEX enrollment_term_id (enrollment_term_id),
 PRIMARY KEY (course_ui_navigation_item_id)
 ) COMMENT = 'Facts describing a single item in the navigation UI';
+CREATE TABLE IF NOT EXISTS learning_outcome_dim (
+  `id` BIGINT COMMENT 'Unique surrogate id for the learning outcome.',
+  `canvas_id` BIGINT COMMENT 'Primary key to the learning_outcomes table in canvas.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account associated with this outcome.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this outcome, if this outcome was created at the course level.',
+  `short_description` VARCHAR(256) COMMENT 'Title of the outcome.',
+  `description` LONGTEXT COMMENT 'Description of the outcome.',
+  `workflow_state` ENUM('active', 'deleted') COMMENT 'Workflow status of the learning outcome. Defaults to \'active\'.',
+  `created_at` DATETIME COMMENT 'Time when the outcome was created.',
+  `updated_at` DATETIME COMMENT 'Time when the outcome was last updated.',
+  `vendor_guid` VARCHAR(256) COMMENT 'A custom GUID for the learning standard.',
+  `display_name` VARCHAR(256) COMMENT 'Optional friendly name for reporting.',
+  `calculation_method` LONGTEXT COMMENT 'The method used to calculate student score. Possible values are \"decaying_average\", \"highest\", \"latest\" and \"n_mastery\".',
+  `calculation_int` INTEGER UNSIGNED COMMENT 'Defines the variable value used by the calculation_method. included only if calculation_method uses it.',
+  `outcome_import_id` BIGINT COMMENT 'Foreign key to the outcome import associated with this outcome, if this outcome was imported.',
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX workflow_state (workflow_state),
+INDEX outcome_import_id (outcome_import_id)
+) COMMENT = 'Learning outcomes are measurable statements that express student knowledge or a student skill. This table contains dimensions for learning outcomes.';
+CREATE TABLE IF NOT EXISTS learning_outcome_fact (
+  `learning_outcome_id` BIGINT COMMENT 'Foreign key to the learning outcome dimension',
+  `account_id` BIGINT COMMENT 'Foreign key to the account associated with this outcome, if this outcome was created at the account level.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this outcome, if this outcome was created at the course level.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term of the course associated with this outcome, if this outcome was created at the course level.',
+  `mastery_points` DOUBLE COMMENT 'Minimum number of points required in order for the student to have acheived mastery',
+  `points_possible` DOUBLE COMMENT 'Maximum number of points acheivable for this outcome',
+  `outcome_import_id` BIGINT COMMENT 'Foreign key to the outcome import associated with this outcome, if this outcome was imported.',
+PRIMARY KEY (learning_outcome_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX outcome_import_id (outcome_import_id)
+) COMMENT = 'Learning outcomes are measurable statements that express student knowledge or a student skill. This table contains measures for learning outcomes.';
+CREATE TABLE IF NOT EXISTS learning_outcome_rubric_criterion_dim (
+  `id` BIGINT COMMENT 'Unique surrogate id for the rubric criterion',
+  `learning_outcome_id` BIGINT COMMENT 'Foreign key to the learning outcome dimension',
+  `description` LONGTEXT COMMENT 'Description of the rubric criterion',
+PRIMARY KEY (id),
+INDEX learning_outcome_id (learning_outcome_id)
+) COMMENT = 'Contains dimensions for criterion of a given outcome.';
+CREATE TABLE IF NOT EXISTS learning_outcome_rubric_criterion_fact (
+  `learning_outcome_rubric_criterion_id` BIGINT COMMENT 'Foreign key to the learning outcome rubric criterion dimension',
+  `learning_outcome_id` BIGINT COMMENT 'Foreign key to the learning outcome dimension',
+  `account_id` BIGINT COMMENT 'Foreign key to the account associated with the criterion\'s outcome, if this outcome was created at the account level.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with the criterion\'s outcome, if this outcome was created at the course level.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term of the course associated with this outcome, if this outcome was created at the course level.',
+  `points` DOUBLE COMMENT 'Points associated with the rubric criterion',
+PRIMARY KEY (learning_outcome_rubric_criterion_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id)
+) COMMENT = 'Contains measures for the criterion of a given outcome.';
+CREATE TABLE IF NOT EXISTS learning_outcome_group_dim (
+  `id` BIGINT COMMENT 'Unique surrogate id for the learning outcome group',
+  `canvas_id` BIGINT COMMENT 'Primary key for this record in the canvas learning_outcome_groups table',
+  `account_id` BIGINT COMMENT 'Foreign key to the account associated with this outcome group, if this outcome group was created at the account level.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this outcome group, if this outcome group was created at the course level.',
+  `title` VARCHAR(256) COMMENT 'Title of the learning outcome group.',
+  `parent_group_id` BIGINT COMMENT 'ID associated with the parent of this group. Refers to a learning_outcome_group record.',
+  `root_group_id` BIGINT COMMENT 'ID associated with the root group in the group hierarchy. Refers to a learning_outcome_group record.',
+  `workflow_state` ENUM('active', 'deleted') COMMENT 'Workflow status of the learning outcome. Defaults to \'active\'.',
+  `description` LONGTEXT COMMENT 'Description of the learning outcome group.',
+  `created_at` DATETIME COMMENT 'Time when the group was created.',
+  `updated_at` DATETIME COMMENT 'Time when the group was last updated.',
+  `vendor_guid` VARCHAR(256) COMMENT 'A custom GUID for the learning standard.',
+  `outcome_import_id` BIGINT COMMENT 'Foreign key to the outcome import associated with this outcome group, if this group was imported.',
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX parent_group_id (parent_group_id),
+INDEX root_group_id (root_group_id),
+INDEX workflow_state (workflow_state),
+INDEX outcome_import_id (outcome_import_id)
+) COMMENT = 'Learning outcome groups organize outcomes hierarchically within a context, such as an account, course or the global context. This table contains dimensions for learning outcome groups.';
+CREATE TABLE IF NOT EXISTS learning_outcome_group_fact (
+  `learning_outcome_group_id` BIGINT COMMENT 'Foreign key to the learning outcome group dimension.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account associated with this outcome group, if this outcome group was created at the account level.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this outcome group, if this outcome group was created at the course level.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term of the course associated with this outcome group, if this outcome group was created at the course level.',
+  `parent_group_id` BIGINT COMMENT 'ID associated with the parent of this group. Refers to a learning_outcome_group record.',
+  `root_group_id` BIGINT COMMENT 'ID associated with the root group in the group hierarchy. Refers to a learning_outcome_group record.',
+  `outcome_import_id` BIGINT COMMENT 'Foreign key to the outcome import associated with this outcome group, if this group was imported.',
+PRIMARY KEY (learning_outcome_group_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX parent_group_id (parent_group_id),
+INDEX root_group_id (root_group_id),
+INDEX outcome_import_id (outcome_import_id)
+) COMMENT = 'Learning outcome groups organize outcomes hierarchically within a context, such as an account, course or the global context. This table contains measures for learning outcome groups.';
+CREATE TABLE IF NOT EXISTS learning_outcome_group_association_fact (
+  `learning_outcome_id` BIGINT COMMENT 'Foreign key to the learning outcome dimension',
+  `learning_outcome_group_id` BIGINT COMMENT 'Foreign key to the learning outcome group dimension',
+  `account_id` BIGINT COMMENT 'Foreign key to the account associated with this outcome group, if this outcome group was created at the account level.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this outcome group, if this outcome group was created at the course level.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term of the course associated with this outcome group, if this outcome group was created at the course level.',
+  `pkey` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Fake primary key',
+PRIMARY KEY (pkey),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX learning_outcome_group_id (learning_outcome_group_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id)
+) COMMENT = 'A association table to represent the many to many relationship between learning outcomes and learning outcome groups';
+CREATE TABLE IF NOT EXISTS learning_outcome_result_dim (
+  `id` BIGINT COMMENT 'Unique surrogate key for the learning outcome result',
+  `canvas_id` BIGINT COMMENT 'Primary key for this record in the canvas learning_outcome_results table',
+  `account_id` BIGINT COMMENT 'Foreign key to the account associated with this outcome result, if this outcome result was created at the account level.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this outcome result, if this outcome result was created at the course level.',
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment associated with this outcome result, if this result was associated with an assignment',
+  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz associated with this outcome result, if this result was associated with a quiz',
+  `learning_outcome_id` BIGINT COMMENT 'Foreign key to the learning outcome this result is associated with',
+  `user_id` BIGINT COMMENT 'ID of the student who made the submission. Foreign key to the user dimension table',
+  `created_at` DATETIME COMMENT 'Time when the result was created.',
+  `updated_at` DATETIME COMMENT 'Time when the result was last updated.',
+  `assessed_at` DATETIME COMMENT 'Time when the result was assessed.',
+  `submitted_at` DATETIME COMMENT 'Time when the submission was submitted.',
+  `hide_points` ENUM('false','true') COMMENT 'Boolean indicating if outcome result points should be hidden in the Learning Mastery Gradebook and reports. If enabled, replace points with the description of the highest scoring outcome criterion rating.',
+  `hidden` ENUM('false','true') COMMENT 'Boolean indicating if outcome result should be hidden from the Learning Mastery Gradebook and reports.',
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX assignment_id (assignment_id),
+INDEX quiz_id (quiz_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX user_id (user_id)
+) COMMENT = 'Learning outcome results are a student\'s mastery score on a given outcome. This table contains dimensions for learning outcome results.';
+CREATE TABLE IF NOT EXISTS learning_outcome_result_fact (
+  `learning_outcome_result_id` BIGINT COMMENT 'Foreign key to the learning outcome result dimension',
+  `account_id` BIGINT COMMENT 'Foreign key to the account associated with this outcome result, if this outcome result was created at the account level.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with this outcome result, if this outcome result was created at the course level.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term of the course associated with this outcome group, if this outcome group was created at the course level.',
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment associated with this outcome result, if this result was associated with an assignment',
+  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz associated with this outcome result, if this result was associated with a quiz',
+  `learning_outcome_id` BIGINT COMMENT 'Foreign key to the learning outcome this result is associated with.',
+  `user_id` BIGINT COMMENT 'ID of the student who made the submission. Foreign key to the user dimension table',
+  `mastery` ENUM('false','true') COMMENT 'Boolean indicating whether user achieved mastery',
+  `score` DOUBLE COMMENT 'The student\'s score.',
+  `attempts` INTEGER UNSIGNED COMMENT 'The total number of attempts, or submissions.',
+  `possible` DOUBLE COMMENT 'Total number of points possible.',
+  `original_score` DOUBLE COMMENT 'Score on the first attempt.',
+  `original_possible` DOUBLE COMMENT 'Possible points on the first attempt.',
+  `original_mastery` ENUM('false','true') COMMENT 'Boolean indicating whether user achieved mastery.',
+  `percent` DOUBLE COMMENT 'Percent of maximum points possible for an outcome, scaled to reflect any custom mastery levels that differ from the learning outcome.',
+PRIMARY KEY (learning_outcome_result_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX assignment_id (assignment_id),
+INDEX quiz_id (quiz_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX user_id (user_id)
+) COMMENT = 'Learning outcome results are a student\'s mastery score on a given outcome. This table contains measures for learning outcome results.';
+CREATE TABLE IF NOT EXISTS learning_outcome_question_result_dim (
+  `id` BIGINT COMMENT 'Unique surrogate key for the question result',
+  `learning_outcome_result_id` BIGINT COMMENT 'Foreign key to the learning outcome result',
+  `learning_outcome_id` BIGINT COMMENT 'Foreign key to the learning outcome this record is associated with',
+  `assessment_question_id` BIGINT COMMENT 'Foreign key to the assessment question this record is associated with (assessment_questions to be included in a future release)',
+  `title` LONGTEXT,
+  `created_at` DATETIME COMMENT 'Time when question was created',
+  `updated_at` DATETIME COMMENT 'Time when question was updated',
+  `assessed_at` DATETIME COMMENT 'Time when answer was assessed',
+  `submitted_at` DATETIME COMMENT 'Time when answer was submitted',
+PRIMARY KEY (id),
+INDEX learning_outcome_result_id (learning_outcome_result_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX assessment_question_id (assessment_question_id)
+) COMMENT = 'Attributes for the results of answered questions which have been associated with a learning outcome';
+CREATE TABLE IF NOT EXISTS learning_outcome_question_result_fact (
+  `learning_outcome_question_result_id` BIGINT COMMENT 'Foreign key to the learning oucome question result',
+  `learning_outcome_result_id` BIGINT COMMENT 'Foreign key to the learning outcome result',
+  `learning_outcome_id` BIGINT COMMENT 'Foreign key to the learning outcome this record is associated with',
+  `assessment_question_id` BIGINT COMMENT 'Foreign key to the assessment question this record is associated with (assessment_questions to be included in a future release)',
+  `user_id` BIGINT COMMENT 'Foreign key to the user dim. Refers to the user associated with this result.',
+  `account_id` BIGINT COMMENT 'Foreign key to the account associated with the outcome which this result belongs to, if the outcome was created at the account level.',
+  `course_id` BIGINT COMMENT 'Foreign key to the course associated with the outcome which this result belongs to, if the outcome was created at the course level.',
+  `enrollment_term_id` BIGINT COMMENT 'Foreign key to the enrollment term of the course associated with the outcome which this result belongs to, if the outcome was created at the course level.',
+  `assignment_id` BIGINT COMMENT 'Foreign key to the assignment associated with the outcome result, if the result was associated with an assignment',
+  `quiz_id` BIGINT COMMENT 'Foreign key to the quiz associated with the outcome result, if the result was associated with a quiz',
+  `mastery` ENUM('false','true') COMMENT 'Boolean indicating whether user achieved mastery for this question',
+  `score` DOUBLE COMMENT 'The student\'s score on the question',
+  `attempts` INTEGER UNSIGNED COMMENT 'The total number of attempts, or submissions.',
+  `possible` DOUBLE COMMENT 'Total number of points possible.',
+  `original_score` DOUBLE COMMENT 'Score on the first attempt.',
+  `original_possible` DOUBLE COMMENT 'Possible points on the first attempt.',
+  `original_mastery` ENUM('false','true') COMMENT 'Boolean indicating whether user achieved mastery.',
+  `percent` DOUBLE COMMENT 'Score\'s percent of maximum points possible for an outcome, scaled to reflect any custom mastery levels that differ from the learning outcome.',
+PRIMARY KEY (learning_outcome_question_result_id),
+INDEX learning_outcome_result_id (learning_outcome_result_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX assessment_question_id (assessment_question_id),
+INDEX user_id (user_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX assignment_id (assignment_id),
+INDEX quiz_id (quiz_id)
+) COMMENT = 'Facts for the results of answered questions which have been associated with a learning outcome';
 CREATE TABLE IF NOT EXISTS quiz_dim (
   `id` BIGINT COMMENT 'Unique surrogate ID for the quiz.',
   `canvas_id` BIGINT COMMENT 'Primary key for this quiz in the quizzes table.',
