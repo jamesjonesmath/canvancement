@@ -1,4 +1,4 @@
-# MySQL script to create database for Canvas Data schema version 4.0.0
+# MySQL script to create database for Canvas Data schema version 4.2.2
 SET default_storage_engine=InnoDB;
 SET GLOBAL innodb_file_per_table=1;
 DROP DATABASE IF EXISTS canvas_data;
@@ -508,6 +508,88 @@ INDEX user_id (user_id),
 INDEX grader_id (grader_id),
 INDEX course_id (course_id),
 INDEX enrollment_term_id (enrollment_term_id)
+);
+CREATE TABLE IF NOT EXISTS catalog_dim (
+  `id` BIGINT,
+  `parent_id` BIGINT,
+  `name` VARCHAR(256),
+  `currency` VARCHAR(256),
+  `country` VARCHAR(256),
+  `time_zone` VARCHAR(256),
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+PRIMARY KEY (id),
+INDEX parent_id (parent_id)
+);
+CREATE TABLE IF NOT EXISTS catalog_product_dim (
+  `id` BIGINT,
+  `catalog_id` BIGINT,
+  `start_date` DATETIME,
+  `end_date` DATETIME,
+  `course_id` BIGINT,
+  `product_type` VARCHAR(256),
+  `title` VARCHAR(256),
+  `visibility` VARCHAR(256),
+  `enrollment_open` ENUM('false','true'),
+  `has_waitlist` ENUM('false','true'),
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+PRIMARY KEY (id),
+INDEX catalog_id (catalog_id),
+INDEX course_id (course_id)
+);
+CREATE TABLE IF NOT EXISTS catalog_product_fact (
+  `catalog_product_id` BIGINT,
+  `catalog_id` BIGINT,
+  `parent_catalog_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `enrollment_fee` DOUBLE,
+  `credits` DOUBLE,
+  `waitlist_capacity` INTEGER UNSIGNED,
+  `enrollment_capacity` INTEGER UNSIGNED,
+PRIMARY KEY (catalog_product_id),
+INDEX catalog_id (catalog_id),
+INDEX parent_catalog_id (parent_catalog_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id)
+);
+CREATE TABLE IF NOT EXISTS catalog_enrollment_dim (
+  `id` BIGINT,
+  `catalog_product_id` BIGINT,
+  `user_id` BIGINT,
+  `root_program_id` BIGINT,
+  `status` VARCHAR(256),
+  `requirements_completed_at` DATETIME,
+  `ends_at` DATETIME,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+PRIMARY KEY (id),
+INDEX catalog_product_id (catalog_product_id),
+INDEX user_id (user_id),
+INDEX root_program_id (root_program_id)
+);
+CREATE TABLE IF NOT EXISTS catalog_user_registration_dim (
+  `id` BIGINT,
+  `catalog_id` BIGINT,
+  `user_id` BIGINT,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+PRIMARY KEY (id),
+INDEX catalog_id (catalog_id),
+INDEX user_id (user_id)
+);
+CREATE TABLE IF NOT EXISTS catalog_program_requirement_fact (
+  `id` BIGINT,
+  `catalog_id` BIGINT,
+  `catalog_program_id` BIGINT,
+  `catalog_product_id` BIGINT,
+  `course_id` BIGINT,
+PRIMARY KEY (id),
+INDEX catalog_id (catalog_id),
+INDEX catalog_program_id (catalog_program_id),
+INDEX catalog_product_id (catalog_product_id),
+INDEX course_id (course_id)
 );
 CREATE TABLE IF NOT EXISTS communication_channel_dim (
   `id` BIGINT,
@@ -1451,6 +1533,210 @@ INDEX course_id (course_id),
 INDEX course_account_id (course_account_id),
 INDEX enrollment_term_id (enrollment_term_id),
 PRIMARY KEY (course_ui_navigation_item_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `short_description` VARCHAR(256),
+  `description` LONGTEXT,
+  `workflow_state` ENUM('active', 'deleted'),
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+  `vendor_guid` VARCHAR(256),
+  `display_name` VARCHAR(256),
+  `calculation_method` LONGTEXT,
+  `calculation_int` INTEGER UNSIGNED,
+  `outcome_import_id` BIGINT,
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX workflow_state (workflow_state),
+INDEX outcome_import_id (outcome_import_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_fact (
+  `learning_outcome_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `mastery_points` DOUBLE,
+  `points_possible` DOUBLE,
+  `outcome_import_id` BIGINT,
+PRIMARY KEY (learning_outcome_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX outcome_import_id (outcome_import_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_rubric_criterion_dim (
+  `id` BIGINT,
+  `learning_outcome_id` BIGINT,
+  `description` LONGTEXT,
+PRIMARY KEY (id),
+INDEX learning_outcome_id (learning_outcome_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_rubric_criterion_fact (
+  `learning_outcome_rubric_criterion_id` BIGINT,
+  `learning_outcome_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `points` DOUBLE,
+PRIMARY KEY (learning_outcome_rubric_criterion_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_group_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `title` VARCHAR(256),
+  `parent_group_id` BIGINT,
+  `root_group_id` BIGINT,
+  `workflow_state` ENUM('active', 'deleted'),
+  `description` LONGTEXT,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+  `vendor_guid` VARCHAR(256),
+  `outcome_import_id` BIGINT,
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX parent_group_id (parent_group_id),
+INDEX root_group_id (root_group_id),
+INDEX workflow_state (workflow_state),
+INDEX outcome_import_id (outcome_import_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_group_fact (
+  `learning_outcome_group_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `parent_group_id` BIGINT,
+  `root_group_id` BIGINT,
+  `outcome_import_id` BIGINT,
+PRIMARY KEY (learning_outcome_group_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX parent_group_id (parent_group_id),
+INDEX root_group_id (root_group_id),
+INDEX outcome_import_id (outcome_import_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_group_association_fact (
+  `learning_outcome_id` BIGINT,
+  `learning_outcome_group_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `pkey` BIGINT NOT NULL AUTO_INCREMENT,
+PRIMARY KEY (pkey),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX learning_outcome_group_id (learning_outcome_group_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_result_dim (
+  `id` BIGINT,
+  `canvas_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `assignment_id` BIGINT,
+  `quiz_id` BIGINT,
+  `learning_outcome_id` BIGINT,
+  `user_id` BIGINT,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+  `assessed_at` DATETIME,
+  `submitted_at` DATETIME,
+  `hide_points` ENUM('false','true'),
+  `hidden` ENUM('false','true'),
+PRIMARY KEY (id),
+UNIQUE KEY canvas_id (canvas_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX assignment_id (assignment_id),
+INDEX quiz_id (quiz_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX user_id (user_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_result_fact (
+  `learning_outcome_result_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `assignment_id` BIGINT,
+  `quiz_id` BIGINT,
+  `learning_outcome_id` BIGINT,
+  `user_id` BIGINT,
+  `mastery` ENUM('false','true'),
+  `score` DOUBLE,
+  `attempts` INTEGER UNSIGNED,
+  `possible` DOUBLE,
+  `original_score` DOUBLE,
+  `original_possible` DOUBLE,
+  `original_mastery` ENUM('false','true'),
+  `percent` DOUBLE,
+PRIMARY KEY (learning_outcome_result_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX assignment_id (assignment_id),
+INDEX quiz_id (quiz_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX user_id (user_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_question_result_dim (
+  `id` BIGINT,
+  `learning_outcome_result_id` BIGINT,
+  `learning_outcome_id` BIGINT,
+  `assessment_question_id` BIGINT,
+  `title` LONGTEXT,
+  `created_at` DATETIME,
+  `updated_at` DATETIME,
+  `assessed_at` DATETIME,
+  `submitted_at` DATETIME,
+PRIMARY KEY (id),
+INDEX learning_outcome_result_id (learning_outcome_result_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX assessment_question_id (assessment_question_id)
+);
+CREATE TABLE IF NOT EXISTS learning_outcome_question_result_fact (
+  `learning_outcome_question_result_id` BIGINT,
+  `learning_outcome_result_id` BIGINT,
+  `learning_outcome_id` BIGINT,
+  `assessment_question_id` BIGINT,
+  `user_id` BIGINT,
+  `account_id` BIGINT,
+  `course_id` BIGINT,
+  `enrollment_term_id` BIGINT,
+  `assignment_id` BIGINT,
+  `quiz_id` BIGINT,
+  `mastery` ENUM('false','true'),
+  `score` DOUBLE,
+  `attempts` INTEGER UNSIGNED,
+  `possible` DOUBLE,
+  `original_score` DOUBLE,
+  `original_possible` DOUBLE,
+  `original_mastery` ENUM('false','true'),
+  `percent` DOUBLE,
+PRIMARY KEY (learning_outcome_question_result_id),
+INDEX learning_outcome_result_id (learning_outcome_result_id),
+INDEX learning_outcome_id (learning_outcome_id),
+INDEX assessment_question_id (assessment_question_id),
+INDEX user_id (user_id),
+INDEX account_id (account_id),
+INDEX course_id (course_id),
+INDEX enrollment_term_id (enrollment_term_id),
+INDEX assignment_id (assignment_id),
+INDEX quiz_id (quiz_id)
 );
 CREATE TABLE IF NOT EXISTS quiz_dim (
   `id` BIGINT,
