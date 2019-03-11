@@ -227,5 +227,22 @@
 		"KEYS": {
 			"primary": "pkey"
 		}
+	},
+	"catalog_program_requirement_fact": {
+		"KEYS": {
+			"primary": "id"
+		}
+	},
+	"learning_outcome_group_association_fact": {
+		"NEW": [
+			{
+				"name": "pkey",
+				"type": "BIGINT NOT NULL AUTO_INCREMENT",
+				"description": "Fake primary key"
+			}
+		],
+		"KEYS": {
+			"primary": "pkey"
+		}
 	}
 }
