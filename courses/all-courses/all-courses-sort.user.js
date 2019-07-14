@@ -22,7 +22,8 @@
       e.classList.add('filter-false');
     });
     $('table.ic-Table').tablesorter({
-      'widgets' : [ 'filter' ]
+      'widgets' : [ 'filter' ],
+      // 'sortList' : [[3,1]]
     });
   }
 })();
