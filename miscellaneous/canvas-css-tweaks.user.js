@@ -4,7 +4,7 @@
 // @description Various tweaks to Canvas CSS
 // @include     https://*.instructure.com/courses/*
 // @include     https://*.instructure.com/accounts/*
-// @version     1
+// @version     2
 // ==/UserScript==
 (function () {
   'use strict';
@@ -36,6 +36,7 @@
     if (/^\/courses\/\d+\/gradebook\/speed_grader$/.test(window.location.pathname)) {
       console.log('step 1a');
       rules.push('#rubric_holder .rubric_container.rubric.assessing .react-rubric {min-width: min-content !important;}');
+      rules.push('#rubric_holder .rubric_container.rubric.assessing .react-rubric table {table-layout: auto;}');
     }
   }
 
