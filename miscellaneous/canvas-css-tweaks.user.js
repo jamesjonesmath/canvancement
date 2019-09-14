@@ -4,7 +4,7 @@
 // @description Various tweaks to Canvas CSS
 // @include     https://*.instructure.com/courses/*
 // @include     https://*.instructure.com/accounts/*
-// @version     2
+// @version     3
 // ==/UserScript==
 (function () {
   'use strict';
@@ -26,7 +26,6 @@
   // Allow Canvas to use the full width of the page
   if (features.indexOf('fullscreen') > -1) {
     if (!document.body.classList.contains('full-width') && !document.body.classList.contains('outcomes')) {
-      console.log('Step 2a');
       rules.push('body:not(.full-width):not(.outcomes) #wrapper.ic-Layout-wrapper {max-width:none;}');
     }
   }
@@ -34,7 +33,6 @@
   // Override the min-width=60rem; that Canvas has on rubrics in speedgrader
   if (features.indexOf('sg_rubrics') > -1) {
     if (/^\/courses\/\d+\/gradebook\/speed_grader$/.test(window.location.pathname)) {
-      console.log('step 1a');
       rules.push('#rubric_holder .rubric_container.rubric.assessing .react-rubric {min-width: min-content !important;}');
       rules.push('#rubric_holder .rubric_container.rubric.assessing .react-rubric table {table-layout: auto;}');
     }
