@@ -23,3 +23,4 @@ This script will automatically run on any Canvas instance hosted at ``*.instruct
 ## References
 * [Is there a way to automatically assign intra-group peer reviews?](https://community.canvaslms.com/thread/18177-is-there-a-way-to-automatically-assign-intra-group-peer-reviews)
 * [Assign Peer Reviews by Student Group](https://community.canvaslms.com/ideas/4789-assign-peer-reviews-by-student-group)
+* [Assigning Intra-Group Peer Reviews](https://community.canvaslms.com/docs/DOC-14465-assigning-intra-group-peer-reviews) is the main page in the Canvas Community for this script. It includes further instructions and videos.
