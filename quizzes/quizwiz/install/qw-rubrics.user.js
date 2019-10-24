@@ -32,13 +32,16 @@
     'nextRubricExpanded' : true
   };
 
-  $.ajax({
-    'url' : 'https://gitcdn.link/repo/jamesjonesmath/canvancement/master/quizzes/quizwiz/src/qw-engine.js',
-    'dataType' : 'script',
-    'cache' : true,
-    'success' : function() {
+  if (typeof QuizWiz !== 'function') {
+    const script = document.createElement('script');
+    script.src = 'https://gitcdn.link/repo/jamesjonesmath/canvancement/master/quizzes/quizwiz/src/qw-engine.js';
+    script.onload = function() {
       QuizWiz(config);
-    }
-  });
+    };
+    document.head.appendChild(script);
+  }
+  else {
+    QuizWiz(config);
+  }
 
 })();
