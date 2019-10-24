@@ -59,6 +59,9 @@ The fastest way to install a QuizWiz flavor is to click on the filename from the
 * Duplicates the question header at the bottom of the question.
 * Duplicates the final score, fudge points, and update scores button at the top unless running Speedgrader in grade by question mode.
 
+## Standalone
+[qw-standalone.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/install/qw-standalone.user.js) is a script that contains the engine inside the script so that it does not have to fetch it remotely. It is essentially the same as the Rubrics installation. I didn't do it this way when I started because I didn't fully understand how the editing worked with Tampermonkey, but it seems to do a decent job on updates of detecting what you've changed as a parameter vs actual changes to the code, so I'm going to try it.
+
 ## Custom Installation
 [qw-custom.user.js](https://github.com/jamesjonesmath/canvancement/raw/master/quizzes/quizwiz/install/qw-custom.user.js) is a custom configuration file with everything disabled. The user is expected to go through and customize the configuration options before using the script.
 
