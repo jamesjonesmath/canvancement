@@ -5,7 +5,7 @@
 // @include     https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
 // @noframes
-// @version     4
+// @version     5
 // @grant       none
 // ==/UserScript==
 (function() {
