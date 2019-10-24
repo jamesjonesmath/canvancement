@@ -4,7 +4,7 @@
 // @description Generates a .CSV download of the access report for all students
 // @include     https://*.instructure.com/courses/*/users
 // @require     https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.js
-// @version     10
+// @version     11
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -30,13 +30,29 @@
   addAccessReportButton();
 
   function addAccessReportButton() {
-    if ($('#jj_access_report').length === 0) {
-      $('#people-options > ul').append(
-        '<li class="ui-menu-item" role="presentation"><a id="jj_access_report" class="ui-corner-all" role="menuitem" tabindex="-1"><i class="icon-analytics"></i> Access Report Data</a></li>');
-      $('#jj_access_report').one('click', accessReport);
+    if (!document.getElementById('jj_access_report')) {
+      const parent = document.querySelector('#people-options > ul');
+      if (parent) {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'presentation');
+        li.classList.add('ui-menu-item');
+        const anchor = document.createElement('a');
+        anchor.id = 'jj_access_report';
+        anchor.classList.add('ui-corner-all');
+        anchor.setAttribute('tabindex', -1);
+        anchor.setAttribute('role', 'menuitem');
+        const icon = document.createElement('i');
+        icon.classList.add('icon-analytics');
+        anchor.appendChild(icon);
+        anchor.appendChild(document.createTextNode(' Access Report Data'));
+        anchor.addEventListener('click',accessReport,{'once' : true});
+        li.appendChild(anchor);
+        parent.appendChild(li);
+      }
     }
     return;
   }
+
 
   function abortAll() {
     for (var i = 0; i < ajaxPool.length; i++) {
