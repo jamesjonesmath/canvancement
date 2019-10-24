@@ -5,7 +5,7 @@
 // @include     https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
 // @noframes
-// @version     4
+// @version     5
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -32,13 +32,16 @@
     'nextRubricExpanded' : false
   };
 
-  $.ajax({
-    'url' : 'https://gitcdn.link/repo/jamesjonesmath/canvancement/master/quizzes/quizwiz/src/qw-engine.js',
-    'dataType' : 'script',
-    'cache' : true,
-    'success' : function() {
+  if (typeof QuizWiz !== 'function') {
+    const script = document.createElement('script');
+    script.src = 'https://gitcdn.link/repo/jamesjonesmath/canvancement/master/quizzes/quizwiz/src/qw-engine.js';
+    script.onload = function() {
       QuizWiz(config);
-    }
-  });
+    };
+    document.head.appendChild(script);
+  }
+  else {
+    QuizWiz(config);
+  }
 
 })();
