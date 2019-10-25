@@ -3,8 +3,8 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Allows sorting on any column of the Canvas Course Roster
 // @include     https://*.instructure.com/courses/*/users
-// @require     https://cdn.jsdelivr.net/gh/Mottie/tablesorter@v2.22.5/js/jquery.tablesorter.js
-// @version     6
+// @require     https://cdn.jsdelivr.net/combine/npm/jquery@3.4.1/dist/jquery.slim.min.js,npm/tablesorter@2.31.1
+// @version     7
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -68,7 +68,22 @@
     }
   };
 
-  rosterSort();
+  let jq = jQuery().jquery === '1.7.2' ? jQuery : jQuery.noConflict();
+
+  if (typeof jq.fn.tablesorter === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/tablesorter@2.31.1/dist/js/jquery.tablesorter.combined.min.js';
+    script.onload = function() {
+      if (jQuery !== jq) {
+        jq = jQuery;
+      }
+      rosterSort();
+    };
+    document.head.appendChild(script);
+  }
+  else {
+    rosterSort();
+  }
 
   function rosterSort(mutations, tableObserver) {
     var roster = document.querySelector('table.roster tbody');
@@ -134,7 +149,7 @@
       }
       addCSS(styles);
       if (needParser) {
-        $.tablesorter.addParser({
+        jq.tablesorter.addParser({
           'id' : 'shortDateTime',
           'format' : function(s, table, cell, cellIndex) {
             var months = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec';
@@ -184,7 +199,7 @@
           'parsed' : false,
           'type' : 'text'
         });
-        $.tablesorter.addParser({
+        jq.tablesorter.addParser({
           'id' : 'extendedTime',
           'format' : function(s, table, cell, cellIndex) {
             var extendedTimeRegex = new RegExp('^(?:([0-9]+):)?([0-9]{2}):([0-9]{2})$', 'im');
@@ -208,14 +223,14 @@
         var observer = new MutationObserver(function() {
           if (observerTarget.rows.length != rowsInRosterTable) {
             rowsInRosterTable = observerTarget.rows.length;
-            $('table.roster.tablesorter').trigger('update', [ true ]);
+            jq('table.roster.tablesorter').trigger('update', [ true ]);
           }
         });
         observer.observe(observerTarget, {
           'childList' : true
         });
       }
-      $('table.roster').tablesorter({
+      jq('table.roster').tablesorter({
         'sortReset' : true,
         'headers' : sortHeaders
       });
