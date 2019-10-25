@@ -3,15 +3,44 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description This program allows the user to sort rubric criteria
 // @include     https://*.instructure.com/courses/*/rubrics/*
-// @require     https://gist.github.com/raw/2625891/waitForKeyElements.js
-// @version     2
+// @version     3
 // @grant       none
 // ==/UserScript==
-waitForKeyElements('.rubric_container.rubric.editing', attachRowSorter);
-function attachRowSorter() {
-  $('.rubric_table tbody').sortable({
-    axis: 'y',
-    containment: 'parent',
-    items: '> tr'
-  });
-}
+(function() {
+  'use strict';
+
+  const pageRegex = new RegExp('^/courses/[0-9]+/rubrics/[0-9]+');
+  if (!pageRegex.test(window.location.pathname)) {
+    return;
+  }
+
+  waitForEdit();
+
+  function waitForEdit(mutations, observer) {
+    const parent = document.getElementById('rubrics');
+    const el = parent.querySelector('.rubric_container.rubric.editing');
+    if (!el) {
+      if (typeof observer === 'undefined') {
+        const obs = new MutationObserver(waitForEdit);
+        obs.observe(parent, {
+          'childList' : true
+        });
+      }
+      return;
+    } else {
+      if (typeof observer !== 'undefined') {
+        observer.disconnect();
+      }
+      attachRowSorter();
+    }
+  }
+
+  function attachRowSorter() {
+    $('.rubric_container.rubric.editing .rubric_table tbody').sortable({
+      axis : 'y',
+      containment : 'parent',
+      items : '> tr'
+    });
+  }
+
+})();
