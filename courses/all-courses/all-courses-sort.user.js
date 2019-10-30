@@ -3,14 +3,34 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Allows sorting on any column of the All Courses list
 // @include     https://*.instructure.com/courses
-// @require     https://cdn.jsdelivr.net/npm/tablesorter@2.31.1/dist/js/jquery.tablesorter.combined.min.js
-// @version     3
+// @require     https://cdn.jsdelivr.net/combine/npm/jquery@3.4.1/dist/jquery.slim.min.js,npm/tablesorter@2.31.1
+// @version     4
 // @grant       none
 // ==/UserScript==
 (function() {
   'use strict';
-  if (/^\/courses\/?$/.test(window.location.pathname)) {
-    if (typeof $.tablesorter === 'object') {
+  if (!/^\/courses\/?$/.test(window.location.pathname)) {
+    return;
+  }
+
+  let jq = jQuery().jquery === '1.7.2' ? jQuery : jQuery.noConflict();
+
+  if (typeof jq.fn.tablesorter === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/tablesorter@2.31.1/dist/js/jquery.tablesorter.combined.min.js';
+    script.onload = function() {
+      if (jQuery !== jq) {
+        jq = jQuery;
+      }
+      courseSort();
+    };
+    document.head.appendChild(script);
+  } else {
+    courseSort();
+  }
+
+  function courseSort() {
+    if (typeof jq.tablesorter === 'object') {
       sortAllCourses();
     } else {
       const script = document.createElement('script');
@@ -30,7 +50,7 @@
       document.querySelectorAll('table.ic-Table th.course-list-star-column').forEach(function(e) {
         e.classList.add('filter-false');
       });
-      $('table.ic-Table').tablesorter({
+      jq('table.ic-Table').tablesorter({
         'widgets' : [ 'filter' ],
         // 'sortList' : [[3,1]],
         'cssIconAsc' : 'icon-mini-arrow-up',
