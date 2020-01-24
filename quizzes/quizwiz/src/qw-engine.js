@@ -299,7 +299,9 @@ var QuizWiz = function(config) {
     if (iframeHolder) {
       var iframeObserver = new MutationObserver(function() {
         var iframe = document.getElementById('speedgrader_iframe');
-        iframe.addEventListener('load', iframeLoaded, false);
+        if (iframe) {
+          iframe.addEventListener('load', iframeLoaded, false);
+        }
       });
       iframeObserver.observe(iframeHolder, {
         'childList' : true
