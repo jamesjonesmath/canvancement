@@ -5,7 +5,7 @@
 // @include     https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
 // @noframes
-// @version     5
+// @version     5.1
 // @grant       none
 // ==/UserScript==
 /*
@@ -334,7 +334,9 @@
       if (iframeHolder) {
         var iframeObserver = new MutationObserver(function() {
           var iframe = document.getElementById('speedgrader_iframe');
-          iframe.addEventListener('load', iframeLoaded, false);
+          if (iframe) {
+            iframe.addEventListener('load', iframeLoaded, false);
+          }
         });
         iframeObserver.observe(iframeHolder, {
           'childList' : true
