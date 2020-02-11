@@ -4,7 +4,7 @@
 // @description Various tweaks to Canvas CSS
 // @include     https://*.instructure.com/courses/*
 // @include     https://*.instructure.com/accounts/*
-// @version     3
+// @version     4
 // ==/UserScript==
 (function () {
   'use strict';
@@ -19,6 +19,7 @@
     'fullscreen', // use full width of page
     'sg_rubrics', // don't make rubrics so big in speedgrader
     // 'no_test' , // hide test instance notification in test and beta
+    'sg_avatar_zoom', // zoom avatar in Speed Grader
   ];
 
   const rules = [];
@@ -38,9 +39,18 @@
     }
   }
 
-  // Disable the test instance notification
+  // Disable the test and beta instance banner at the bottom
   if (features.indexOf('no_test') > -1) {
-    rules.push('#fixed_bottom {display: none;}');
+    if (document.querySelector('#fixed_bottom .fixed_warning')) {
+      rules.push('#fixed_bottom .fixed_warning {display: none;}');
+    }
+  }
+
+  // Zoom avatar in SpeedGrader
+  if (features.indexOf('sg_avatar_zoom') > -1) {
+    if (/^\/courses\/\d+\/gradebook\/speed_grader$/.test(window.location.pathname)) {
+      rules.push('.gradebookAvatar:hover {transform: scale(2);}');
+    }
   }
 
   if (rules.length) {
