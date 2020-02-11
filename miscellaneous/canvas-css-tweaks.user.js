@@ -2,8 +2,8 @@
 // @name        Canvas CSS Tweaks
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Various tweaks to Canvas CSS
-// @include     https://*.instructure.com/courses/*
-// @include     https://*.instructure.com/accounts/*
+// @match       https://*.instructure.com/courses/*
+// @match       https://*.instructure.com/accounts/*
 // @version     4
 // ==/UserScript==
 (function () {
