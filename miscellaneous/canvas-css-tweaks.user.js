@@ -4,7 +4,7 @@
 // @description Various tweaks to Canvas CSS
 // @match       https://*.instructure.com/courses/*
 // @match       https://*.instructure.com/accounts/*
-// @version     4
+// @version     5
 // ==/UserScript==
 (function () {
   'use strict';
@@ -18,8 +18,10 @@
   const features = [
     'fullscreen', // use full width of page
     'sg_rubrics', // don't make rubrics so big in speedgrader
+    'sg_avatar_zoom', // zoom avatar in SpeedGrader
+    // 'sg_long_descriptions', // hide long descriptions in SpeedGrader rubrics
+    // 'sg_points_possible', // hide criterion points possible in SpeedGrader rubrics
     // 'no_test' , // hide test instance notification in test and beta
-    'sg_avatar_zoom', // zoom avatar in Speed Grader
   ];
 
   const rules = [];
@@ -36,6 +38,20 @@
     if (/^\/courses\/\d+\/gradebook\/speed_grader$/.test(window.location.pathname)) {
       rules.push('#rubric_holder .rubric_container.rubric.assessing .react-rubric {min-width: min-content !important;}');
       rules.push('#rubric_holder .rubric_container.rubric.assessing .react-rubric table {table-layout: auto;}');
+    }
+  }
+
+  // Remove the long descriptions for rubrics and show only the titles
+  if (features.indexOf('sg_long_descriptions') > -1) {
+    if (/^\/courses\/\d+\/gradebook\/speed_grader$/.test(window.location.pathname)) {
+      rules.push('#rubric_holder .ratings .rating-description+span {display: none;}');
+    }
+  }
+
+  // Hide the points possible for each criterion in SpeedGrader
+  if (features.indexOf('sg_points_possible') > -1) {
+    if (/^\/courses\/\d+\/gradebook\/speed_grader$/.test(window.location.pathname)) {
+      rules.push('#rubric_holder .criterion_points .graded-points > span > span + span {display: none;}');
     }
   }
 
