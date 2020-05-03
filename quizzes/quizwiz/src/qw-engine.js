@@ -1111,7 +1111,7 @@ var QuizWiz = function(config) {
       var points;
       var pts = e.querySelector('div.user_points span.points.question_points').textContent;
       if (pts) {
-        var match = /\/ ([0-9.]+)$/.exec(pts);
+        var match = /\/ ([0-9.,]+)$/.exec(pts);
         if (match) {
           points = match[1];
         }
