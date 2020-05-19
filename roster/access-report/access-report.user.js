@@ -5,7 +5,7 @@
 // @include     https://*.instructure.com/courses/*/users
 // @require     https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js
 // @require     https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js
-// @version     13
+// @version     14
 // @grant       none
 // ==/UserScript==
 /* global ENV,Bottleneck,saveAs */
@@ -279,7 +279,7 @@
     // fields used to identify the type of response
     const resultTypes = {
       'usage' : [ 'asset_user_access' ],
-      'enrollment' : [ 'name', 'login_id', 'enrollments' ],
+      'enrollment' : [ 'name', 'short_name', 'enrollments' ],
       'course' : [ 'name', 'course_code', 'default_view', 'is_public' ]
     };
     let resultType = null;
