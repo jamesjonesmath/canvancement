@@ -25,8 +25,7 @@
   // This can confuse the faculty when student names show up as titles.
   // By default these are now removed from the data before downloading
   // Set showViewStudent = true to include these views in the data
-//  const showViewStudent = false;
-  const showViewStudent = true;
+  const showViewStudent = false;
 
   // Canvas counts taking a quiz as both a view and a participation.
   // The web interface subtracts 1 from the views for each participation
