@@ -280,7 +280,7 @@
     const resultTypes = {
       'usage' : [ 'asset_user_access' ],
       'enrollment' : [ 'name', 'short_name', 'enrollments' ],
-      'course' : [ 'name', 'course_code', 'default_view', 'is_public' ]
+      'sections' : [ 'name', 'course_code', 'default_view', 'is_public' ]
     };
     let resultType = null;
     const types = Object.keys(resultTypes);
