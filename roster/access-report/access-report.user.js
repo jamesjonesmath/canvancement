@@ -1,115 +1,252 @@
-// ==UserScript==
-// @name        Access Report Data
-// @namespace   https://github.com/jamesjonesmath/canvancement
-// @description Generates a .CSV download of the access report for all students in a course
-// @include     https://*.instructure.com/courses/*/users
-// @require     https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js
-// @require     https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js
-// @version     14
-// @grant       none
-// ==/UserScript==
+//==UserScript==
+//@name        Access Report Data
+//@namespace   https://github.com/jamesjonesmath/canvancement
+//@description Generates a .CSV download of the access report for all students in a course
+//@include     https://*.instructure.com/courses/*/users
+//@require     https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js
+//@require     https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js
+//@version     15
+//@grant       none
+//@supportURL  https://community.canvaslms.com/docs/DOC-6061-obtaining-and-using-access-report-data-for-an-entire-course
+//==/UserScript==
 /* global ENV,Bottleneck,saveAs */
 
 (function() {
   'use strict';
-
-  // Begin user configuration section
-
-  // Some software doesn't like spaces in the headings. You may replace
-  // spaces in the column headings by specifying something other than a space
-  // for headingSpaces. Example, '' will remove spaces and '_' will replace them
-  // with underscores
-  const headingSpaces = ' ';
-
-  // Viewing a student's profile page now counts as a participation.
-  // This can confuse the faculty when student names show up as titles.
-  // By default these are now removed from the data before downloading
-  // Set showViewStudent = true to include these views in the data
-  const showViewStudent = false;
-
-  // Canvas counts taking a quiz as both a view and a participation.
-  // The web interface subtracts 1 from the views for each participation
-  // To repeat that behavior here, set quizParticipation = true
-  const quizParticipation = true;
-
-  // enrollmentStates defines which students to include in the report
-  // Possible values are active, invited, rejected, completed, and inactive
-  // See
-  // https://canvas.instructure.com/doc/api/courses.html#method.courses.users
-  // for additional information.
-  const enrollmentStates = [ 'active', 'completed' ];
-
-  // There are some analytics available including the last activity, the
-  // time spent in the course, the course grade, and course score. The analytics
-  // array can contain 'activity' or 'grades' to enable this data. Leave it
-  // blank to omit both
-  const analytics = [ 'activity', 'grades' ];
-
-  // Bottleneck configuration options
-  // These are advanced options for those with large classes who are having
-  // issues. These can be tweaked to modify the limiting of the API calls
-
-  // maxConcurrent is the maximum number of requests to attempt at one time
-  // For quick API calls, you may never see reach number based on minTime
-  const maxConcurrent = 40;
-  // minTime is the minimum number of milliseconds to wait before attempting a
-  // new connection. This is the more important of the two options and making it
-  // too low will likely cause Canvas to stop delivering data
-  const minTime = 30;
-
-  // Set debug true for help troubleshooting the process
-  // Leave it false for normal operations
-  const debug = false;
-
-  // End of user configuration section
-
-  // Check to make sure person has permission to read reports
-  if (typeof ENV !== 'undefined') {
-    if (typeof ENV.permissions === 'undefined' || ENV.permissions.read_reports === false) {
-      return;
-    }
-  }
 
   const courseId = getCourseId();
   if (!courseId) {
     return;
   }
 
+  /** Begin user configuration section */
+
+  /**
+   * Viewing a student's profile page now counts as a participation. This can
+   * confuse the faculty when student names show up as titles. By default these
+   * are now removed from the data before downloading Set showViewStudent = true
+   * to include these views in the data
+   */
+  const showViewStudent = false;
+
+  /**
+   * Canvas counts taking a quiz as both a view and a participation. The web
+   * interface subtracts 1 from the views for each participation To repeat that
+   * behavior here, set quizParticipation = true
+   */
+  const quizParticipation = true;
+
+  /**
+   * enrollmentStates defines which students to include in the report Possible
+   * values are active, invited, rejected, completed, and inactive. See
+   * https://canvas.instructure.com/doc/api/courses.html#method.courses.users
+   * for additional information.
+   */
+  const enrollmentStates = [ 'active', 'completed' ];
+
+  /**
+   * There are some analytics available including the last activity, the time
+   * spent in the course, the course grade, and course score. The analytics
+   * array can contain 'activity' or 'grades' to enable this data. Leave it
+   * blank to omit both
+   */
+  const analytics = [ 'activity', 'grades' ];
+
+  /**
+   * disableMissing controls whether to hide columns that have no data. true
+   * will hide the columns without data and false will show them.
+   */
+  const disableMissing = true;
+
+  /**
+   * Some software doesn't like spaces in the headings. You may replace spaces
+   * in the column headings by specifying something other than a space for
+   * headingSpaces. Example, '' will remove spaces and '_' will replace them
+   * with underscores
+   */
+  const headingSpaces = ' ';
+
+  /**
+   * multipleSections determines how to handle students who are enrolled in
+   * multiple sections. Valid values and the results are: 1 to provide a
+   * separate row for each section, 2 to provide a single row for the student
+   * with just the first section listed, and 'x' to provide a separated list
+   * with x as the delimiter. Replace x by your favorite delimiter such as a
+   * comma or semicolon.
+   */
+  const multipleSections = ', ';
+
+  /** Advanced Configuration */
+
+  /**
+   * Bottlneck js is a library that allows you to throttle requests. This is an
+   * advanced section for those who want to tweak the settings or who have large
+   * classes and find that the report is not running. If you exceed the
+   * x-rate-limit-remaining value, then Canvas will shut down the requests.
+   */
+
+  /**
+   * minTime specifies the number of milliseconds you must wait between
+   * successive API calls. Making them all at the same time imposes a penalty
+   * that can quickly deplete the Canvas x-rate-limit-remaining value. This will
+   * have a greater impact than maxConcurrent and if your network calls are too
+   * excessive, try increasing this first.
+   */
+  const minTime = 30;
+
+  /**
+   * maxConcurrent specifies the maximum number of concurrent requests that can
+   * be made.
+   */
+  const maxConcurrent = 40;
+
+  /**
+   * Set debug true for help troubleshooting the process. Leave it false for
+   * normal operations
+   */
+
+  const debug = false;
+
+  /**
+   * csvFields is an ordered list of the information that will be included in
+   * the report. For each entry, you may specify the name (the header), src
+   * (where the information is found), fmt (any special formatting rules), and
+   * disabled (do not include this field when true).
+   */
+  const csvFields = [ {
+    'name' : 'User ID',
+    'src' : 'u.id',
+  }, {
+    'name' : 'Display Name',
+    'src' : 'u.name',
+  }, {
+    'name' : 'Sortable Name',
+    'src' : 'u.sortable_name',
+  }, {
+    'name' : 'Category',
+    'src' : 'a.asset_category',
+  }, {
+    'name' : 'Class',
+    'src' : 'a.asset_class_name',
+  }, {
+    'name' : 'Title',
+    'src' : 'a.readable_name',
+  }, {
+    'name' : 'Views',
+    'src' : 'a.view_score',
+  }, {
+    'name' : 'Participations',
+    'src' : 'a.participate_score',
+  }, {
+    'name' : 'Last Access',
+    'src' : 'a.last_access',
+    'fmt' : 'date',
+  }, {
+    'name' : 'First Access',
+    'src' : 'a.created_at',
+    'fmt' : 'date',
+  }, {
+    'name' : 'Action',
+    'src' : 'a.action_level',
+  }, {
+    'name' : 'Code',
+    'src' : 'a.asset_code',
+  }, {
+    'name' : 'Group Code',
+    'src' : 'a.asset_group_code',
+  }, {
+    'name' : 'Context Type',
+    'src' : 'a.context_type',
+  }, {
+    'name' : 'Context ID',
+    'src' : 'a.context_id',
+  }, {
+    'name' : 'Login ID',
+    'src' : 'u.login_id',
+  }, {
+    'name' : 'Email',
+    'src' : 'u.email',
+  }, {
+    'name' : 'Section',
+    'src' : 's.name',
+  }, {
+    'name' : 'Section ID',
+    'src' : 's.id',
+  }, {
+    'name' : 'SIS Course ID',
+    'src' : 'u.sis_course_id',
+  }, {
+    'name' : 'SIS Section ID',
+    'src' : 's.sis_section_id',
+  }, {
+    'name' : 'SIS User ID',
+    'src' : 'u.sis_user_id',
+  }, {
+    'name' : 'Last Activity',
+    'src' : 'u.last_activity_at',
+    'fmt' : 'date',
+  }, {
+    'name' : 'Total Activity',
+    'src' : 'u.total_activity_time',
+    'fmt' : 'hours',
+  }, {
+    'name' : 'Course Score',
+    'src' : 'u.current_score',
+  }, {
+    'name' : 'Course Grade',
+    'src' : 'u.current_grade',
+  }, {
+    'name' : 'Final Course Score',
+    'src' : 'u.final_score',
+    'disabled' : true,
+  }, {
+    'name' : 'Final Course Grade',
+    'src' : 'u.final_grade',
+    'disabled' : true,
+  } ];
+
+  /** End of user configuration section */
+
+  // Check to make sure person has permission to read reports
+  if (typeof ENV !== 'object' || typeof ENV.permissions === 'undefined' || ENV.permissions.read_reports === false) {
+    return;
+  }
+
+  const uniqueLinkId = 'jj_access_report';
   const userData = {};
-  const accessData = [];
-  const sections = {};
-  const failedFetches = [];
+  const accessData = {};
+  const sectionData = {};
+  const failedFetches = {};
   let limiter = null;
   let aborted = false;
   let userFetchCount = 0;
   let userFetchTotal = 0;
   let minimumRateRemaining = null;
-  let pass = 0;
+  let maximumRequestCost = null;
+  let displaySummary = true;
   let startTime = 0;
   let finishTime = 0;
-  addAccessReportButton();
+  addRosterButton('Access Report Data', 'icon-analytics');
 
-  function addAccessReportButton() {
-    if (!document.getElementById('jj_access_report')) {
+  function addRosterButton(linkText, iconType) {
+    if (!document.getElementById(uniqueLinkId)) {
       const parent = document.querySelector('#people-options > ul');
       if (parent) {
         const li = document.createElement('li');
         li.setAttribute('role', 'presentation');
         li.classList.add('ui-menu-item');
         const anchor = document.createElement('a');
-        anchor.id = 'jj_access_report';
+        anchor.id = uniqueLinkId;
         anchor.classList.add('ui-corner-all');
         anchor.setAttribute('tabindex', -1);
         anchor.setAttribute('role', 'menuitem');
         const icon = document.createElement('i');
-        icon.classList.add('icon-analytics');
+        icon.classList.add(iconType);
         anchor.appendChild(icon);
-        anchor.appendChild(document.createTextNode(' Access Report Data'));
-        anchor.addEventListener('click', setupBottleneck, {
-          'once' : true
-        });
+        anchor.appendChild(document.createTextNode(` ${linkText}`));
         li.appendChild(anchor);
         parent.appendChild(li);
+        activateLink();
       }
     }
     return;
@@ -124,250 +261,210 @@
       };
       document.head.appendChild(script);
     } else {
-      if (aborted === true || limiter === null) {
-        limiter = new Bottleneck();
-        limiter.on('idle', limiterIdle);
-      }
-      limiter.updateSettings({
-          'maxConcurrent' : maxConcurrent,
-          'minTime' : minTime,
-        });
-      aborted = false;
+      limiter = new Bottleneck({
+        'maxConcurrent' : maxConcurrent,
+        'minTime' : minTime,
+      });
       accessReport();
-    }
-  }
-  
-  function limiterIdle() {
-    pass++;
-    if (pass === 1) {
-      if (debug) {
-        console.log('Minimum x-rate-limit-remaining: ' + minimumRateRemaining);
-      }
-      if (failedFetches.length > 0) {
-        // Some of the results failed with a 403 error
-        // Try again after slowing down Bottleneck;
-        limiter.updateSettings({
-          'maxConcurrent' : Math.floor(Math.max(5, maxConcurrent / 2)),
-          'minTime' : minTime < 30 ? 45 : Math.floor(minTime * 1.5),
-        });
-        fetchResults(failedFetches);
-      } else {
-        pass++;
-      }
-    }
-    if (pass > 1) {
-      makeReport();
     }
   }
 
   function accessReport() {
-    startTime = Date.now().toString();
-    userFetchCount = 0;
-    userFetchTotal = 0;
-    pass = 0;
-    aborted = false;
+    initializeGlobals();
     progressbar();
-    Promise.all([getSections(), getStudentList()]);
+    startTime = Date.now().toString();
+    getSections()
+    .then(getStudentList)
+    .then(checkFailed)
+    .then(makeReport)
+    .catch(function(e){
+        console.log(e);
+    });
   }
 
-  function getSections() {
-    if (typeof ENV === 'object') {
-      if (typeof ENV.SECTIONS === 'object') {
-        saveSections(ENV.SECTIONS);
-      }
-      if (typeof ENV.CONCLUDED_SECTIONS === 'object') {
-        saveSections(ENV.CONCLUDED_SECTIONS);
-      }
-      return Promise.resolve(true);
-    } else {
-      const url = `/api/v1/courses/${courseId}?include[]=sections&per_page=50`;
-      return fetchResults(url);
-    }
-  }
-
-  function fetchResults(url) {
-    const p = [];
-    if (Array.isArray(url)) {
-      url.forEach(function(u) {
-        p.push(fetchResult(u));
+  function checkFailed() {
+    const urls = Object.keys(failedFetches);
+    if (urls.length > 0) {
+      limiter.updateSettings({
+        'maxConcurrent' : Math.floor(Math.max(5, maxConcurrent / 2)),
+        'minTime' : minTime < 30 ? 45 : Math.floor(minTime * 1.5),
       });
+      return fetchResults(urls);
     } else {
-      p.push(fetchResult(url));
+      return Promise.resolve(false);
     }
-    return Promise.all(p);
   }
 
-  function fetchResult(url) {
+  function fetchResults(url, callback) {
+    if (typeof url === 'object') {
+      const p = [];
+      if (Array.isArray(url)) {
+        url.forEach(function(u) {
+          p.push(fetchResult(u, callback));
+        });
+      } else {
+        const keys = Object.keys(url);
+        keys.forEach(function(u) {
+          p.push(fetchResult(u, url[u]));
+        });
+      }
+      return p.length > 0 ? Promise.all(p) : Promise.resolve(false);
+    } else {
+      return fetchResult(url, callback);
+    }
+  }
+
+  function fetchResult(url, callback) {
+    let links;
     return limiter.schedule(function() {
       const options = {
-          'method' : 'GET',
-          'headers' : {
-            'accept' : 'application/json'
-          },
-          'credentials' : 'same-origin',
-          'timeout' : 30000
-        };
-      let linkHeader = '';
-      return fetch(url, options).then(function(res) {
-        if (res.ok) {
-          const xremaining = parseFloat(res.headers.get('x-rate-limit-remaining'));
-          const xcost = parseFloat(res.headers.get('x-request-cost'));
-          if (minimumRateRemaining === null || xremaining < minimumRateRemaining) {
-            minimumRateRemaining = xremaining;
-          }
-          const outstat = [ Date.now().toString(), xremaining, xcost, res.url ];
+        'method' : 'GET',
+        'headers' : {
+          'accept' : 'application/json',
+        },
+        'credentials' : 'same-origin',
+        'timeout' : 30000,
+      };
+      return fetch(url, options);
+    }).then(function(res) {
+      if (res.ok) {
+        links = extractLinks(res.headers.get('link'));
+        if (debug) {
+          calculateLimits(res);
+        }
+        return res.json();
+      } else if (res.status === 403) {
+        if (typeof failedFetches[res.url] !== 'undefined') {
           if (debug) {
-            console.log(outstat.join('\t'));
+            console.log('FETCH FAILED A SECOND TIME');
+            console.log(res.headers.entries());
           }
-          linkHeader = res.headers.get('link');
-          return res.json();
-        } else if (res.status === 403) {
-          // Forbidden status code happens if you have exhausted API requests
-          // Add these to a queue to be reattempted later
-          if (failedFetches.indexOf(res.url) > -1) {
-            if (debug) {
-              console.log('FETCH FAILED A SECOND TIME');
-              console.log(res);
-              console.log(res.headers.entries());
-            }
-          } else {
-            // Failed, retry once
-            if (debug) {
-              console.log('FETCH FAILED: ' + res.url);
-            }
-            failedFetches.push(res.url);
-          }
-          return Promise.resolve(false);
+          return Promise.reject('A fetch failed for the second time, giving up.');
         } else {
-          abortAll();
-          return Promise.reject(false);
+          failedFetches[res.url] = callback;
+          if (debug) {
+            console.log(`FAILED FAILED : ${res.url}`);
+          }
         }
-      }).then(function(json) {
-        if (typeof json === 'undefined' || json === false || json.length === 0) {
-          return Promise.resolve(false);
-        }
-        const resultType = Array.isArray(json) ? determineResultType(json[0]) : determineResultType(json);
-        let records = 1;
-        switch (resultType) {
-        case 'enrollment':
-          saveEnrollments(json);
-          records = json.length;
-          break;
-        case 'usage':
-          saveUsage(json);
-          records = json.length;
-          break;
-        case 'sections':
-          saveSections(json);
-          break;
-        default:
-          console.log('CANNOT DETERMINE DATA TYPE');
-          console.log(json);
-        }
-        return nextPage(linkHeader, resultType, records);
-      })
+        return Promise.resolve(true);
+      } else {
+        return Promise.reject(`Got an HTTP status of ${res.status}`);
+      }
+    }).then(function(json) {
+      if (typeof json === 'object') {
+        return typeof callback === 'function' ? callback(json, links) : Promise.resolve(json);
+      } else {
+        return Promise.resolve(false);
+      }
+    }).then(function() {
+      const additionalLinks = nextPage(links);
+      if (additionalLinks !== false && additionalLinks.length > 0) {
+        return fetchResults(additionalLinks, callback);
+      } else {
+        return Promise.resolve(true);
+      }
     }).catch(function(e){
       // Suppress warnings when canceled
       if (!(e instanceof Bottleneck.BottleneckError)) {
-        console.log('Error: ' + e);
+        console.log(`Error: ${e}`);
       }
     });
   }
 
-  // This is overkill for this script, but lays a foundation for other scripts
-  function determineResultType(result) {
-    // fields used to identify the type of response
-    const resultTypes = {
-      'usage' : [ 'asset_user_access' ],
-      'enrollment' : [ 'name', 'short_name', 'enrollments' ],
-      'sections' : [ 'name', 'course_code', 'default_view', 'is_public' ]
-    };
-    let resultType = null;
-    const types = Object.keys(resultTypes);
-    const resultKeys = Object.keys(result);
-    let i = 0;
-    while (resultType === null && i < types.length) {
-      const type = types[i];
-      if (resultTypes[type].every(function(e){return resultKeys.indexOf(e) > -1;})) {
-        resultType = type;
-      }
-      else {
-        i++;
+  function calculateLimits(res) {
+    const xremaining = parseFloat(res.headers.get('x-rate-limit-remaining'));
+    const xcost = parseFloat(res.headers.get('x-request-cost'));
+    if (minimumRateRemaining === null || xremaining < minimumRateRemaining) {
+      minimumRateRemaining = xremaining;
+    }
+    if (maximumRequestCost === null || xcost > maximumRequestCost) {
+      maximumRequestCost = xcost;
+    }
+    const outstat = [ Date.now().toString(), xremaining, xcost, res.url ];
+    console.log(outstat.join('\t'));
+  }
+
+  function extractLinks(hdr) {
+    const linkRegex = new RegExp('^<(.*?)>; rel="(current|first|last|next|prev)"$');
+    const linkStr = hdr.split(',');
+    const links = {};
+    for (let i = 0; i < linkStr.length; i++) {
+      const matches = linkRegex.exec(linkStr[i]);
+      if (matches) {
+        const linkUrl = matches[1];
+        const linkType = matches[2];
+        links[linkType] = linkUrl;
       }
     }
-    return resultType;
+    return links;
   }
 
-  function nextPage(hdr, resultType, resultCount) {
-    return new Promise(function(resolve) {
-      if (typeof hdr !== 'string' || !hdr) {
-        resolve(false);
-      }
-      const linkRegex = new RegExp('^<(.*?)>; rel="(current|first|last|next|prev)"$');
-      const linkStr = hdr.split(',');
-      const links = {};
-      for (let i = 0; i < linkStr.length; i++) {
-        const matches = linkRegex.exec(linkStr[i]);
-        if (matches) {
-          const linkUrl = matches[1];
-          const linkType = matches[2];
-          links[linkType] = linkUrl;
-        }
-      }
-      if (typeof links.prev === 'undefined') {
-        if (resultType === 'enrollment') {
-          userFetchTotal = resultCount;
-        }
-      }
-      if (typeof links.next === 'undefined') {
-        // this is the last page of data for this request
-        if (resultType === 'usage') {
-          userFetchCount++;
-          progressbar(userFetchCount, userFetchTotal);
-        }
-        if (resultType === 'enrollment' && typeof links.prev !== 'undefined') {
-          // We need to adjust the total count
-          const currentUrl = new URL(links.current);
-          const currentSearch = currentUrl.searchParams;
-          const perPage = currentSearch.get('per_page');
-          if (perPage > resultCount) {
-            userFetchTotal -= perPage - resultCount;
-          }
-        }
-        resolve(false);
-      }
-      let results = [];
-      if (typeof links.last !== 'undefined') {
-        const nextUrl = new URL(links.next);
-        const nextSearch = nextUrl.searchParams;
-        let page = nextSearch.get('page');
-        if (page && parseInt(page) === 2) {
-          const lastUrl = new URL(links.last);
-          let lastPage = lastUrl.searchParams.get('page');
-          if (lastPage) {
-            results.push(links.next);
-            page = parseInt(page);
-            lastPage = parseInt(lastPage);
-            if (resultType === 'enrollment') {
-              userFetchTotal = resultCount * lastPage;
-            }
-            while (page < lastPage) {
-              page++;
-              nextUrl.searchParams.set('page', page);
-              results.push(nextUrl.toString());
-            }
-          }
-        }
-      } else {
+  function paginationInfo(link) {
+    if (typeof link !== 'string' || link === '') {
+      return false;
+    }
+    const url = new URL(link);
+    const params = url.searchParams;
+    const page = params.get('page');
+    const perPage = params.get('per_page') || 10;
+    const isNumeric = /^[0-9]+$/.test(page);
+    return {
+      'url' : url,
+      'page' : isNumeric ? parseInt(page, 10) : page,
+      'perPage' : perPage,
+      'isNumeric' : isNumeric,
+    };
+  }
+
+  function nextPage(links) {
+    if (typeof links.next === 'undefined') {
+      return false;
+    }
+    const results = [];
+    if (typeof links.last !== 'undefined') {
+      const next = paginationInfo(links.next);
+      const last = paginationInfo(links.last);
+      if (next.isNumeric && next.page === 2 && last.isNumeric) {
         results.push(links.next);
+        const url = next.url;
+        for (let i = next.page; i < last.page; i++) {
+          url.searchParams.set('page', i + 1);
+          results.push(url.toString());
+        }
       }
-      if (results.length > 0) {
-        fetchResults(results.length === 1 ? results[0] : results);
-        resolve(true);
-      } else {
-        resolve(false);
+    } else {
+      results.push(links.next);
+    }
+    return results.length > 0 ? results : false;
+  }
+
+  function adjustFetchTotal(links, resultCount) {
+    if (typeof links.prev === 'undefined') {
+      let count = resultCount;
+      const last = paginationInfo(links.last);
+      if (last !== false && last.isNumeric && last.page > 1) {
+        count = last.perPage * last.page;
       }
-    });
+      userFetchTotal = count;
+    } else {
+      if (typeof links.next === 'undefined') {
+        const current = paginationInfo(links.current);
+        if (current.perPage > resultCount) {
+          userFetchTotal -= current.perPage - resultCount;
+        }
+      }
+    }
+  }
+
+  function adjustFetchCount(links) {
+    if (typeof links.next === 'undefined') {
+      userFetchCount++;
+      progressbar(userFetchCount, userFetchTotal);
+    }
+  }
+
+  function getSections() {
+    return fetchResults(`/api/v1/courses/${courseId}/sections?per_page=50`, saveSections);
   }
 
   function getStudentList() {
@@ -375,51 +472,63 @@
     q.push('enrollment_type[]=student');
     q.push('include[]=enrollments');
     enrollmentStates.forEach(function(state) {
-      q.push('enrollment_state[]=' + state)
+      q.push(`enrollment_state[]=${state}`);
     });
     q.push('per_page=20');
     const queryString = q.join('&');
     const url = `/api/v1/courses/${courseId}/users?${queryString}`;
-    return fetchResults(url);
+    return fetchResults(url, saveEnrollments);
   }
 
-  function saveEnrollments(data) {
+  function saveEnrollments(data, links) {
     if (typeof data !== 'object' || data.length === 0) {
-      return false;
+      return Promise.resolve(false);
     }
-    const usageUrls = [];
-    const userAttributes = [ 'id', 'name', 'sortable_name', 'short_name', 'login_id', 'sis_user_id', 'email' ];
-    const enrollmentAttributes = [ 'course_id', 'course_section_id:section_id', 'last_activity_at', 'total_activity_time', 'sis_user_id', 'sis_course_id',
-        'sis_section_id' ];
-    const gradeAttributes = [ 'current_grade', 'current_score' ];
+    adjustFetchTotal(links, data.length);
+    const usageIds = [];
     for (let i = 0; i < data.length; i++) {
-      let valid = false;
-      const d = data[i];
-      const userId = d.id;
-      const user = {};
-      if (typeof d.enrollments === 'object') {
-        const enrollments = d.enrollments.filter(function(e) {
-          return e.type === 'StudentEnrollment'
-        });
-        if (enrollments.length > 0) {
-          addUserAttributes(user, d, userAttributes);
-          valid = true;
-          const enrollment = enrollments[0];
-          addUserAttributes(user, enrollment, enrollmentAttributes);
-          if (typeof enrollment.grades === 'object') {
-            addUserAttributes(user, enrollment.grades, gradeAttributes);
-          }
+      if (compileUserData(data[i]) !== false) {
+        const userId = data[i].id;
+        if (typeof userData[userId].last_activity_at !== 'undefined' && userData[userId].last_activity_at !== null) {
+          usageIds.push(userId);
+        } else {
+          userFetchCount++;
         }
       }
-      if (valid) {
-        userData[userId] = user;
-        usageUrls.push(`/courses/${courseId}/users/${userId}/usage?per_page=100`);
+    }
+    return getUsage(usageIds);
+  }
+
+  function compileUserData(d) {
+    const userId = d.id;
+    const user = {};
+    const userAttributes = [ 'id', 'name', 'sortable_name', 'short_name', 'login_id', 'sis_user_id', 'email' ];
+    const enrollmentAttributes = [ 'course_id', 'last_activity_at', 'total_activity_time' ];
+    const gradeAttributes = [ 'current_grade', 'current_score', 'final_grade', 'final_score' ];
+    let valid = false;
+    if (typeof d.enrollments === 'object') {
+      const enrollments = d.enrollments.filter(function(e) {
+        return e.type === 'StudentEnrollment';
+      });
+      if (enrollments.length > 0) {
+        addUserAttributes(user, d, userAttributes);
+        valid = true;
+        const enrollment = enrollments[0];
+        addUserAttributes(user, enrollment, enrollmentAttributes);
+        if (typeof enrollment.grades === 'object') {
+          addUserAttributes(user, enrollment.grades, gradeAttributes);
+        }
+        user.section_ids = enrollments.map(function(e) {
+          return e.course_section_id;
+        }).join(',');
       }
     }
-    if (usageUrls.length > 0) {
-      fetchResults(usageUrls);
+    if (valid) {
+      userData[userId] = user;
+      return true;
+    } else {
+      return false;
     }
-    return true;
   }
 
   function addUserAttributes(user, obj, attr) {
@@ -433,35 +542,45 @@
     });
   }
 
-  function saveUsage(data) {
+  function getUsage(ids) {
+    if (typeof ids === 'object' && ids.length > 0) {
+      const urls = ids.map(function(userId) {
+        return `/courses/${courseId}/users/${userId}/usage?per_page=100`;
+      });
+      return fetchResults(urls, saveUsage);
+    } else {
+      return Promise.resolve(false);
+    }
+  }
+
+  function saveUsage(data, links) {
+    adjustFetchCount(links);
     if (typeof data !== 'object' || data.length === 0) {
-      return false;
+      return Promise.resolve(false);
+    }
+    const userId = data[0].asset_user_access.user_id;
+    if (typeof accessData[userId] === 'undefined') {
+      accessData[userId] = [];
     }
     for (let i = 0; i < data.length; i++) {
-      let asset = data[i].asset_user_access;
-      const userId = asset.user_id;
+      const asset = data[i].asset_user_access;
       if (quizParticipation && asset.asset_class_name === 'quizzes/quiz' && asset.participate_score) {
         asset.view_score -= asset.participate_score;
       }
-      if (typeof accessData[userId] === 'undefined') {
-        accessData[userId] = [];
-      }
       accessData[userId].push(asset);
     }
-    return true;
+    return Promise.resolve(true);
   }
 
   function saveSections(data) {
     if (typeof data !== 'object' || data.length === 0) {
-      return false;
+      return Promise.resolve(false);
     }
     data.forEach(function(e) {
       const sectionId = e.id;
-      if (typeof sections[sectionId] === 'undefined') {
-        sections[sectionId] = e.name;
-      }
+      sectionData[sectionId] = e;
     });
-    return true;
+    return Promise.resolve(true);
   }
 
   function nullify(e) {
@@ -469,31 +588,32 @@
   }
 
   function getCourseId() {
-    let courseId = false;
+    let id = false;
     const courseRegex = new RegExp('^/courses/([0-9]+)');
     const matches = courseRegex.exec(window.location.pathname);
     if (matches) {
-      courseId = matches[1];
+      id = matches[1];
     }
-    return courseId;
+    return id;
   }
 
   function makeReport() {
     finishTime = Date.now().toString();
-    if (debug) {
-      console.log('Fetching Time : ' + ((finishTime - startTime) / 1000) + ' seconds');
+    if (debug && displaySummary) {
+      const execTime = (finishTime - startTime) / 1000;
+      console.log(`Fetching Time : ${execTime} seconds`);
+      console.log(`Minimum x-rate-limit-remaining : ${minimumRateRemaining}`);
+      console.log(`Maximum x-request-cost : ${maximumRequestCost}`);
+      displaySummary = false;
     }
     if (aborted) {
-      if (debug) {
-        console.log('Process aborted');
-      }
-      return;
+      return Promise.reject('Process canceled');
     }
     if (typeof saveAs === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js';
       script.onload = function() {
-        makeReport();
+        return makeReport();
       };
       document.head.appendChild(script);
     } else {
@@ -501,196 +621,211 @@
       const csv = createCSV();
       if (csv) {
         const blob = new Blob([ csv ], {
-          'type' : 'text/csv;charset=utf-8'
+          'type' : 'text/csv;charset=utf-8',
         });
         saveAs(blob, 'access-report.csv');
-        $('#jj_access_report').one('click', setupBottleneck);
       }
+      activateLink();
+    }
+    return Promise.resolve(true);
+  }
+
+  function eliminateMissingFields(fields) {
+    processAnalytics('activity', [ 'last_activity_at', 'total_activity_time' ]);
+    processAnalytics('grades', [ 'current_score', 'current_grade', 'final_score', 'final_grade' ]);
+    if (typeof disableMissing === 'undefined' || disableMissing) {
+      checkMissing();
+    }
+    const shortFields = [];
+    fields.forEach(function(f) {
+      if (typeof f.disabled === 'undefined' || !f.disabled) {
+        shortFields.push(f);
+      }
+    });
+    return shortFields;
+
+    function processAnalytics(analyticKey, fieldKeys) {
+      if (analytics.indexOf(analyticKey) === -1) {
+        fieldKeys.forEach(function(f) {
+          if (fields.indexOf(`u.${f}`) > -1) {
+            fields[fields.indexOf(`u.${f}`)].disabled = true;
+          }
+        });
+      }
+    }
+
+    function checkMissing() {
+      fields.forEach(function(f) {
+        if (typeof f.disabled !== 'undefined' && f.disabled === true) {
+          return;
+        }
+        const field = fieldInfo(f);
+        let hasData = false;
+        switch (field.src) {
+        case 'a':
+          hasData = Object.keys(accessData).some(function(id) {
+            return hasSomeData(accessData[id], field.key);
+          });
+          break;
+        case 's':
+          hasData = hasSomeData(sectionData, field.key);
+          break;
+        case 'u':
+          hasData = hasSomeData(userData, field.key);
+          break;
+        default:
+          break;
+        }
+        if (!hasData) {
+          f.disabled = true;
+        }
+      });
+    }
+
+    function hasSomeData(data, key) {
+      const keys = Object.keys(data);
+      const hasKey = keys.some(function(id) {
+        return (typeof data[id][key] !== 'undefined' && data[id][key] !== null);
+      });
+      return hasKey;
     }
   }
 
   function createCSV() {
-    // for each value, you may specify
-    // name: human friendly name
-    // src: location in data
-    // fmt: special formatting instructions (date is recognized)
-    // disabled: set true to skip this value
-    const fields = [ {
-      'name' : 'User ID',
-      'src' : 'u.id'
-    }, {
-      'name' : 'Display Name',
-      'src' : 'u.name'
-    }, {
-      'name' : 'Sortable Name',
-      'src' : 'u.sortable_name'
-    }, {
-      'name' : 'Category',
-      'src' : 'a.asset_category'
-    }, {
-      'name' : 'Class',
-      'src' : 'a.asset_class_name'
-    }, {
-      'name' : 'Title',
-      'src' : 'a.readable_name'
-    }, {
-      'name' : 'Views',
-      'src' : 'a.view_score'
-    }, {
-      'name' : 'Participations',
-      'src' : 'a.participate_score'
-    }, {
-      'name' : 'Last Access',
-      'src' : 'a.last_access',
-      'fmt' : 'date'
-    }, {
-      'name' : 'First Access',
-      'src' : 'a.created_at',
-      'fmt' : 'date'
-    }, {
-      'name' : 'Action',
-      'src' : 'a.action_level'
-    }, {
-      'name' : 'Code',
-      'src' : 'a.asset_code'
-    }, {
-      'name' : 'Group Code',
-      'src' : 'a.asset_group_code'
-    }, {
-      'name' : 'Context Type',
-      'src' : 'a.context_type'
-    }, {
-      'name' : 'Context ID',
-      'src' : 'a.context_id'
-    }, {
-      'name' : 'Login ID',
-      'src' : 'u.login_id'
-    }, {
-      'name' : 'Email',
-      'src' : 'u.email',
-      'disabled' : true,
-    }, {
-      'name' : 'Section',
-      'src' : 'u.section_name',
-    }, {
-      'name' : 'Section ID',
-      'src' : 'u.section_id',
-    }, {
-      'name' : 'SIS Course ID',
-      'src' : 'u.sis_course_id',
-    }, {
-      'name' : 'SIS Section ID',
-      'src' : 'u.sis_section_id',
-    }, {
-      'name' : 'SIS User ID',
-      'src' : 'u.sis_user_id',
-    }, {
-      'name' : 'Last Activity',
-      'src' : 'u.last_activity_at',
-      'fmt' : 'date',
-      'disabled' : analytics.indexOf('activity') > -1 ? false : true,
-    }, {
-      'name' : 'Total Activity',
-      'src' : 'u.total_activity_time',
-      'fmt' : 'hours',
-      'disabled' : analytics.indexOf('activity') > -1 ? false : true,
-    }, {
-      'name' : 'Course Score',
-      'src' : 'u.current_score',
-      'disabled' : analytics.indexOf('grades') > -1 ? false : true,
-    }, {
-      'name' : 'Course Grade',
-      'src' : 'u.current_grade',
-      'disabled' : analytics.indexOf('grades') > -1 ? false : true,
-    } ];
-    let hasSis = false;
-    let userKeys = Object.keys(userData);
-    let j = 0;
-    while (j < userKeys.length && !hasSis) {
-      const id = userKeys[j];
-      if (typeof userData[id].sis_user_id !== 'undefined' && userData[id].sis_user_id) {
-        hasSis = true;
+    const fields = eliminateMissingFields(csvFields);
+    const hasSections = fields.some(function(f) {
+      return /^s\./.test(f.src);
+    });
+    const userKeys = Object.keys(userData);
+    userKeys.sort(function(a,b){
+      if (typeof userData[a].sortable_name !== 'undefined' && typeof userData[b].sortable_name !== 'undefined') {
+        return userData[a].sortable_name.localeCompare(userData[b].sortable_name);
+      } else {
+        return 0;
       }
-      j++;
-    }
+    });
     const CRLF = '\r\n';
-    const hdr = [];
-    const sisRegex = new RegExp('^[au][.]sis_');
     const stripSpaces = (typeof headingSpaces !== 'undefined') ? headingSpaces : ' ';
-    for (let k = 0; k < fields.length; k++) {
-      const e = fields[k];
-      e.sis = sisRegex.test(e.src);
-      if (e.sis && !hasSis) {
-        e.disabled = true;
-      }
-      if (!e.disabled) {
-        const name = e.name.replace(' ', stripSpaces);
-        hdr.push(name);
-      }
-    }
-    let t = hdr.join(',') + CRLF;
+    const hdr = fields.map(function(f) {
+      return f.name.replace(' ', stripSpaces);
+    });
+    const hdrTxt = hdr.join(',') + CRLF;
+    let dataTxt = '';
     const showStudentViews = typeof showViewStudent === 'undefined' ? false : showViewStudent;
     for (let j = 0; j < userKeys.length; j++) {
       const userId = userKeys[j];
+      dataTxt += getUserCSV(userId);
+    }
+    return dataTxt === '' ? false : `${hdrTxt}${dataTxt}`;
+
+    function getUserCSV(userId) {
       if (typeof accessData[userId] === 'undefined') {
-        continue;
+        return '';
       }
+      let t = '';
       const user = userData[userId];
-      if (user.section_id !== null && typeof sections[user.section_id] !== undefined) {
-        user.section_name = sections[user.section_id];
-      }
-      for (let i = 0; i < accessData[userId].length; i++) {
-        const item = accessData[userId][i];
-        // Skip viewing student enrollments unless enabled
+      const sectionInfo = createSectionInfo(user);
+      for (let j = 0; j < accessData[userId].length; j++) {
+        const item = accessData[userId][j];
         if (item.asset_category === 'roster' && item.asset_class_name === 'student_enrollment' && !showStudentViews) {
           continue;
         }
-        const row = [];
-        for (let k = 0; k < fields.length; k++) {
-          if (fields[k].disabled) {
-            continue;
-          }
-          const field = fields[k];
-          const fieldInfo = field.src.split('.');
-          let value = fieldInfo[0] == 'a' ? item[fieldInfo[1]] : user[fieldInfo[1]];
-          if (typeof value === 'undefined' || value === null) {
-            value = '';
-          } else {
-            if (typeof field.fmt !== 'undefined') {
-              switch (field.fmt) {
-              case 'date':
-                value = excelDate(value);
-                break;
-              case 'minutes':
-                value = parseInt(value) / 60;
-                break;
-              case 'hours':
-                value = parseInt(value) / 3600;
-                break;
-              default:
-                break;
-              }
-            }
-            if (typeof value === 'string') {
-              let quote = false;
-              if (value.indexOf('"') > -1) {
-                value = value.replace(/"/g, '""');
-                quote = true;
-              }
-              if (value.indexOf(',') > -1) {
-                quote = true;
-              }
-              if (quote) {
-                value = '"' + value + '"';
-              }
-            }
-          }
-          row.push(value);
+        for (let k = 0; k < sectionInfo.length; k++) {
+          t += getUserRow(user,item,sectionInfo[k]);
         }
-        t += row.join(',') + CRLF;
       }
+      return t;
     }
-    return t;
+
+    function createSectionInfo(user) {
+      const sections = [];
+      const sectionIds = user.section_ids.split(',');
+      let sectionCount = 1;
+      let separator = false;
+      if (/^[0-9]+$/.test(multipleSections)) {
+        if (hasSections && parseInt(multipleSections, 10) === 1) {
+          sectionCount = sectionIds.length;
+        }
+      } else {
+        separator = multipleSections || ', ';
+      }
+      for (let i = 0; i < sectionCount; i++) {
+        let section = {};
+        if (separator !== false && sectionIds.length > 1) {
+          sectionIds.forEach(function(s) {
+            const secPropKeys = Object.keys(sectionData[s]);
+            secPropKeys.forEach(function(key) {
+              const value = nullify(sectionData[s][key]);
+              if (typeof section[key] === 'undefined') {
+                section[key] = value;
+              } else if (section[key] !== value) {
+                section[key] = section[key] === null ? value : section[key] + separator + value;
+              }
+            });
+          });
+        } else {
+          const sectionId = sectionIds[i];
+          section = sectionData[sectionId];
+        }
+        sections.push(section);
+      }
+      return sections;
+    }
+
+    function getUserRow(user, item, section) {
+      const row = fields.map(function(f) {
+        const field = fieldInfo(f);
+        let value = null;
+        if (field.src === 's') {
+          value = getValue(section[field.key], f.fmt);
+        } else {
+          value = getValue(field.src === 'a' ? item[field.key] : user[field.key], f.fmt);
+        }
+        return addQuotes(value);
+      });
+      return row.join(',') + CRLF;
+    }
+
+    function getValue(value, fmt) {
+      if (typeof value === 'undefined' || value === null) {
+        value = '';
+      }
+      if (typeof fmt === 'undefined') {
+        return value;
+      }
+      switch (fmt) {
+      case 'date':
+        value = excelDate(value);
+        break;
+      case 'minutes':
+        value = parseInt(value, 10) / 60;
+        break;
+      case 'hours':
+        value = parseInt(value, 10) / 3600;
+        break;
+      default:
+        break;
+      }
+      return value;
+    }
+
+    function addQuotes(value) {
+      if (typeof value === 'string') {
+        let quote = false;
+        if (value.indexOf('"') > -1) {
+          value = value.replace(/"/g, '""');
+          quote = true;
+        }
+        if (value.indexOf(',') > -1) {
+          quote = true;
+        }
+        if (quote) {
+          value = `"${value}"`;
+        }
+      }
+      return value;
+    }
+
   }
 
   function excelDate(timestamp) {
@@ -699,50 +834,58 @@
       timestamp = timestamp.replace('Z', '.000Z');
       const dt = new Date(timestamp);
       if (typeof dt === 'object') {
-        d = dt.getFullYear() + '-' + pad(1 + dt.getMonth()) + '-' + pad(dt.getDate()) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()) + ':'
-            + pad(dt.getSeconds());
+        const dPart = [ dt.getFullYear(), pad(1 + dt.getMonth()), pad(dt.getDate()) ].join('-');
+        const tPart = [ pad(dt.getHours()), pad(dt.getMinutes()), pad(dt.getSeconds()) ].join(':');
+        d = `${dPart} ${tPart}`;
       }
     }
     return d;
 
     function pad(n) {
-      return n < 10 ? '0' + n : n;
+      return n < 10 ? `0${n}` : n;
     }
   }
 
+  function fieldInfo(field) {
+    const info = field.src.split('.');
+    return {
+      'src' : info[0],
+      'key' : info[1],
+    };
+  }
+
   function progressbar(x, n) {
-      if (typeof x === 'undefined' || typeof n == 'undefined') {
-        const dialog = document.getElementById('jj_progress_dialog');
-        if (!dialog) {
-          $('body').append('<div id="jj_progress_dialog"></div>');
-          $('#jj_progress_dialog').append('<div id="jj_progressbar"></div>');
-          $('#jj_progress_dialog').dialog({
-            'title' : 'Fetching Access Reports',
-            'autoOpen' : false,
-            'buttons' : [ {
-              'text' : 'Cancel',
-              'click' : function() {
-                $(this).dialog('close');
-                abortAll();
-                $('#jj_access_report').one('click', setupBottleneck);
-              }
-            } ]
-          });
-        }
-        if ($('#jj_progress_dialog').dialog('isOpen')) {
-          $('#jj_progress_dialog').dialog('close');
-        } else {
-          $('#jj_progressbar').progressbar({
-            'value' : false
-          });
-          $('#jj_progress_dialog').dialog('open');
-        }
-      } else {
-        if (!aborted) {
-          const val = n > 0 ? Math.round(100 * x / n) : false;
-          $('#jj_progressbar').progressbar('option', 'value', val);
-        }
+    if (typeof x === 'undefined' || typeof n == 'undefined') {
+      const dialog = document.getElementById('jj_progress_dialog');
+      if (!dialog) {
+        $('body').append('<div id="jj_progress_dialog"></div>');
+        $('#jj_progress_dialog').append('<div id="jj_progressbar"></div>');
+        $('#jj_progress_dialog').dialog({
+          'title' : 'Fetching Access Reports',
+          'autoOpen' : false,
+          'buttons' : [ {
+            'text' : 'Cancel',
+            'click' : function() {
+              $(this).dialog('close');
+              abortAll();
+            },
+          }, ],
+        });
       }
+      if ($('#jj_progress_dialog').dialog('isOpen')) {
+        $('#jj_progress_dialog').dialog('close');
+      } else {
+        $('#jj_progressbar').progressbar({
+          'value' : false,
+        });
+        $('#jj_progress_dialog').dialog('open');
+      }
+    } else {
+      if (!aborted) {
+        const val = n > 0 ? Math.round(100 * x / n) : false;
+        $('#jj_progressbar').progressbar('option', 'value', val);
+      }
+    }
   }
 
   function abortAll() {
@@ -750,6 +893,36 @@
       limiter.stop();
     }
     aborted = true;
+    activateLink();
+  }
+
+  function initializeGlobals() {
+    const sectionKeys = Object.keys(sectionData);
+    if (sectionKeys.length > 0) {
+      sectionKeys.forEach(function(key) {delete sectionData[key]});
+    }
+    const userKeys = Object.keys(userData);
+    if (userKeys.length > 0) {
+      userKeys.forEach(function(key) {delete userData[key]});
+    }
+    const accessKeys= Object.keys(accessData);
+    if (accessKeys.length > 0) {
+      accessKeys.forEach(function(key) {delete accessData[key]});
+    }
+    aborted = false;
+    userFetchCount = 0;
+    userFetchTotal = 0;
+    minimumRateRemaining = null;
+    maximumRequestCost = null;
+    displaySummary = true;
+    startTime = 0;
+    finishTime = 0;
+  }
+
+  function activateLink() {
+    document.getElementById(uniqueLinkId).addEventListener('click', setupBottleneck, {
+      'once' : true,
+    });
   }
 
 })();
