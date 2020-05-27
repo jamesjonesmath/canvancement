@@ -98,7 +98,7 @@
    * maxConcurrent specifies the maximum number of concurrent requests that can
    * be made.
    */
-  const maxConcurrent = 40;
+  const maxConcurrent = 25;
 
   /**
    * Set debug true for help troubleshooting the process. Leave it false for
