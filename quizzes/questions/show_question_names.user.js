@@ -3,105 +3,139 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Appends the name of the question to the Question number when viewing quiz results
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
-// @version     3
+// @version     4
 // @grant none
 // ==/UserScript==
-(function() {
+/**
+ * This script uses a request cache mode of force-cache.
+ * This will fetch information from the cache to make things go much, much faster,
+ * at the expense of possibly stale data.
+ *
+ * If you update the quiz question names after you have used this script,
+ * then the changes will not be reflected. This is a naive approach designed
+ * for speed. The delay with Canvas fetching the data for every student in SpeedGrader
+ * was noticeable.
+ *
+ * If you need to refresh the page, then clear the browser's cache with Shift+Ctrl+Del.
+ * Alternatively, you can set the forceCache variable to false to use the browser's default behavior.
+ */
+(function () {
   'use strict';
-  fetchQuestionNames();
+
+  const forceCache = true;
+
+  fetchQuestionNames()
+    .then(displayQuestionNames)
+    .catch(e => console.log(e));
+
   function fetchQuestionNames() {
-    try {
-      var form = document.getElementById('update_history_form');
+    return new Promise((resolve, reject) => {
+      const form = document.getElementById('update_history_form');
       if (!form) {
-        return;
+        reject('No form on page');
       }
-      var actionRegex = new RegExp('/courses/([0-9]+)/quizzes/([0-9]+)/submissions/([0-9]+)$');
-      var match = actionRegex.exec(form.action);
+      const actionRegex = new RegExp(
+        '/courses/([0-9]+)/quizzes/([0-9]+)/submissions/([0-9]+)$'
+      );
+      const match = actionRegex.exec(form.action);
       if (!match) {
-        return;
+        reject('Action has unexpected pattern');
       }
-      var courseId = match[1];
-      var quizId = match[2];
-      var submissionId = match[3];
-      var submissionVersion = form.querySelector('input[name="submission_version_number"]');
-      var url = '/api/v1/courses/' + courseId + '/quizzes/' + quizId + '/questions';
-      var parms = {
-        'quiz_submission_id' : submissionId,
-        'quiz_submission_attempt' : submissionVersion.value,
-        'per_page' : 50
-      };
-      $.getJSON(url, parms, function(data, status, jqXHR) {
-        paginationUrls(jqXHR, displayQuestionNames);
-        displayQuestionNames(data);
-      });
-    } catch (e) {
-      console.log(e);
-    }
+      const courseId = match[1];
+      const quizId = match[2];
+      const url = `/api/v1/courses/${courseId}/quizzes/${quizId}/questions?per_page=50`;
+      resolve(getJson(url));
+    });
   }
+
   function displayQuestionNames(data) {
-    try {
-      var question, titles, title;
-      var i, j, k;
-      var titleRegEx = new RegExp('^Question [0-9]+$');
-      for (i = 0; i < data.length; i++) {
-        if (data[i].question_name && data[i].question_name !== 'Question') {
-          question = document.getElementById('question_' + data[i].id);
-          titles = question.querySelectorAll('div.header span.name.question_name');
-          for (k = 0; k < titles.length; k++) {
-            title = titles[k];
-            for (j = 0; j < title.childNodes.length; j++) {
-              if (title.childNodes[j].textContent && titleRegEx.test(title.childNodes[j].textContent)) {
-                title.childNodes[j].textContent += ' : ' + data[i].question_name;
+    return new Promise((resolve, reject) => {
+      if (!data) {
+        reject('No data');
+      }
+      const titleRegEx = new RegExp('^Question [0-9]+$');
+      for (let i = 0; i < data.length; i++) {
+        const questionName = data[i].question_name;
+        if (questionName && questionName !== 'Question') {
+          const question = document.getElementById('question_' + data[i].id);
+          if (!question) {
+            continue;
+          }
+          const titles = question.querySelectorAll(
+            'div.header span.name.question_name'
+          );
+          for (let k = 0; k < titles.length; k++) {
+            const title = titles[k];
+            for (let j = 0; j < title.childNodes.length; j++) {
+              const existingText = title.childNodes[j].textContent;
+              if (
+                existingText &&
+                titleRegEx.test(existingText) &&
+                existingText !== data[i].question_name
+              ) {
+                title.childNodes[j].textContent += `: ${questionName}`;
               }
             }
           }
         }
       }
-    } catch (e) {
-      console.log(e);
-    }
+      resolve();
+    });
   }
-  function paginationUrls(jqXHR, callback) {
-    var urls = null;
-    try {
-      var linkHeader = jqXHR.getResponseHeader('link');
-      if (linkHeader) {
-        var link = {};
-        var validLinks = [ 'current', 'first', 'next', 'last' ];
-        var links = linkHeader.split(',');
-        var urlRegex = new RegExp('<(.*)>');
-        var relRegex = new RegExp('rel="([a-z]+)"');
-        var urlMatch;
-        var relMatch;
-        for (var i = 0; i < links.length; i++) {
-          relMatch = relRegex.exec(links[i]);
-          urlMatch = urlRegex.exec(links[i]);
-          if (relMatch && urlMatch) {
-            var rel = relMatch[1];
-            if (validLinks.indexOf(rel) > -1) {
-              link[rel] = urlMatch[1];
-            }
+
+  function getJson(url) {
+    const init = {
+      credentials: 'same-origin',
+      headers: new Headers({
+        accept: 'application/json',
+      }),
+    };
+    if (forceCache) {
+      init.cache = 'force-cache';
+    }
+    return fetch(url, init)
+      .then(response => {
+        const links = checkLinkHeader(response.headers.get('link'));
+        if (typeof links !== 'undefined' && links.length) {
+          const promises = links.map(u => getJson(u));
+          promises.unshift(response.json());
+          return Promise.all(promises).then(values => {
+            const data = [];
+            values.map(v => Array.prototype.push.apply(data, v));
+            return Promise.resolve(data);
+          });
+        } else {
+          return response.json();
+        }
+      })
+      .catch(e => new Error(e));
+  }
+
+  function checkLinkHeader(hdrText) {
+    if (typeof hdrText !== 'string') {
+      return;
+    }
+    const linkHeaderRegex = new RegExp('<([^>]+)>; rel="(next|last)"', 'g');
+    const links = {};
+    const urls = [];
+    let link = null;
+    while ((link = linkHeaderRegex.exec(hdrText)) !== null) {
+      const linkType = link[2];
+      links[linkType] = new URL(link[1]);
+    }
+    if (typeof links.next !== 'undefined') {
+      if (links.next.searchParams.has('page')) {
+        const a = parseInt(links.next.searchParams.get('page'));
+        if (a == 2 && typeof links.last !== 'undefined') {
+          const b = parseInt(links.last.searchParams.get('page'));
+          for (let i = a; i <= b; i++) {
+            links.next.searchParams.set('page', i);
+            urls.push(links.next.toString());
           }
         }
-        if (link.next) {
-          urls = [];
-          var pageRegex = new RegExp('^(.*[?&]page=)([0-9]+)(.*)$');
-          var nextMatch = pageRegex.exec(link.next);
-          var lastMatch = pageRegex.exec(link.last);
-          var startPage = nextMatch[2];
-          var endPage = lastMatch[2];
-          var url;
-          for (var j = startPage; j <= endPage; j++) {
-            url = nextMatch[1] + j + nextMatch[3];
-            urls.push(url);
-            if (typeof callback === 'function') {
-              $.getJSON(url, callback);
-            }
-          }
-        }
+      } else {
+        urls.push(links.next.toString());
       }
-    } catch (e) {
-      console.log(e);
     }
     return urls;
   }
