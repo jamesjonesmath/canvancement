@@ -6,6 +6,6 @@ It replaces the names and email addresses with an alias so that you can make dem
 
 This extension only works with Firefox.
 
-* Name: [New Analytics Anonymizer](analytics/new-analytics-anonymizer/)
+* Name: [New Analytics Anonymizer](new-analytics-anonymizer/)
 * Type: browser extension
 * Browsers: Firefox only
