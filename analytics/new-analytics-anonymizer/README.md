@@ -64,9 +64,11 @@ In reality, you will not achieve the maximum because of the way the process is d
 If you view so many students that it cannot generate new names, the script will start reusing names.
 
 ## About
-This project originally began because my wife had two New Analytics demonstrations in one week and thought she was going to have to make a video of New Analytics, edit the
+This project originally began because my wife had two New Analytics demonstrations coming up and thought she was going to have to make a video of New Analytics, edit the
 video to blur out any student information, and then just play the video during the presentations. She really wanted to be able to present live, rather than just showing
 a video.
+
+Some people will have a separate course full of fake users to make these videos, but they do not represent real usage. My wife really wanted to use a real course for her presentations.
 
 Previously, we had attempted running New Analytics from the beta instance of Canvas and changing all of the student names in Beta to make them anonymous.
 New Analytics is only updated once a day and we missed the update. It turns out that it wouldn't have mattered anyway because 
