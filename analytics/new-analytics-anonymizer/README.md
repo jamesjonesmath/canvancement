@@ -52,9 +52,9 @@ even close Canvas completely (while leaving Firefox open) and when you come back
 There are three settings that you can configure in the analytics.js file. If you edit them after loading the extension, you will need to reload the extension.
 
 * **emailFormat** determines what you want the username portion of the email address will look like. The username portion is derived from the anonymous name. The examples below show how "Wild Feather" would appear.
-  * **flast** is the first initial followed by the last name (wfeather). This is the default unless you change the configuration.
+  * **flast** is the first initial followed by the last name (wfeather)
   * **lastf** is the last name followed by the first initial (featherw)
-  * **first_last** is the first name, underscore, and then last name (wild_feather)
+  * **first_last** is the first name, underscore, and then last name (wild_feather). This is the default unless you change the configuration.
   * **last_first** is the last name, underscore, and then first name (feather_wild)
 * **defaultDomain** determines the domain name to use for the email address.
   * **empty string** `''` or `null` will keep the existing domain of the user.
