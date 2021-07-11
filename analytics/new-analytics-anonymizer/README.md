@@ -12,7 +12,7 @@ Chrome and other browsers do not support modifying the response without hacks li
 
 ## Installation
 You do not want this script to run on a permanent basis. It is loaded as a temporary extension that will exist until you close Firefox or you remove it.
-1. Create a folder on your hard drive and place the **manifest.json** and **analytics.js** files from this repository there.
+1. Create a folder on your hard drive and place the **manifest.json** and **analytics.js** files from this repository there. You can right click and choose "Save Link As" to do this.
 2. (Optional) Edit the analytics.js file and make any configuration changes desired.
 3. In the Firefox location bar, type **about:debugging** and press enter
 4. On the left side, click on **This Firefox**
