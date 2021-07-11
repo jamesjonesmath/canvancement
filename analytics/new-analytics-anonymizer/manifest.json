@@ -1,0 +1,16 @@
+{
+  "manifest_version": 2,
+  "name": "New Analytics Anonymizer",
+  "version": "1.0.0",
+  "description": "Anonymize the names from Canvas New Analytics",
+  "homepage_url": "https://github.com/jamesjonesmath/canvancement/tree/master/analytics/new-analytics-anonymizer",
+  "background": {
+    "scripts": ["analytics.js"]
+  },
+  "permissions": [
+    "storage",
+    "webRequest",
+    "webRequestBlocking",
+    "https://canvas-analytics-iad-prod.inscloudgate.net/v2/graphql"
+  ]
+}
