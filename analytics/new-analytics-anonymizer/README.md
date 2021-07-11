@@ -12,14 +12,28 @@ Chrome and other browsers do not support modifying the response without hacks li
 
 ## Installation
 You do not want this script to run on a permanent basis. It is loaded as a temporary extension that will exist until you close Firefox or you remove it.
-1. Create a folder on your hard drive and place the **manifest.json** and **analytics.js** files from this repository there. You can right click and choose "Save Link As" to do this.
-2. (Optional) Edit the analytics.js file and make any configuration changes desired.
-3. In the Firefox location bar, type **about:debugging** and press enter
-4. On the left side, click on **This Firefox**
-5. Under Temporary Extensions, click on **Load Temporary Add-on**
-6. Navigate to the folder where you saved the files, select any file in the folder, and click **Open**.
 
-Steps 3-6 will need repeated any time you open Firefox and want to use this script. This is not something that you want permanently installed or you will not be able to actually use New Analytics.
+### Step 1: Download Files (any browser)
+If Firefox is not your normal browser, then I recommend not using it for this step.
+1. Create a folder on your hard drive
+2. Download the **manifest.json** and **analytics.js** files from this repository and save them in that folder.
+  1. For each file, left-click on the name of the file
+  2. Right-click on the Raw button
+  3. Choose Save Link As. If your browser suggests a file type of "Text Document (\*.js)" then see the note below.
+
+Firefox tried to save the analytics.js file as a Text Document and it added a .txt extension to name it analytics.js.txt. You need to rename it to just analytics.js for it to work. Chrome did not have that issue, so I recommend Chrome over Firefox for this step.
+
+Optionally edit the analytics.js file and make any configuration changes desired.
+
+### Step 2: Install Add On (Firefox only)
+This needs to be done inside Firefox.
+
+1. In the Firefox location bar, type **about\:debugging** and press enter
+2. On the left side, click on **This Firefox**
+3. Under Temporary Extensions, click on **Load Temporary Add-on**
+4. Navigate to the folder where you saved the files, select any file in the folder, and click **Open**.
+
+These four items in Step 2 will need repeated any time you open Firefox and want to use this script. This is not something that you want permanently installed or you will not be able to actually use New Analytics.
 
 ## Instructions
 After installing the temporary extension, view the New Analytics from any Canvas Course. That's it.
