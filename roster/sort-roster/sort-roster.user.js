@@ -5,7 +5,7 @@
 // @include     https://*.instructure.com/courses/*/users
 // @require     https://cdn.jsdelivr.net/combine/npm/jquery@3.6.0,npm/tablesorter@2.31.1
 // @author      James Jones
-// @version     8
+// @version     9
 // @grant       none
 // ==/UserScript==
 /* global ENV, jQuery */
@@ -201,7 +201,7 @@
   function parseHour(hr = '0', ampm = null) {
     let hour = parseInt(hr, 10);
     if (ampm) {
-      if (hr === 12) {
+      if (hour === 12) {
         hour = 0;
       }
       if (ampm.toLowerCase() === 'pm') {
