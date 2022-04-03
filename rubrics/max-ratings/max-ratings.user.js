@@ -4,6 +4,7 @@
 // @namespace    https://github.com/jamesjonesmath/canvancement
 // @version      1
 // @include      https://*.instructure.com/courses/*/gradebook/speed_grader?*
+// @supportURL   https://community.canvaslms.com/t5/Higher-Ed-Canvas-Users/Autofill-Maximum-Rubric-Ratings/ba-p/518278
 // @grant        none
 // ==/UserScript==
 /* global ENV */
