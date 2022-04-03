@@ -23,6 +23,7 @@ This is useful with the [QuizWiz](../quizzes/quizwiz) Canvancement that allows y
 This script will automatically run on any Canvas instance hosted at ``*.instructure.com``. If you have a custom domain, then you will need to modify the `\\ @include` line to refer to your site.
 
 ## References
+* [Autofill Maximum Rubric Ratings](https://community.canvaslms.com/t5/Higher-Ed-Canvas-Users/Autofill-Maximum-Rubric-Ratings/ba-p/518278) is the blog post in the Canvas Community and where you can get support
 * [Default Score on Rubric in SpeedGrader](https://community.canvaslms.com/t5/Idea-Conversations/Default-Score-on-Rubric-in-SpeedGrader/idc-p/518215) is a feature request for this functionality.
 * [When SpeedGrading an assignment, initialize points to rubric's max pts](https://community.canvaslms.com/t5/Canvas-Question-Forum/When-SpeedGrading-an-assignment-initialize-points-to-rubric-s/m-p/182850) was where Phil and I discussed the problem and found the work around.
 * [Is there a way to automatically choose all the highest values on a rubric?](https://community.canvaslms.com/t5/Canvas-Question-Forum/Is-there-a-way-to-automatically-choose-all-the-highest-values-on/m-p/143618) was a question about whether this was possible.
