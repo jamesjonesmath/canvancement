@@ -2,7 +2,7 @@
 // @name         Rubric Max Ratings
 // @description  Autofill rubric with maximum points
 // @namespace    https://github.com/jamesjonesmath/canvancement
-// @version      1
+// @version      2
 // @include      https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @supportURL   https://community.canvaslms.com/t5/Higher-Ed-Canvas-Users/Autofill-Maximum-Rubric-Ratings/ba-p/518278
 // @grant        none
@@ -12,16 +12,9 @@
   'use strict';
 
   const speedGraderRegex = /^\/courses\/\d+\/gradebook\/speed_grader$/;
-  if (!speedGraderRegex.test(window.location.pathname)) {
-    return;
+  if (speedGraderRegex.test(window.location.pathname)) {
+    rubricObserver();
   }
-
-  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-    window.HTMLInputElement.prototype,
-    'value'
-  ).set;
-
-  rubricObserver();
 
   function rubricObserver(mutations = null, observer = null) {
     const rubric = document.getElementById('rubric_full');
@@ -43,7 +36,13 @@
     const th = document.querySelector(
       '#rubric_full div.rubric_container.rubric.assessing div.react-rubric table thead > tr:last-child th:last-child'
     );
-    if (!th) {
+    const input = document.querySelector(
+      '#rubric_full div.rubric_container.rubric.assessing div.react-rubric table tbody input[type=text]'
+    );
+    const rating = document.querySelector(
+      '#rubric_full div.rubric_container.rubric.assessing div.react-rubric table tbody > tr div.rating-tier'
+    );
+    if (!th || !(input || rating)) {
       return;
     }
     const button = document.createElement('button');
@@ -56,19 +55,46 @@
   }
 
   function maxRatings(event) {
-    let i = 0;
     event.target.style.pointerEvents = 'none';
-    document
-      .getElementById('rubric_full')
-      .querySelectorAll('tbody input[type=text]')
-      .forEach(e => {
-        if (!e.value) {
-          const points = ENV.rubric.criteria[i].points || 0;
-          nativeInputValueSetter.call(e, points);
-          e.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        i++;
-      });
+    const inputs = document.querySelectorAll(
+      '#rubric_full div.rubric_container.rubric.assessing div.react-rubric table tbody input[type=text]'
+    );
+    if (inputs.length > 0) {
+      changeText(inputs);
+    } else {
+      changeRatings();
+    }
     event.target.style.pointerEvents = null;
+  }
+
+  function changeText(items = []) {
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value'
+    ).set;
+    let i = 0;
+    items.forEach(e => {
+      if (!e.value) {
+        const points = ENV.rubric.criteria[i].points || 0;
+        nativeInputValueSetter.call(e, points);
+        e.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      i++;
+    });
+  }
+
+  function changeRatings() {
+    const criteria = document.querySelectorAll(
+      '#rubric_full div.rubric_container.rubric.assessing div.react-rubric table tbody > tr'
+    );
+    for (const criterion of criteria) {
+      const ratings = criterion.querySelectorAll('td div.rating-tier');
+      const hasSelected = Array.from(ratings).some(e =>
+        e.classList.contains('selected')
+      );
+      if (!hasSelected) {
+        ratings[0].dispatchEvent(new Event('click', { bubbles: true }));
+      }
+    }
   }
 })();
