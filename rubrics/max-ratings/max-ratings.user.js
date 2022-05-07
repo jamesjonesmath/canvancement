@@ -2,7 +2,7 @@
 // @name         Rubric Max Ratings
 // @description  Autofill rubric with maximum points
 // @namespace    https://github.com/jamesjonesmath/canvancement
-// @version      3
+// @version      4
 // @include      https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @supportURL   https://community.canvaslms.com/t5/Higher-Ed-Canvas-Users/Autofill-Maximum-Rubric-Ratings/ba-p/518278
 // @grant        none
@@ -18,6 +18,9 @@
 
   function rubricObserver(_mutations = null, observer = null) {
     const rubric = document.getElementById('rubric_full');
+    if (!rubric) {
+      return;
+    }
     if (observer === null) {
       const obs = new MutationObserver(rubricObserver);
       obs.observe(rubric, { childList: true, subtree: true });
