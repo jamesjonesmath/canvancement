@@ -11,6 +11,7 @@ Display the names of the students who have different due dates (assignment overr
 ## Assign Intra-Group Peer Reviews
 Assigns peer reviews to all of the members of a student's group.
 
-* Name: [assignments/show-overrides](show-overrides/)
+* Name: [assignments/intragroup-peer-reviews](intragroup-peer-reviews/)
 * Type: [user script](../USERSCRIPTS.md)
 * Browsers: Firefox, Chrome, Safari
+
