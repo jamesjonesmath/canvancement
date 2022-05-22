@@ -1,15 +1,15 @@
 //==UserScript==
-//@name        Access Report Data
-//@namespace   https://github.com/jamesjonesmath/canvancement
-//@description Generates a .CSV download of the access report for all students in a course
-//@include     https://*.instructure.com/courses/*/users
-//@require     https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js
-//@require     https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js
-//@version     15
-//@grant       none
-//@supportURL  https://community.canvaslms.com/docs/DOC-6061-obtaining-and-using-access-report-data-for-an-entire-course
+// @name        Access Report Data
+// @namespace   https://github.com/jamesjonesmath/canvancement
+// @description Generates a .CSV download of the access report for all students in a course
+// @match       https://*.instructure.com/courses/*/users
+// @require     https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js
+// @require     https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js
+// @version     16
+// @grant       none
+// @supportURL  https://community.canvaslms.com/docs/DOC-6061-obtaining-and-using-access-report-data-for-an-entire-course
 //==/UserScript==
-/* global ENV,Bottleneck,saveAs */
+/* global $,ENV,Bottleneck,saveAs */
 
 (function() {
   'use strict';
@@ -432,7 +432,8 @@
           results.push(url.toString());
         }
       }
-    } else {
+    }
+    if (results.length === 0) {
       results.push(links.next);
     }
     return results.length > 0 ? results : false;
