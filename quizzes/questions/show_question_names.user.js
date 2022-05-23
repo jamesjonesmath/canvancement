@@ -3,7 +3,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Appends the name of the question to the Question number when viewing quiz results
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
-// @version     4
+// @version     5
 // @grant none
 // ==/UserScript==
 /**
@@ -125,15 +125,16 @@
     }
     if (typeof links.next !== 'undefined') {
       if (links.next.searchParams.has('page')) {
-        const a = parseInt(links.next.searchParams.get('page'));
-        if (a == 2 && typeof links.last !== 'undefined') {
-          const b = parseInt(links.last.searchParams.get('page'));
+        const a = parseInt(links.next.searchParams.get('page'), 10);
+        if (a === 2 && typeof links.last !== 'undefined') {
+          const b = parseInt(links.last.searchParams.get('page'), 10);
           for (let i = a; i <= b; i++) {
             links.next.searchParams.set('page', i);
             urls.push(links.next.toString());
           }
         }
-      } else {
+      }
+      if (urls.length === 0) {
         urls.push(links.next.toString());
       }
     }
