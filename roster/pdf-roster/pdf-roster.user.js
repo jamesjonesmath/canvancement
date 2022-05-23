@@ -139,16 +139,16 @@
             var matches = shortDateTimeRegex.exec(s);
             if (matches) {
               var month = months.indexOf(matches[1]) / 4 + 1;
-              var day = parseInt(matches[2]);
-              var year = parseInt(matches[3]) || thisYear;
-              var hour = parseInt(matches[4]);
+              var day = parseInt(matches[2], 10);
+              var year = parseInt(matches[3], 10) || thisYear;
+              var hour = parseInt(matches[4], 10);
               if (hour == 12) {
                 hour = 0;
               }
               if (matches[6] == 'pm') {
                 hour += 12;
               }
-              var min = parseInt(matches[5]);
+              var min = parseInt(matches[5], 10);
               tm = new Date(year, month, day, hour, min, 0).toISOString();
             }
             return tm;
@@ -163,9 +163,9 @@
             var tm = '';
             var matches = extendedTimeRegex.exec(s);
             if (matches) {
-              var hrs = parseInt(matches[1]) || 0;
-              var mins = parseInt(matches[2]);
-              var secs = parseInt(matches[3]);
+              var hrs = parseInt(matches[1], 10) || 0;
+              var mins = parseInt(matches[2], 10);
+              var secs = parseInt(matches[3], 10);
               tm = 3600 * hrs + 60 * mins + secs;
             }
             return tm;
