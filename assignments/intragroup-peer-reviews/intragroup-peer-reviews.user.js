@@ -4,7 +4,7 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @match       https://*.instructure.com/courses/*/assignments/*/peer_reviews
 // @require     https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js
-// @version     2
+// @version     3
 // @grant       none
 // ==/UserScript==
 /* global Bottleneck */
@@ -344,15 +344,16 @@
     }
     if (typeof links.next !== 'undefined') {
       if (links.next.searchParams.has('page')) {
-        const a = parseInt(links.next.searchParams.get('page'));
-        if (a == 2 && typeof links.last !== 'undefined') {
-          const b = parseInt(links.last.searchParams.get('page'));
+        const a = parseInt(links.next.searchParams.get('page'), 10);
+        if (a === 2 && typeof links.last !== 'undefined') {
+          const b = parseInt(links.last.searchParams.get('page'), 10);
           for (let i = a; i <= b; i++) {
             links.next.searchParams.set('page', i);
             urls.push(links.next.toString());
           }
         }
-      } else {
+      }
+      if (urls.length === 0) {
         urls.push(links.next.toString());
       }
     }
