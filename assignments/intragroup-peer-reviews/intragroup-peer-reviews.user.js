@@ -262,7 +262,7 @@
             for (let j = 0; j < assignedList.length; j++) {
               const assignSpan = assignedList[j].querySelector('span.user_id');
               if (assignSpan) {
-                const assigneeId = parseInt(assignSpan.textContent);
+                const assigneeId = parseInt(assignSpan.textContent, 10);
                 reviews.push(assigneeId);
               }
             }
