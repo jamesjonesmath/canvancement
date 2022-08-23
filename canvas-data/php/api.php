@@ -98,7 +98,7 @@ class CanvasDataAPI {
       }
       $dst[] = $token;
     }
-    $route = sprintf( '%s %s', $method, join( '/', $dst ) );
+    $route = sprintf( '%s %s', $method, implode( '/', $dst ) );
     return $route;
   }
 
@@ -115,8 +115,8 @@ class CanvasDataAPI {
     $query = '';
     if (! empty( $u['query'] )) {
       $parms = explode( '&', $u['query'] );
-      ksort( $parms );
-      $query = join( '&', $parms );
+      sort( $parms );
+      $query = implode( '&', $parms );
     }
     $parts = array ( 
         isset( $opts['method'] ) ? $opts['method'] : 'GET', 
@@ -128,7 +128,7 @@ class CanvasDataAPI {
         $timestamp, 
         $this->_api_secret 
     );
-    $message = join( "\n", $parts );
+    $message = implode( "\n", $parts );
     return base64_encode( hash_hmac( 'sha256', $message, $this->_api_secret, TRUE ) );
   }
 
