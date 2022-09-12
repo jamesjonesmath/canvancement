@@ -2,7 +2,7 @@
 // @name         Canvas Chat CSS Tweaks
 // @namespace    https://github.com/jamesjonesmath/canvancement
 // @description  Tweaks to Canvas Chat
-// @version      1.0
+// @version      1
 // @author       James Jones <james@richland.edu>
 // @match        https://chat.instructure.com/*
 // @grant        none
