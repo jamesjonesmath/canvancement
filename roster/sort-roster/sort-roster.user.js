@@ -2,10 +2,10 @@
 // @name        Sort the Roster
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Allows sorting on any column of the Canvas Course Roster
-// @include     https://*.instructure.com/courses/*/users
-// @require     https://cdn.jsdelivr.net/combine/npm/jquery@3.6.0,npm/tablesorter@2.31.1
+// @match       https://*.instructure.com/courses/*/users
+// @require     https://cdn.jsdelivr.net/combine/npm/jquery@3.6.0,npm/tablesorter@2.31.3
 // @author      James Jones
-// @version     9
+// @version     10
 // @grant       none
 // ==/UserScript==
 /* global ENV, jQuery */
@@ -184,7 +184,7 @@
     if (s.trim() === '') {
       return 0;
     }
-    const timeRegex = /(?:(am|pm) )?(\d+)(?:[:.](\d{2}))(am|pm)?$/i;
+    const timeRegex = /(?:(am|pm) )?(\d+)(?:[:.](\d{2}))*(am|pm)?$/i;
     let hour = 0;
     let min = 0;
     const t = extractDateTooltip(s, cell);
@@ -249,9 +249,9 @@
     let tm = '';
     const matches = extendedTimeRegex.exec(s);
     if (matches) {
-      var hrs = parseInt(matches[1], 10) || 0;
-      var mins = parseInt(matches[2], 10);
-      var secs = parseInt(matches[3], 10);
+      const hrs = parseInt(matches[1], 10) || 0;
+      const mins = parseInt(matches[2], 10);
+      const secs = parseInt(matches[3], 10);
       tm = 3600 * hrs + 60 * mins + secs;
     }
     return tm;
