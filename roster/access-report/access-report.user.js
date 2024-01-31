@@ -1,14 +1,14 @@
-//==UserScript==
+// ==UserScript==
 // @name        Access Report Data
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the access report for all students in a course
 // @match       https://*.instructure.com/courses/*/users
 // @require     https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js
 // @require     https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js
-// @version     16
+// @version     17
 // @grant       none
 // @supportURL  https://community.canvaslms.com/docs/DOC-6061-obtaining-and-using-access-report-data-for-an-entire-course
-//==/UserScript==
+// ==/UserScript==
 /* global $,ENV,Bottleneck,saveAs */
 
 (function() {
