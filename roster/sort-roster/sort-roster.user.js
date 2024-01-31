@@ -5,12 +5,26 @@
 // @match       https://*.instructure.com/courses/*/users
 // @require     https://cdn.jsdelivr.net/combine/npm/jquery@3.6.0,npm/tablesorter@2.31.3
 // @author      James Jones
-// @version     10
-// @grant       none
+// @version     11
+// @grant       GM_addStyle
 // ==/UserScript==
 /* global ENV, jQuery */
 (function () {
   'use strict';
+
+   GM_addStyle(`
+      .sort-icon-none:after {
+          content: '↕';
+      }
+      .sort-icon-up:after, .sort-icon-down:after {
+          font-style: normal;
+          content: '▲';
+      }
+      .sort-icon-down:after {
+          display: inline-block;
+          transform: rotate(180deg);
+      }
+  `);
 
   const pageRegex = /^\/courses\/\d+\/users\/?$/;
   if (!pageRegex.test(window.location.pathname)) {
@@ -85,6 +99,7 @@
     const sortHeaders = {};
     const styles = {};
     tableColumns.forEach((col, c) => {
+      const nthchildSelector = `:nth-child(${1 + c})`;
       if (col.children.length > 0) {
         sortHeaders[c] = { sorter: false, parser: false };
       } else if (c === columns.lastActivity || c === columns.totalActivity) {
@@ -93,9 +108,11 @@
           empty: 'bottom',
           sortInitialOrder: 'desc',
         };
-        const nthchildSelector = `:nth-child(${1 + c})`;
         styles[`table.roster tr th${nthchildSelector}`] = `text-align: right;`;
         styles[`table.roster tr td${nthchildSelector}`] = `text-align: right;`;
+        styles[`table.roster tr th${nthchildSelector}`] = `cursor: pointer;`;
+      } else {
+        styles[`table.roster tr th${nthchildSelector}`] = `cursor: pointer;`;
       }
     });
     addCSS(styles);
@@ -119,6 +136,10 @@
     jq('table.roster').tablesorter({
       sortReset: true,
       headers: sortHeaders,
+      cssIconAsc: 'sort-icon-up',
+      cssIconDesc: 'sort-icon-down',
+      cssIconNone: 'sort-icon-none',
+      headerTemplate: '{content} {icon}'
     });
   }
 
@@ -152,11 +173,19 @@
 
   function watchForAdditionalRows() {
     const sel = document.querySelector('table.roster tbody');
+    const countLabel = document.querySelector('.ui-tabs-anchor');
+    const countText = countLabel.textContent;
     let rowsInRosterTable = sel.rows.length;
+    window.scrollTo(window.scrollX, window.scrollY - 1);
+    window.scrollTo(window.scrollX, window.scrollY + 1);
+    countLabel.textContent = `${countText} (${rowsInRosterTable})`;
     if (rowsInRosterTable >= 50) {
       const observer = new MutationObserver(function () {
         if (sel.rows.length !== rowsInRosterTable) {
           rowsInRosterTable = sel.rows.length;
+          window.scrollTo(window.scrollX, window.scrollY - 1);
+          window.scrollTo(window.scrollX, window.scrollY + 1);
+          countLabel.textContent = `${countText} (${rowsInRosterTable})`;
           jq('table.roster.tablesorter').trigger('update', [true]);
         }
       });
