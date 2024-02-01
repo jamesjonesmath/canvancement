@@ -6,25 +6,29 @@
 // @require     https://cdn.jsdelivr.net/combine/npm/jquery@3.6.0,npm/tablesorter@2.31.3
 // @author      James Jones
 // @version     11
-// @grant       GM_addStyle
+// @grant       none
 // ==/UserScript==
 /* global ENV, jQuery */
 (function () {
   'use strict';
 
-   GM_addStyle(`
-      .sort-icon-none:after {
-          content: '↕';
-      }
-      .sort-icon-up:after, .sort-icon-down:after {
-          font-style: normal;
-          content: '▲';
-      }
-      .sort-icon-down:after {
-          display: inline-block;
-          transform: rotate(180deg);
-      }
-  `);
+  const sortCSS = `
+    .sort-icon-none:after {
+        content: '↕';
+    }
+    .sort-icon-up:after, .sort-icon-down:after {
+        font-style: normal;
+        content: '▲';
+    }
+    .sort-icon-down:after {
+        display: inline-block;
+        transform: rotate(180deg);
+    }
+  `;
+  const sortStyle = document.createElement('style');
+  sortStyle.type = 'text/css';
+  sortStyle.appendChild(document.createTextNode(sortCSS));
+  document.head.appendChild(sortStyle);
 
   const pageRegex = /^\/courses\/\d+\/users\/?$/;
   if (!pageRegex.test(window.location.pathname)) {
