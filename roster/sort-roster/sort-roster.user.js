@@ -12,24 +12,6 @@
 (function () {
   'use strict';
 
-  const sortCSS = `
-    .sort-icon-none:after {
-        content: '↕';
-    }
-    .sort-icon-up:after, .sort-icon-down:after {
-        font-style: normal;
-        content: '▲';
-    }
-    .sort-icon-down:after {
-        display: inline-block;
-        transform: rotate(180deg);
-    }
-  `;
-  const sortStyle = document.createElement('style');
-  sortStyle.type = 'text/css';
-  sortStyle.appendChild(document.createTextNode(sortCSS));
-  document.head.appendChild(sortStyle);
-
   const pageRegex = /^\/courses\/\d+\/users\/?$/;
   if (!pageRegex.test(window.location.pathname)) {
     return;
@@ -140,10 +122,10 @@
     jq('table.roster').tablesorter({
       sortReset: true,
       headers: sortHeaders,
-      cssIconAsc: 'sort-icon-up',
-      cssIconDesc: 'sort-icon-down',
-      cssIconNone: 'sort-icon-none',
-      headerTemplate: '{content} {icon}'
+      cssIconAsc: 'icon-mini-arrow-up',
+      cssIconDesc: 'icon-mini-arrow-down',
+      cssIconNone: 'icon-mini-arrow-double',
+      headerTemplate: '{content}{icon}'
     });
   }
 
