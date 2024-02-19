@@ -160,18 +160,22 @@
   function watchForAdditionalRows() {
     const sel = document.querySelector('table.roster tbody');
     const countLabel = document.querySelector('.ui-tabs-anchor');
-    const countText = countLabel.textContent;
+    const countText = 'tablesorter-label';
+    if (!countLabel.hasAttribute(countText)) {
+        countLabel.setAttribute(countText, countLabel.textContent)
+    }
     let rowsInRosterTable = sel.rows.length;
     window.scrollTo(window.scrollX, window.scrollY - 1);
     window.scrollTo(window.scrollX, window.scrollY + 1);
-    countLabel.textContent = `${countText} (${rowsInRosterTable})`;
+    countLabel.textContent = `${countLabel.getAttribute(countText)} (${rowsInRosterTable})`;
     if (rowsInRosterTable >= 50) {
       const observer = new MutationObserver(function () {
-        if (sel.rows.length !== rowsInRosterTable) {
-          rowsInRosterTable = sel.rows.length;
+        const updatedRows = document.querySelector('table.roster tbody');
+        if (updatedRows.rows.length !== rowsInRosterTable) {
+          rowsInRosterTable = updatedRows.rows.length;
           window.scrollTo(window.scrollX, window.scrollY - 1);
           window.scrollTo(window.scrollX, window.scrollY + 1);
-          countLabel.textContent = `${countText} (${rowsInRosterTable})`;
+          countLabel.textContent = `${countLabel.getAttribute(countText)} (${rowsInRosterTable})`;
           jq('table.roster.tablesorter').trigger('update', [true]);
         }
       });
