@@ -4,7 +4,7 @@
 // @description Allows sorting on any column of the All Courses list
 // @include     https://*.instructure.com/courses
 // @require     https://cdn.jsdelivr.net/combine/npm/jquery@3.4.1/dist/jquery.slim.min.js,npm/tablesorter@2.31.1
-// @version     4
+// @version     5
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -55,6 +55,7 @@
         // 'sortList' : [[3,1]],
         'cssIconAsc' : 'icon-mini-arrow-up',
         'cssIconDesc' : 'icon-mini-arrow-down',
+        'cssIconNone' : 'icon-mini-arrow-double',
         'headerTemplate' : '{content}{icon}',
       });
     }
