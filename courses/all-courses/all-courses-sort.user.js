@@ -15,7 +15,7 @@
     return;
   }
 
-  let jq = jQuery;
+  const jq = jQuery;
   courseSort();
 
   function courseSort() {
