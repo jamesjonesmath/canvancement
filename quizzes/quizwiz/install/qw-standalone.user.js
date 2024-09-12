@@ -5,7 +5,7 @@
 // @include     https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @include     https://*.instructure.com/courses/*/quizzes/*/history?*
 // @noframes
-// @version     5.2
+// @version     5.3
 // @grant       none
 // ==/UserScript==
 /*
@@ -227,11 +227,28 @@
       }
     }
 
+    function getSubmissionComment() {
+      const rce = document.getElementById('comment_rce_textarea_ifr');
+      let comment = null;
+      if (rce) {
+        const el = rce.contentWindow.document.getElementById('tinymce');
+        if (el) {
+          comment = el.textContent.trim();
+        }
+      } else {
+        const el =
+          document.getElementById('speed_grader_comment_textarea') ??
+          document.getElementById('speedgrader_comment_textarea');
+        if (el) {
+          comment = el.value.trim();
+        }
+      }
+      return comment;
+    }
+
     function commentAdvance() {
-      var comment =
-        document.getElementById('speed_grader_comment_textarea') ||
-        document.getElementById('speedgrader_comment_textarea');
-      if (!comment || comment.value.trim().length === 0) {
+      const comment = getSubmissionComment();
+      if (!comment) {
         advanceUser = true;
         advanceSrc = false;
         nextUser();
