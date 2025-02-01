@@ -4,7 +4,7 @@
 // @description Various tweaks to Canvas CSS
 // @match       https://*.instructure.com/courses/*
 // @match       https://*.instructure.com/accounts/*
-// @version     9
+// @version     10
 // ==/UserScript==
 (function () {
   'use strict';
@@ -22,10 +22,9 @@
     'sg_long_descriptions', // hide long descriptions in SpeedGrader rubrics
     // 'sg_points_possible', // hide criterion points possible in SpeedGrader rubrics
     'sg_criteria_comments', // hide criteria comments
-    //'no_test' , // hide test instance notification in test and beta
+    'no_test' , // hide test instance notification in test and beta
     'hide_unused_course_navigation', // see forcedNavigationItems below
     'hide_urls', // Do not print links
-    'roster_user_width', // Remove forced 100% width on roster user name,
     'disc_split_panel_position', // Fix discussion split panel right panel scrolling
   ];
 
@@ -118,14 +117,6 @@
   // Hide URLs when printing
   if (features.includes('hide_urls')) {
     rules.push('@media print {a:link:after, a:visited:after {content:none;}}');
-  }
-
-  // Remove the roster user width
-  if (
-    features.includes('roster_user_width') &&
-    /^\/courses\/\d+\/users\/?$/.test(window.location.pathname)
-  ) {
-    rules.push('td.roster_user_name-cell {width:inherit;}');
   }
 
   // Fix the positioning on the split discussion panel
