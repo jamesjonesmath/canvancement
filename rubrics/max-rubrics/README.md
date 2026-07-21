@@ -19,7 +19,7 @@ You can
 
 A button can do multiple actions. For example, you can assign maximum points, save the rubric, and then jump to the comment sections. I've set the title on the button to contain a list of what actions it takes.
 
-Some SpeedGrader optimizations / annoyances can be changed as well. Most of these are for the traditional layout right now.
+Some SpeedGrader optimizations / annoyances can be changed as well. Most of these are for the traditional layout right now. You can change the Boolean values or add a // in front of an option to disable it.
 * suppress the annoying 7 second alert that hides the student's name and the previous student link when a rubric is saved. This is triggered by using a button with a save or advance action. If there is a failure, the alert remains and the rubric does not advance.
 * One of my wife's main complaints were that the rubrics were so long and she knew what they said but there was no way to shrink them down.
   * For those who don't use the criteria-specific comments, you can hide the toggle button.
