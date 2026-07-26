@@ -2,7 +2,7 @@
 // @name         Max Rubrics
 // @description  Enhancements to maximize rubric efficiency in Canvas SpeedGrader
 // @namespace    https://github.com/jamesjonesmath/canvancement
-// @version      0.1
+// @version      0.11
 // @match        https://*.instructure.com/courses/*/gradebook/speed_grader?*
 // @supportURL   https://community.instructure.com/en/discussion/518278/autofill-maximum-rubric-ratings
 // @grant        none
@@ -110,9 +110,7 @@
     if (row.length > 0) {
       rows.push(row);
     }
-    const items = rows.map((e) =>
-      e.length > 1 ? `${e.at(0)}-${e.at(-1)}` : e
-    );
+    const items = rows.map(e => (e.length > 1 ? `${e.at(0)}-${e.at(-1)}` : e));
     return items.join(',');
   };
 
@@ -163,7 +161,7 @@
     return item;
   };
 
-  const sanitizeActions = (actions) => {
+  const sanitizeActions = actions => {
     const cmdRegex = /^([a-z]+)/;
     const sanitized = new Set();
     const extraInfo = {};
@@ -218,7 +216,7 @@
       horizontal: 'rubric-assessment-horizontal-display',
     };
     const container = document.querySelector(
-      `${rubricAssessmentSelector} main`
+      `${rubricAssessmentSelector} main`,
     );
     if (!container) {
       console.log('Unable to find rubric container');
@@ -228,7 +226,7 @@
     let criteria = null;
     for (const [key, value] of Object.entries(layoutStyles)) {
       const elements = container.querySelectorAll(
-        `div[data-testid="${value}"]`
+        `div[data-testid="${value}"]`,
       );
       if (elements.length > 0) {
         layout = key;
@@ -261,7 +259,7 @@
     return item;
   };
 
-  const getButton = (el) => {
+  const getButton = el => {
     let button = null;
     if (el) {
       button = el.tagName === 'BUTTON' ? el : el.querySelector('button');
@@ -275,11 +273,11 @@
       cancelable: true,
     });
 
-  const selectRating = (el) => {
+  const selectRating = el => {
     if (!el) {
       return;
     }
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const observer = new MutationObserver((mutations, obs) => {
         obs.disconnect();
         resolve();
@@ -294,10 +292,10 @@
   };
 
   const ratingsHasSelected = (ratings = []) =>
-    ratings.some((e) => e.querySelector('div[data-testid$="-selected"]'));
+    ratings.some(e => e.querySelector('div[data-testid$="-selected"]'));
 
   const ratingsSelected = (ratings = []) =>
-    ratings.find((e) => e.querySelector('div[data-testid$="-selected"]'));
+    ratings.find(e => e.querySelector('div[data-testid$="-selected"]'));
 
   const getRubric = () => {
     const criteria = getCriteria();
@@ -312,7 +310,7 @@
     const isTraditional = criteria.layout === 'traditional';
     if (isTraditional) {
       const criteriaRows = [...criteria.criteria].filter(
-        (e) => e.cells.length === 3
+        e => e.cells.length === 3,
       );
       for (const row of criteriaRows) {
         if (features.comments) {
@@ -337,7 +335,7 @@
     } else {
       for (const criterion of criteria.criteria) {
         const buttons = [...criterion.querySelectorAll('button')];
-        const ratings = buttons.map((e) => e.parentElement.parentElement);
+        const ratings = buttons.map(e => e.parentElement.parentElement);
         rubric.ratings.push(ratings);
         const el = criterion.parentElement.nextElementSibling;
         let comment = null;
@@ -350,7 +348,7 @@
     return rubric;
   };
 
-  const sendChangeEvent = (el) => {
+  const sendChangeEvent = el => {
     if (!el) {
       return;
     }
@@ -394,7 +392,7 @@
   //   });
   // };
 
-  const prepareCriteriaFilter = (parsed) => {
+  const prepareCriteriaFilter = parsed => {
     const action = parsed.action;
     let operand = null;
     let rows = null;
@@ -424,7 +422,7 @@
     return filtered;
   };
 
-  const changeRatings = async (info) => {
+  const changeRatings = async info => {
     const action = info.action;
     const filter = prepareCriteriaFilter(info);
     const criteria = getCriteria();
@@ -444,7 +442,7 @@
         ratings = [...criterion.querySelectorAll('td:nth-child(2) button')];
       } else {
         const buttons = [...criterion.querySelectorAll('button')];
-        ratings = buttons.map((e) => e.parentElement.parentElement);
+        ratings = buttons.map(e => e.parentElement.parentElement);
       }
       if (ratingsHasSelected(ratings)) {
         continue;
@@ -455,7 +453,7 @@
     }
   };
 
-  const rubricAction = async (info) => {
+  const rubricAction = async info => {
     const action = info.action;
     const rubric = getRubric();
     if (!rubric || rubric.ratings.length === 0) {
@@ -526,7 +524,7 @@
       }
       if (options?.hideCriterionCommentToggle) {
         const commentButton = pointsEl.querySelector(
-          'button[data-testid^="toggle-comment"]'
+          'button[data-testid^="toggle-comment"]',
         );
         if (commentButton) {
           commentButton.parentElement.style.display = 'none';
@@ -534,7 +532,7 @@
       }
       if (options?.hideRubricPointsLabel) {
         const labelEl = pointsEl.querySelector(
-          'label[data-cid="TextInput"] > span'
+          'label[data-cid="TextInput"] > span',
         );
         if (labelEl) {
           labelEl.style.display = 'none';
@@ -552,7 +550,7 @@
             ) {
               unitSpan.textContent = unitSpan.textContent.replace(
                 options.hideRubricUnits,
-                ''
+                '',
               );
             }
           }
@@ -561,7 +559,7 @@
       if (options?.hideRatingLongText) {
         for (const button of row) {
           const longTextEl = button.querySelector(
-            ':scope > span > span:nth-child(2)'
+            ':scope > span > span:nth-child(2)',
           );
           if (longTextEl) {
             if (typeof options.hideRatingLongText === 'string') {
@@ -575,7 +573,7 @@
       if (options?.criteriaMaxHeight) {
         const els = [
           tr.querySelector('td:first-child > div > div'),
-          ...row.map((e) => e.closest('td').querySelector('div > div')),
+          ...row.map(e => e.closest('td').querySelector('div > div')),
         ];
         console.log(els);
         const height = options.criteriaMaxHeight;
@@ -600,14 +598,14 @@
     }
   };
 
-  const saveClassicRubricFinished = async (el) => {
+  const saveClassicRubricFinished = async el => {
     const button = document.querySelector(
-      'button[data-testid="view-rubric-button"]'
+      'button[data-testid="view-rubric-button"]',
     );
     if (!button) {
       return;
     }
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const observer = new MutationObserver((mutations, obs) => {
         const state = button.getAttribute('aria-expanded');
         const success = state === 'false';
@@ -626,7 +624,7 @@
 
   const saveEnhancedRubricFinished = async (el = null) => {
     const alertElement = document.body.querySelector(
-      '#react-router-portals > div:not(#liveRegion)'
+      '#react-router-portals > div:not(#liveRegion)',
     );
     if (!alertElement) {
       return;
@@ -637,7 +635,7 @@
     ) {
       alertElement.style.removeProperty('display');
     }
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const observer = new MutationObserver((mutations, obs) => {
         const svg = alertElement.querySelector('div[data-testid="alert"] svg');
         if (svg) {
@@ -660,7 +658,7 @@
 
   const saveRubric = async () => {
     const el = document.querySelector(
-      `${rubricAssessmentSelector} footer button[data-testid="save-rubric-assessment-button"]`
+      `${rubricAssessmentSelector} footer button[data-testid="save-rubric-assessment-button"]`,
     );
     if (!el || el.disabled) {
       return true;
@@ -680,13 +678,13 @@
 
   const advanceStudent = async () => {
     const studentIndex = document.querySelector(
-      '#top-menu span[data-testid="current-student-index"]'
+      '#top-menu span[data-testid="current-student-index"]',
     );
     const nextStudentButton = document.getElementById('next-student-button');
     if (!studentIndex || !nextStudentButton) {
       return;
     }
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const observer = new MutationObserver((mutations, obs) => {
         obs.disconnect();
         resolve();
@@ -698,7 +696,7 @@
 
   const submissionCommentElement = () => {
     const iframe = document.querySelector(
-      'aside section iframe.tox-edit-area__iframe'
+      'aside section iframe.tox-edit-area__iframe',
     );
     const contentWindow = iframe?.contentWindow;
     if (!contentWindow) {
@@ -726,7 +724,7 @@
     toolbar.appendChild(button);
   };
 
-  const buttonHandler = async (event) => {
+  const buttonHandler = async event => {
     const buttonRegex = new RegExp(String.raw`^${idPrefix}-btn_(\d+)$`);
     const match = buttonRegex.exec(event.target.id);
     if (!match) {
@@ -799,7 +797,7 @@
    */
   const asideObserver = (_mutations = null, observer = null) => {
     const aside = document.querySelector(
-      'aside span[data-testid="speedgrader-feedback"]'
+      'aside span[data-testid="speedgrader-feedback"]',
     );
     if (observer === null) {
       const obs = new MutationObserver(asideObserver);
@@ -838,7 +836,7 @@
     const rubricFeedback = document.getElementById('rubric-feedback-tab');
     const crumbs = document.querySelector('div.ic-app-crumbs');
     const viewButton = document.querySelector(
-      'button[data-testid="view-rubric-button"]'
+      'button[data-testid="view-rubric-button"]',
     );
     // Use ENV variables if available
     if (ENV?.ENHANCED_RUBRICS_ENABLED !== undefined) {
@@ -850,7 +848,7 @@
     } else if (crumbs) {
       features.oldSpeedGrader = true;
       features.enhancedRubrics = crumbs.classList.contains(
-        'ic-app-crumbs-enhanced-rubrics'
+        'ic-app-crumbs-enhanced-rubrics',
       );
     } else {
       features.enhancedRubrics = !viewButton;
@@ -859,8 +857,8 @@
     return features;
   };
 
-  const getCookie = (name) => {
-    const cookies = document.cookie.split(';').map((cookie) => cookie.trim());
+  const getCookie = name => {
+    const cookies = document.cookie.split(';').map(cookie => cookie.trim());
     let cookieValue = null;
     let i = 0;
     while (i < cookies.length && cookieValue === null) {
@@ -873,14 +871,14 @@
     return cookieValue;
   };
 
-  const sendGraphQl = async (request) => {
+  const sendGraphQl = async request => {
     const csrfToken = getCookie('_csrf_token');
     const body =
       typeof request === 'object' ? JSON.stringify(request) : request;
     const options = {
       method: 'POST',
       headers: {
-        accept: 'application/json',
+        'accept': 'application/json',
         'content-type': 'application/json',
         'x-csrf-token': csrfToken,
       },
@@ -895,7 +893,7 @@
     return data;
   };
 
-  const assignmentHasRubric = async (assignmentId) => {
+  const assignmentHasRubric = async assignmentId => {
     const query =
       'query hasRubric($assignmentId:ID!){assignment(id:$assignmentId){hasRubric rubric{freeFormCriterionComments criteria{points}}}}';
     const variables = { assignmentId: assignmentId };
@@ -913,7 +911,7 @@
     if (hasRubric) {
       features.comments = assignment.rubric.freeFormCriterionComments ?? false;
       const criteria = assignment.rubric.criteria ?? [];
-      const points = criteria.map((e) => e.points ?? 0);
+      const points = criteria.map(e => e.points ?? 0);
       features.points = points;
     }
     console.log(features);
@@ -953,14 +951,14 @@
   const features = determineFeatures();
   const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
     window.HTMLInputElement.prototype,
-    'value'
+    'value',
   ).set;
   const nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(
     window.HTMLTextAreaElement.prototype,
-    'value'
+    'value',
   ).set;
 
-  const speedGraderRegex = /^\/courses\/\d+\/gradebook\/speed_grader$/;
+  const speedGraderRegex = /^\/courses\/[^\/]+\/gradebook\/speed_grader$/;
   if (speedGraderRegex.test(window.location.pathname)) {
     initializeRubric();
   }
