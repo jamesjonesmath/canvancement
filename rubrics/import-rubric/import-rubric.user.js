@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name        Rubric Importer
 // @namespace   https://github.com/jamesjonesmath/canvancement
-// @description Create a rubric by copying from a spreadsheet and pasting into Canvas
+// @description Create a rubric by copying from a spreadsheet and pasting into Canvas (supports a "Criteria" header row that supplies rating descriptions)
 // @include     https://*.instructure.com/courses/*/rubrics
 // @include     https://*.instructure.com/accounts/*/rubrics
-// @version     5
+// @version     6
 // @grant       none
 // ==/UserScript==
 (function() {
@@ -133,7 +133,11 @@
     }
     var name = item.name.replace(/\s*\\n\s*/g, ' ').replace(/\s+/g, ' ');
     var longDesc = typeof item.longDesc === 'undefined' ? '' : item.longDesc.replace(/\\n/g, '\n');
-    var ratings = addRatings(item.ratings, item.points);
+
+    // NEW: addRatings takes a 3rd argument: rating "description" labels (from the Criteria header row)
+    // The previous per-row rating text becomes rating.long_description
+    var ratings = addRatings(item.ratings, item.points, item.ratingDescriptions);
+
     var criterion = {
       'description' : name,
       'long_description' : longDesc
@@ -151,22 +155,33 @@
     return criterion;
   }
 
-  function addRatings(descriptions, points) {
-    // Generate the ratings, reversing the order if necessary
-    if (descriptions.length === 0 || descriptions.length !== points.length) {
+  function addRatings(longDescriptions, points, descriptions) {
+    // longDescriptions: the per-row cell text that USED to be rating.description; now becomes rating.long_description
+    // descriptions: the short rating label from the Criteria header row; becomes rating.description
+
+    if (longDescriptions.length === 0 || longDescriptions.length !== points.length) {
       return false;
     }
     var mono = checkMonotonic(points, false);
     if (mono === 0) {
       return false;
     }
+
+    // Back-compat: if no header descriptions provided (or wrong length), behave as the original script
+    var hasHeader = (typeof descriptions !== 'undefined' && descriptions && descriptions.length === longDescriptions.length);
+
     var ratings = [];
     var n = points.length;
     var j;
     for (var i = 0; i < n; i++) {
       j = mono < 0 ? i : n - 1 - i;
+
+      var shortDesc = hasHeader ? (descriptions[j] || '') : (longDescriptions[j] || '');
+      var longDesc  = hasHeader ? (longDescriptions[j] || '') : '';
+
       ratings.push({
-        'description' : descriptions[j].replace(/\\n/g, ' ').replace(/\s+/g, ' '),
+        'description' : String(shortDesc).replace(/\\n/g, ' ').replace(/\s+/g, ' ').trim(),
+        'long_description' : String(longDesc).replace(/\\n/g, ' ').replace(/\s+/g, ' ').trim(),
         'points' : points[j],
       });
     }
@@ -364,6 +379,27 @@
     }
   }
 
+  // ===== NEW: "Criteria" header row support =====
+  function isCriteriaHeaderRow(cols) {
+    return cols && cols.length > 0 && String(cols[0]).trim().toLowerCase() === 'criteria';
+  }
+
+  function parseCriteriaHeaderDescriptions(cols) {
+    // cols[0] = "Criteria"
+    // cols[1] = rating description #1
+    // cols[2] = blank or points (ignored)
+    // cols[3] = rating description #2
+    // cols[4] = blank or points (ignored)
+    // ...
+    var out = [];
+    for (var i = 1; i < cols.length; i += 2) {
+      out.push((cols[i] || '').trim());
+    }
+    // Trim trailing empties caused by extra tabs
+    while (out.length > 0 && out[out.length - 1] === '') out.pop();
+    return out;
+  }
+
   function blockRubric(txt) {
     var criteria = [];
     var isValid = true;
@@ -373,6 +409,11 @@
       var lines = dequoted.split(/\r?\n/);
       var block = false;
       var newblock;
+
+      // NEW: header support (block mode)
+      var headerRatingDescriptions = null;
+      var dataRowsSeen = 0; // counts nonblank, non-header rows for "find points row within first two rows"
+
       var i = 0;
       while (isValid && i < lines.length) {
         var words = lines[i].replace(/[\s\uFEFF\xA0]+$/, '').split(/\t/);
@@ -384,11 +425,20 @@
           // Ignore blank lines
           continue;
         }
+
+        // NEW: Criteria header row (does not count as a data row)
+        if (isCriteriaHeaderRow(words)) {
+          headerRatingDescriptions = parseCriteriaHeaderDescriptions(words);
+          continue;
+        }
+
         var outcome = false;
         var name = '';
         var longDesc = '';
         var descriptions = [];
+        var ratingDescriptions = []; // NEW: per-rating short descriptions aligned to retained ratings
         var points = [];
+
         if (words.length < 3) {
           // This may be a linked outcome
           if (block && isInteger(words[0])) {
@@ -416,16 +466,19 @@
             continue;
           }
         }
+
         if (block === false) {
           // This is not a row that is all numbers
-          if (i > 1) {
-            // Must find a points row within the first two rows
+          dataRowsSeen++;
+          if (dataRowsSeen > 2) {
+            // Must find a points row within the first two data rows (excluding Criteria header row)
             isValid = false;
           }
           continue;
         } else {
           isMethod = true;
         }
+
         if (!outcome && isValid) {
           if (isInteger(words[0])) {
             if (block.start > 1 && isBoolean(words[1], true)) {
@@ -445,23 +498,33 @@
             name = words[0];
             longDesc = block.start > 1 ? words[1] : '';
           }
+
           var j = block.start;
           var endAt = words.length < 1 + block.end ? words.length : 1 + block.end;
           var k = 0;
+
           while (j < endAt) {
             var rating = words[j];
             var point = block.points[k];
+
+            // Header short descriptions are aligned by rating column index within the block
+            var headerShort = (headerRatingDescriptions && headerRatingDescriptions.length > k) ? headerRatingDescriptions[k] : '';
+
             j++;
             k++;
+
             if (rating !== '') {
               descriptions.push(rating);
               points.push(point);
+              ratingDescriptions.push(headerShort);
             }
           }
+
           if (descriptions.length === 1) {
             errors.push('Only one rating found in line ' + i);
             isValid = false;
           }
+
           if (isValid && words.length > 1 + block.end) {
             // Check for outcomes
             var extra = [];
@@ -497,12 +560,14 @@
             }
           }
         }
+
         if (isValid) {
           var item = {
             'name' : name,
             'longDesc' : longDesc,
             'outcome' : outcome,
-            'ratings' : descriptions,
+            'ratings' : descriptions, // becomes rating.long_description
+            'ratingDescriptions' : (ratingDescriptions.length ? ratingDescriptions : null), // becomes rating.description
             'points' : points
           };
           var criterion = addCriterion(item);
@@ -526,6 +591,10 @@
     try {
       var dequoted = dequote(txt);
       var lines = dequoted.split(/\r?\n/);
+
+      // NEW: Criteria header row support (flex mode)
+      var headerRatingDescriptions = null;
+
       var i = 0;
       while (isValid && i < lines.length) {
         var words = lines[i].trim().split(/\t/);
@@ -537,13 +606,22 @@
         words.map(function(s) {
           return s.trim();
         });
+
+        // NEW: Criteria header row (skip)
+        if (isCriteriaHeaderRow(words)) {
+          headerRatingDescriptions = parseCriteriaHeaderDescriptions(words);
+          continue;
+        }
+
         var outcome = false;
         var name = '';
         var longDesc = '';
         var descriptions = [];
+        var ratingDescriptions = []; // NEW
         var points = [];
         var validLine = true;
         var k = 0;
+
         if (isInteger(words[k])) {
           if (words.length > k + 1 && isBoolean(words[k + 1], true)) {
             outcome = {
@@ -559,13 +637,15 @@
             k++;
           }
         }
-        if (words.length > k) {
 
+        if (words.length > k) {
           if (outcome && words.length > k + 1 && !isPoints(words[k]) && isPoints(words[k + 1])) {
+            // (original behavior preserved)
           } else {
             name = words[k++];
           }
         }
+
         if (!outcome && words.length > k) {
           if (isInteger(words[k])) {
             // What should be the long description or a rating is an integer
@@ -581,6 +661,7 @@
             }
           }
         }
+
         if (isValid && words.length > k) {
           if (!isPoints(words[k])) {
             if (words.length == k) {
@@ -590,16 +671,24 @@
             }
           }
         }
+
+        // NEW: rating pair index (Mastered, Not Yet Mastered, etc.)
+        var pairIndex = 0;
+
         while (isValid && validLine && words.length > k) {
           var description;
           var point;
+
           if (words.length > k + 1) {
             description = words[k++];
             point = words[k++];
+
             if (description === '' && point === '') {
-              // Skip completely blank pairs
+              // Skip completely blank pairs, but still advance the pair index
+              pairIndex++;
               continue;
             }
+
             if (!outcome && isInteger(description) && isBoolean(point)) {
               // Have an integer in the rating descriptions
               // Valid if this is the last rating, otherwise invalid
@@ -627,8 +716,18 @@
               if (isValid && validLine) {
                 descriptions.push(description);
                 points.push(point);
+
+                // NEW: short label from header row
+                if (headerRatingDescriptions && headerRatingDescriptions.length > pairIndex) {
+                  ratingDescriptions.push(headerRatingDescriptions[pairIndex]);
+                } else {
+                  ratingDescriptions.push('');
+                }
               }
             }
+
+            // advance pair index for each parsed pair
+            pairIndex++;
           } else {
             // Odd number of entries on line, check for outcome
             // or ignore points for outcome
@@ -655,12 +754,14 @@
             }
           }
         }
+
         if (isValid && validLine) {
           var item = {
             'name' : name,
             'longDesc' : longDesc,
             'outcome' : outcome,
-            'ratings' : descriptions,
+            'ratings' : descriptions, // becomes rating.long_description
+            'ratingDescriptions' : (ratingDescriptions.length ? ratingDescriptions : null), // becomes rating.description
             'points' : points,
           };
           var criterion = addCriterion(item);
@@ -718,7 +819,7 @@
         var match = regex.exec(s);
         if (match) {
           var prefix = typeof match[1] !== 'undefined' ? match[1].replace(/\\n/g, '\n') : '';
-          var postfix = typeof match[3] !== 'undefined' ? match[3].replace(/\\n/g, '\n') : '';
+          var postfix = typeof match[3] !== 'undefined' ? match[3] !== 'undefined' ? match[3].replace(/\\n/g, '\n') : '' : '';
           s = prefix + match[2].trim().replace(/""/g, '"') + postfix;
         }
       } else {
