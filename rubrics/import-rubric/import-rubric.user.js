@@ -18,7 +18,27 @@
   var rubricAssociation;
 
   if (assocRegex.test(window.location.pathname)) {
-    add_button();
+    // wait for the footer element (only obvious one with a fixed id) to load before adding button
+    waitForElement('#enhanced-rubric-builder-footer')
+        .then(element => {
+        add_button();
+    });
+  }
+
+  // use mutation observer to watch for element to load
+  function waitForElement(selector) {
+      return new Promise(resolve => {
+          const observer = new MutationObserver(mutations => {
+              if (document.querySelector(selector)) {
+                  resolve(document.querySelector(selector));
+                  observer.disconnect();
+              }
+          });
+          observer.observe(document.body, {
+              childList: true,
+              subtree: true
+          });
+      });
   }
 
   function checkPointsRow(cols) {
@@ -189,7 +209,9 @@
   }
 
   function add_button() {
-    var parent = document.querySelector('aside#right-side');
+    // use most obvious element with fixed id in new 'enhanced rubric' interface as target
+    var parent = document.querySelector('#enhanced-rubric-builder-footer');
+
     if (parent) {
       var el = parent.querySelector('#jj_rubric');
       if (!el) {
