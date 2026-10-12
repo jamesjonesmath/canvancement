@@ -1,7 +1,7 @@
 // This function will anonymize the user list so that you can make videos
 // To use, insert into the main enclosure, I suggest at the end, right after errorHandler()
 // Then, add anonymizeUsers(); as the first line of the makeReport() function;
-// !!! This will fail if you have more users than names listed below !!!
+// It refuses if there are more users than names listed below
 // The list of names came from namethingy.com
 function anonymizeUsers() {
   var randomData = [
@@ -127,47 +127,53 @@ function anonymizeUsers() {
     'Western Chart',
     'Wet Crib',
     'Wild Father',
-    'Zillion Stick'
+    'Zillion Stick',
   ];
+  var userCount = Object.keys(userData).length;
+  if (userCount > randomData.length) {
+    throw new Error(
+      `There are ${userCount} users, but only ${randomData.length} anonymous names. Add more names to randomData.`
+    );
+  }
   var nameData = shuffle(randomData);
-  var userIds = [
-  ];
-  var sisIds = [
-  ];
-  var userNames = {
-  };
+  var userIds = [];
+  var sisIds = [];
+  var userNames = {};
   var i = 0;
   for (var id in userData) {
     if (userData.hasOwnProperty(id)) {
       var name = nameData[i++];
       var names = name.split(' ');
-      var login = names[0].substr(0, 1) + names[1];
+      var login = `${names[0].charAt(0)}${names[1]}`;
       login = login.toLowerCase();
       var newId = 0;
-      while (newId == 0 || userIds.indexOf(newId) > - 1) {
+      while (newId == 0 || userIds.indexOf(newId) > -1) {
         newId = 1234567 + Math.floor(100000 * Math.random());
       }
       userIds.push(newId);
       var sisId = 0;
-      while (sisId == 0 || sisIds.indexOf(sisId) > - 1) {
+      while (sisId == 0 || sisIds.indexOf(sisId) > -1) {
         sisId = 476246 + Math.floor(10000 * Math.random());
       }
       sisIds.push(sisId);
       userNames[userData[id].name] = name;
       userData[id] = {
-        'id': newId,
-        'name': name,
-        'sortable_name': names[1] + ', ' + names[0],
-        'short_name': name,
-        'sis_user_id': sisId,
-        'sis_login_id': login,
-        'login_id': login
+        id: newId,
+        name: name,
+        sortable_name: `${names[1]}, ${names[0]}`,
+        short_name: name,
+        sis_user_id: sisId,
+        sis_login_id: login,
+        login_id: login,
       };
     }
   }
   for (var j in accessData) {
     if (accessData.hasOwnProperty(j)) {
-      if (accessData[j].asset_user_access.asset_category == 'roster' && accessData[j].asset_user_access.asset_class_name == 'student_enrollment') {
+      if (
+        accessData[j].asset_user_access.asset_category == 'roster' &&
+        accessData[j].asset_user_access.asset_class_name == 'student_enrollment'
+      ) {
         var userName = accessData[j].asset_user_access.readable_name;
         if (typeof userNames[userName] !== 'undefined') {
           accessData[j].asset_user_access.readable_name = userNames[userName];
@@ -177,8 +183,8 @@ function anonymizeUsers() {
   }
   function shuffle(A) {
     var m = A.length,
-    t,
-    i;
+      t,
+      i;
     while (m) {
       i = Math.floor(Math.random() * m--);
       t = A[m];
