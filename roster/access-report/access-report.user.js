@@ -3,13 +3,12 @@
 // @namespace   https://github.com/jamesjonesmath/canvancement
 // @description Generates a .CSV download of the access report for all students in a course
 // @match       https://*.instructure.com/courses/*/users
-// @require     https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js
-// @require     https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js
-// @version     17
+// @require     https://cdn.jsdelivr.net/npm/bottleneck@2.19.5/light.min.js#sha256=70a5675a5914ad3c706b2b0f5575a46f458b655d37886bb142627b0b0c41b6d3
+// @version     18
 // @grant       none
-// @supportURL  https://community.canvaslms.com/docs/DOC-6061-obtaining-and-using-access-report-data-for-an-entire-course
+// @supportURL  https://community.instructure.com/en/discussion/comment/264454
 // ==/UserScript==
-/* global $,ENV,Bottleneck,saveAs */
+/* global ENV,Bottleneck */
 
 (function () {
   'use strict';
@@ -171,14 +170,15 @@
     {
       name: 'Context Type',
       src: 'a.context_type',
-    },
-    {
-      name: 'Context ID',
-      src: 'a.context_id',
+      disabled: true,
     },
     {
       name: 'Login ID',
       src: 'u.login_id',
+    },
+    {
+      name: 'SIS User ID',
+      src: 'u.sis_user_id',
     },
     {
       name: 'Email',
@@ -193,16 +193,16 @@
       src: 's.id',
     },
     {
-      name: 'SIS Course ID',
-      src: 'u.sis_course_id',
-    },
-    {
       name: 'SIS Section ID',
       src: 's.sis_section_id',
     },
     {
-      name: 'SIS User ID',
-      src: 'u.sis_user_id',
+      name: 'Course ID',
+      src: 'a.context_id',
+    },
+    {
+      name: 'SIS Course ID',
+      src: 's.sis_course_id',
     },
     {
       name: 'Last Activity',
@@ -250,6 +250,7 @@
   const accessData = {};
   const sectionData = {};
   const failedFetches = {};
+  const requestedPages = new Set();
   let limiter = null;
   let aborted = false;
   let userFetchCount = 0;
@@ -282,13 +283,15 @@
         activateLink();
       }
     }
-    return;
   }
 
   function setupBottleneck() {
     if (typeof Bottleneck === 'undefined') {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js';
+      script.src =
+        'https://cdn.jsdelivr.net/npm/bottleneck@2.19.5/light.min.js';
+      script.integrity = 'sha256-cKVnWlkUrTxwaysPVXWkb0WLZV03iGuxQmJ7CwxBttM=';
+      script.crossOrigin = 'anonymous';
       script.onload = function () {
         setupBottleneck();
       };
@@ -305,9 +308,11 @@
   function accessReport() {
     initializeGlobals();
     progressbar();
+    progressMessage('Fetching enrollments');
     startTime = Date.now().toString();
     getSections()
       .then(getStudentList)
+      .then(getAllUsage)
       .then(checkFailed)
       .then(makeReport)
       .catch(function (e) {
@@ -368,7 +373,8 @@
             calculateLimits(res);
           }
           return res.json();
-        } else if (res.status === 403) {
+        } else if (res.status === 403 || res.status === 429) {
+          // Canvas throttled with a 403 until 2025-10-08, now a 429
           if (typeof failedFetches[res.url] !== 'undefined') {
             if (debug) {
               console.log('FETCH FAILED A SECOND TIME');
@@ -461,7 +467,8 @@
   }
 
   function nextPage(links) {
-    if (typeof links.next === 'undefined') {
+    // links is undefined after a throttled request
+    if (typeof links === 'undefined' || typeof links.next === 'undefined') {
       return false;
     }
     const results = [];
@@ -480,32 +487,24 @@
     if (results.length === 0) {
       results.push(links.next);
     }
-    return results.length > 0 ? results : false;
+    // Page 1 may have asked for every page already, so the later pages must
+    // not ask for their next page again
+    const newResults = results.filter(function (link) {
+      const key = pageKey(link);
+      if (requestedPages.has(key)) {
+        return false;
+      }
+      requestedPages.add(key);
+      return true;
+    });
+    return newResults.length > 0 ? newResults : false;
   }
 
-  function adjustFetchTotal(links, resultCount) {
-    if (typeof links.prev === 'undefined') {
-      let count = resultCount;
-      const last = paginationInfo(links.last);
-      if (last !== false && last.isNumeric && last.page > 1) {
-        count = last.perPage * last.page;
-      }
-      userFetchTotal = count;
-    } else {
-      if (typeof links.next === 'undefined') {
-        const current = paginationInfo(links.current);
-        if (current.perPage > resultCount) {
-          userFetchTotal -= current.perPage - resultCount;
-        }
-      }
-    }
-  }
-
-  function adjustFetchCount(links) {
-    if (typeof links.next === 'undefined') {
-      userFetchCount++;
-      progressbar(userFetchCount, userFetchTotal);
-    }
+  // The same page written two ways gives the same key
+  function pageKey(link) {
+    const url = new URL(link, window.location.origin);
+    url.searchParams.sort();
+    return url.toString();
   }
 
   function getSections() {
@@ -522,31 +521,29 @@
     enrollmentStates.forEach(function (state) {
       q.push(`enrollment_state[]=${state}`);
     });
-    q.push('per_page=20');
+    q.push('per_page=50');
     const queryString = q.join('&');
     const url = `/api/v1/courses/${courseId}/users?${queryString}`;
     return fetchResults(url, saveEnrollments);
   }
 
-  function saveEnrollments(data, links) {
+  function saveEnrollments(data) {
     if (typeof data !== 'object' || data.length === 0) {
       return Promise.resolve(false);
     }
-    adjustFetchTotal(links, data.length);
-    const usageIds = [];
     for (let i = 0; i < data.length; i++) {
-      if (compileUserData(data[i]) !== false) {
-        const userId = data[i].id;
-        if (
-          typeof userData[userId].last_activity_at !== 'undefined' &&
-          userData[userId].last_activity_at !== null
-        ) {
-          usageIds.push(userId);
-        } else {
-          userFetchCount++;
-        }
-      }
+      compileUserData(data[i]);
     }
+    return Promise.resolve(true);
+  }
+
+  // Every student, since a null last_activity_at doesn't rule out usage
+  function getAllUsage() {
+    const usageIds = Object.keys(userData);
+    userFetchCount = 0;
+    userFetchTotal = usageIds.length;
+    progressMessage('Fetching access reports');
+    progressbar(userFetchCount, userFetchTotal);
     return getUsage(usageIds);
   }
 
@@ -614,17 +611,22 @@
 
   function getUsage(ids) {
     if (typeof ids === 'object' && ids.length > 0) {
-      const urls = ids.map(function (userId) {
-        return `/courses/${courseId}/users/${userId}/usage?per_page=100`;
+      // A student counts once all their pages are in, which fetchResult
+      // waits for, not when the last page happens to arrive
+      const p = ids.map(function (userId) {
+        const url = `/courses/${courseId}/users/${userId}/usage?per_page=100`;
+        return fetchResult(url, saveUsage).then(function () {
+          userFetchCount++;
+          progressbar(userFetchCount, userFetchTotal);
+        });
       });
-      return fetchResults(urls, saveUsage);
+      return Promise.all(p);
     } else {
       return Promise.resolve(false);
     }
   }
 
-  function saveUsage(data, links) {
-    adjustFetchCount(links);
+  function saveUsage(data) {
     if (typeof data !== 'object' || data.length === 0) {
       return Promise.resolve(false);
     }
@@ -683,29 +685,32 @@
     if (aborted) {
       return Promise.reject('Process canceled');
     }
-    if (typeof saveAs === 'undefined') {
-      const script = document.createElement('script');
-      script.src =
-        'https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js';
-      script.onload = function () {
-        return makeReport();
-      };
-      document.head.appendChild(script);
-    } else {
-      progressbar();
-      const csv = createCSV();
-      if (csv) {
-        const blob = new Blob([csv], {
-          type: 'text/csv;charset=utf-8',
-        });
-        saveAs(blob, 'access-report.csv');
-      }
-      activateLink();
+    progressbar();
+    const csv = createCSV();
+    if (csv) {
+      // A byte order mark tells Excel the file is UTF-8, which only matters
+      // when something in it isn't ASCII
+      const bom = /[\u0080-\uffff]/.test(csv) ? '\ufeff' : '';
+      const blob = new Blob([bom, csv], {
+        type: 'text/csv;charset=utf-8',
+      });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'access-report.csv';
+      link.click();
+      setTimeout(function () {
+        URL.revokeObjectURL(link.href);
+      }, 1000);
     }
+    activateLink();
     return Promise.resolve(true);
   }
 
-  function eliminateMissingFields(fields) {
+  function eliminateMissingFields(configFields) {
+    // Work on copies so disabling a field doesn't carry over to the next run
+    const fields = configFields.map(function (f) {
+      return Object.assign({}, f);
+    });
     processAnalytics('activity', ['last_activity_at', 'total_activity_time']);
     processAnalytics('grades', [
       'current_score',
@@ -727,8 +732,11 @@
     function processAnalytics(analyticKey, fieldKeys) {
       if (analytics.indexOf(analyticKey) === -1) {
         fieldKeys.forEach(function (f) {
-          if (fields.indexOf(`u.${f}`) > -1) {
-            fields[fields.indexOf(`u.${f}`)].disabled = true;
+          const idx = fields.findIndex(function (field) {
+            return field.src === `u.${f}`;
+          });
+          if (idx > -1) {
+            fields[idx].disabled = true;
           }
         });
       }
@@ -793,23 +801,26 @@
     const stripSpaces =
       typeof headingSpaces !== 'undefined' ? headingSpaces : ' ';
     const hdr = fields.map(function (f) {
-      return f.name.replace(' ', stripSpaces);
+      return f.name.replaceAll(' ', stripSpaces);
     });
-    const hdrTxt = hdr.join(',') + CRLF;
-    let dataTxt = '';
+    const rows = [];
     const showStudentViews =
       typeof showViewStudent === 'undefined' ? false : showViewStudent;
     for (let j = 0; j < userKeys.length; j++) {
       const userId = userKeys[j];
-      dataTxt += getUserCSV(userId);
+      rows.push(...getUserRows(userId));
     }
-    return dataTxt === '' ? false : `${hdrTxt}${dataTxt}`;
+    if (rows.length === 0) {
+      return false;
+    }
+    // The empty string ends the file with a line break
+    return [hdr.join(','), ...rows, ''].join(CRLF);
 
-    function getUserCSV(userId) {
+    function getUserRows(userId) {
+      const t = [];
       if (typeof accessData[userId] === 'undefined') {
-        return '';
+        return t;
       }
-      let t = '';
       const user = userData[userId];
       const sectionInfo = createSectionInfo(user);
       for (let j = 0; j < accessData[userId].length; j++) {
@@ -822,7 +833,7 @@
           continue;
         }
         for (let k = 0; k < sectionInfo.length; k++) {
-          t += getUserRow(user, item, sectionInfo[k]);
+          t.push(getUserRow(user, item, sectionInfo[k]));
         }
       }
       return t;
@@ -853,7 +864,7 @@
                 section[key] =
                   section[key] === null
                     ? value
-                    : section[key] + separator + value;
+                    : `${section[key]}${separator}${value}`;
               }
             });
           });
@@ -880,7 +891,7 @@
         }
         return addQuotes(value);
       });
-      return row.join(',') + CRLF;
+      return row.join(',');
     }
 
     function getValue(value, fmt) {
@@ -908,16 +919,12 @@
 
     function addQuotes(value) {
       if (typeof value === 'string') {
-        let quote = false;
-        if (value.indexOf('"') > -1) {
-          value = value.replace(/"/g, '""');
-          quote = true;
+        // Keep a spreadsheet from treating text as a formula
+        if (/^[=+\-@\t\r]/.test(value)) {
+          value = `'${value}`;
         }
-        if (value.indexOf(',') > -1) {
-          quote = true;
-        }
-        if (quote) {
-          value = `"${value}"`;
+        if (/[",\r\n]/.test(value)) {
+          value = `"${value.replace(/"/g, '""')}"`;
         }
       }
       return value;
@@ -960,38 +967,59 @@
 
   function progressbar(x, n) {
     if (typeof x === 'undefined' || typeof n == 'undefined') {
-      const dialog = document.getElementById('jj_progress_dialog');
+      let dialog = document.getElementById('jj_progress_dialog');
       if (!dialog) {
-        $('body').append('<div id="jj_progress_dialog"></div>');
-        $('#jj_progress_dialog').append('<div id="jj_progressbar"></div>');
-        $('#jj_progress_dialog').dialog({
-          title: 'Fetching Access Reports',
-          autoOpen: false,
-          buttons: [
-            {
-              text: 'Cancel',
-              click: function () {
-                $(this).dialog('close');
-                abortAll();
-              },
-            },
-          ],
+        dialog = document.createElement('dialog');
+        dialog.id = 'jj_progress_dialog';
+        dialog.setAttribute('aria-labelledby', 'jj_progress_title');
+        dialog.style.width = '25em';
+        dialog.innerHTML = [
+          '<h3 id="jj_progress_title">Access Report Data</h3>',
+          // The message labels the bar and is read out when it changes
+          '<label for="jj_progressbar" id="jj_progress_message"',
+          ' aria-live="polite"></label>',
+          '<div style="display: flex; align-items: center; gap: 0.5em;">',
+          '<progress id="jj_progressbar" style="flex: 1;"></progress>',
+          // Hidden from screen readers, which get the percentage from the bar
+          '<span id="jj_progress_percent" aria-hidden="true"',
+          ' style="min-width: 3em; text-align: right;"></span>',
+          '</div>',
+          '<p style="text-align: right;">',
+          '<button type="button" class="btn">Cancel</button></p>',
+        ].join('');
+        dialog.querySelector('button').addEventListener('click', function () {
+          dialog.close();
+          abortAll();
         });
+        // Esc closes a native dialog, so treat it the same as Cancel
+        dialog.addEventListener('cancel', abortAll);
+        document.body.appendChild(dialog);
       }
-      if ($('#jj_progress_dialog').dialog('isOpen')) {
-        $('#jj_progress_dialog').dialog('close');
+      if (dialog.open) {
+        dialog.close();
       } else {
-        $('#jj_progressbar').progressbar({
-          value: false,
-        });
-        $('#jj_progress_dialog').dialog('open');
+        document.getElementById('jj_progressbar').removeAttribute('value');
+        document.getElementById('jj_progress_percent').textContent = '';
+        dialog.showModal();
       }
     } else {
       if (!aborted) {
-        const val = n > 0 ? Math.round((100 * x) / n) : false;
-        $('#jj_progressbar').progressbar('option', 'value', val);
+        const bar = document.getElementById('jj_progressbar');
+        const percent = document.getElementById('jj_progress_percent');
+        if (n > 0) {
+          bar.max = n;
+          bar.value = x;
+          percent.textContent = `${Math.round((100 * x) / n)}%`;
+        } else {
+          bar.removeAttribute('value');
+          percent.textContent = '';
+        }
       }
     }
+  }
+
+  function progressMessage(msg) {
+    document.getElementById('jj_progress_message').textContent = msg;
   }
 
   function abortAll() {
@@ -1021,6 +1049,10 @@
         delete accessData[key];
       });
     }
+    Object.keys(failedFetches).forEach(function (key) {
+      delete failedFetches[key];
+    });
+    requestedPages.clear();
     aborted = false;
     userFetchCount = 0;
     userFetchTotal = 0;
