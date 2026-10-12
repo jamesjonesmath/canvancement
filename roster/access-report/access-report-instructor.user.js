@@ -6,7 +6,7 @@
 // @version     2
 // @grant       none
 // ==/UserScript==
-(function() {
+(function () {
   'use strict';
   var courseData = {};
   var userData = {};
@@ -17,33 +17,39 @@
   function addAccessReportButton() {
     var el = document.getElementById('jj_instructor_access_report');
     if (!el) {
-      var rsMargins = document.querySelectorAll('div#right-side-wrapper div.rs-margin-bottom');
+      var rsMargins = document.querySelectorAll(
+        'div#right-side-wrapper div.rs-margin-bottom'
+      );
       if (rsMargins) {
-        for (var i = 0; i <rsMargins.length; i++) {
+        for (var i = 0; i < rsMargins.length; i++) {
           var analytics = rsMargins[i].querySelector('i.icon-analytics');
           if (analytics) {
             var anchor = document.createElement('a');
             anchor.id = 'jj_instructor_access_report';
-            anchor.classList.add('Button','button-sidebar-wide');
+            anchor.classList.add('Button', 'button-sidebar-wide');
             var icon = document.createElement('i');
             icon.classList.add('icon-analytics');
             anchor.appendChild(icon);
-            var text = document.createTextNode(' Instructor Access Report Data');
+            var text = document.createTextNode(
+              ' Instructor Access Report Data'
+            );
             anchor.appendChild(text);
             rsMargins[i].appendChild(anchor);
             break;
           }
         }
       }
-      $('#jj_instructor_access_report')
-        .one('click', accessReport);
+      $('#jj_instructor_access_report').one('click', accessReport);
     }
     return;
   }
 
   function accessReport() {
     var accountId = getAccountId();
-    var url = '/api/v1/accounts/' + accountId + '/courses?enrollment_type[]=teacher&include[]=teachers&include[]=term&per_page=100';
+    var url =
+      '/api/v1/accounts/' +
+      accountId +
+      '/courses?enrollment_type[]=teacher&include[]=teachers&include[]=term&per_page=100';
     pending = 0;
     getCourses(url);
   }
@@ -66,50 +72,47 @@
   function getCourses(url) {
     try {
       pending++;
-      $.getJSON(url, function(cdata, status, jqXHR) {
-          url = nextURL(jqXHR.getResponseHeader('Link'));
-          for (var i = 0; i < cdata.length; i++) {
-            var course = cdata[i];
-            var crs = {
-              'id': course.id,
-              'name': course.name,
-              'account_id': course.account_id,
-              'course_code': course.course_code,
-              'term': course.term.name,
-              'sis_course_id': course.sis_course_id,
-              'teachers': []
-            };
-            if (course.teachers.length > 0) {
-              for (var j = 0; j < course.teachers.length; j++) {
-                var user = course.teachers[j];
-                crs.teachers.push(user.id);
-                if (typeof userData[user.id] === 'undefined') {
-                  userData[user.id] = {
-                    'id': user.id,
-                    'display_name': user.display_name,
-                    'courses': [
-                      course.id
-                    ]
-                  };
-                } else {
-                  userData[user.id].courses.push(course.id);
-                }
+      $.getJSON(url, function (cdata, status, jqXHR) {
+        url = nextURL(jqXHR.getResponseHeader('Link'));
+        for (var i = 0; i < cdata.length; i++) {
+          var course = cdata[i];
+          var crs = {
+            id: course.id,
+            name: course.name,
+            account_id: course.account_id,
+            course_code: course.course_code,
+            term: course.term.name,
+            sis_course_id: course.sis_course_id,
+            teachers: [],
+          };
+          if (course.teachers.length > 0) {
+            for (var j = 0; j < course.teachers.length; j++) {
+              var user = course.teachers[j];
+              crs.teachers.push(user.id);
+              if (typeof userData[user.id] === 'undefined') {
+                userData[user.id] = {
+                  id: user.id,
+                  display_name: user.display_name,
+                  courses: [course.id],
+                };
+              } else {
+                userData[user.id].courses.push(course.id);
               }
             }
-            courseData[course.id] = crs;
           }
-          if (url) {
-            getCourses(url);
-          }
-          pending--;
-          if (pending <= 0) {
-            getAccessReport();
-          }
-        })
-        .fail(function() {
-          pending--;
-          throw new Error('Failed to load list of courses');
-        });
+          courseData[course.id] = crs;
+        }
+        if (url) {
+          getCourses(url);
+        }
+        pending--;
+        if (pending <= 0) {
+          getAccessReport();
+        }
+      }).fail(function () {
+        pending--;
+        throw new Error('Failed to load list of courses');
+      });
     } catch (e) {
       errorHandler(e);
     }
@@ -122,7 +125,12 @@
         var course = courseData[courseId];
         for (var i = 0; i < course.teachers.length; i++) {
           var userId = course.teachers[i];
-          var url = '/courses/' + courseId + '/users/' + userId + '/usage.json?per_page=100';
+          var url =
+            '/courses/' +
+            courseId +
+            '/users/' +
+            userId +
+            '/usage.json?per_page=100';
           getAccesses(courseId, url);
         }
       }
@@ -132,29 +140,28 @@
   function getAccesses(courseId, url) {
     try {
       pending++;
-      $.getJSON(url, function(adata, status, jqXHR) {
-          url = nextURL(jqXHR.getResponseHeader('Link'));
-          for (var i in adata) {
-            if (adata.hasOwnProperty(i)) {
-              adata[i].asset_user_access.course_id = courseId;
-              accessData.push(adata[i]);
-            }
+      $.getJSON(url, function (adata, status, jqXHR) {
+        url = nextURL(jqXHR.getResponseHeader('Link'));
+        for (var i in adata) {
+          if (adata.hasOwnProperty(i)) {
+            adata[i].asset_user_access.course_id = courseId;
+            accessData.push(adata[i]);
           }
-          if (url) {
-            getAccesses(courseId, url);
-          }
-          pending--;
-          if (pending <= 0) {
-            makeReport();
-          }
-        })
-        .fail(function() {
-          pending--;
-          console.log('Some access report data failed to load');
-          if (pending <= 0) {
-            makeReport();
-          }
-        });
+        }
+        if (url) {
+          getAccesses(courseId, url);
+        }
+        pending--;
+        if (pending <= 0) {
+          makeReport();
+        }
+      }).fail(function () {
+        pending--;
+        console.log('Some access report data failed to load');
+        if (pending <= 0) {
+          makeReport();
+        }
+      });
     } catch (e) {
       errorHandler(e);
     }
@@ -180,7 +187,8 @@
     try {
       var csv = createCSV();
       if (csv) {
-        var csvData = 'data:text/csv;charset=utf-8,\ufeff' + encodeURIComponent(csv);
+        var csvData =
+          'data:text/csv;charset=utf-8,\ufeff' + encodeURIComponent(csv);
         var el = document.createElement('a');
         el.setAttribute('download', 'access-report.csv');
         el.setAttribute('href', csvData);
@@ -188,8 +196,7 @@
         document.body.appendChild(el);
         el.click();
         document.body.removeChild(el);
-        $('#jj_instructor_access_report')
-          .one('click', accessReport);
+        $('#jj_instructor_access_report').one('click', accessReport);
       } else {
         throw new Error(Problemcreatingreport);
       }
@@ -199,65 +206,86 @@
   }
 
   function createCSV() {
-    var fields = [{
-      'name': 'Course ID',
-      'src': 'c.id'
-    }, {
-      'name': 'Course Title',
-      'src': 'c.name'
-    }, {
-      'name': 'User ID',
-      'src': 'u.id'
-    }, {
-      'name': 'Display Name',
-      'src': 'u.display_name'
-    }, {
-      'name': 'Category',
-      'src': 'a.asset_category'
-    }, {
-      'name': 'Class',
-      'src': 'a.asset_class_name'
-    }, {
-      'name': 'Title',
-      'src': 'a.readable_name'
-    }, {
-      'name': 'Views',
-      'src': 'a.view_score'
-    }, {
-      'name': 'Participations',
-      'src': 'a.participate_score'
-    }, {
-      'name': 'Last Access',
-      'src': 'a.last_access',
-      'fmt': 'date'
-    }, {
-      'name': 'First Access',
-      'src': 'a.created_at',
-      'fmt': 'date'
-    }, {
-      'name': 'Action',
-      'src': 'a.action_level'
-    }, {
-      'name': 'Code',
-      'src': 'a.asset_code'
-    }, {
-      'name': 'Group Code',
-      'src': 'a.asset_group_code'
-    }, {
-      'name': 'Context Type',
-      'src': 'a.context_type'
-    }, {
-      'name': 'Context ID',
-      'src': 'a.context_id'
-    }, {
-      'name': 'SIS Course ID',
-      'src': 'c.sis_course_id',
-      'sis': true
-    }];
+    var fields = [
+      {
+        name: 'Course ID',
+        src: 'c.id',
+      },
+      {
+        name: 'Course Title',
+        src: 'c.name',
+      },
+      {
+        name: 'User ID',
+        src: 'u.id',
+      },
+      {
+        name: 'Display Name',
+        src: 'u.display_name',
+      },
+      {
+        name: 'Category',
+        src: 'a.asset_category',
+      },
+      {
+        name: 'Class',
+        src: 'a.asset_class_name',
+      },
+      {
+        name: 'Title',
+        src: 'a.readable_name',
+      },
+      {
+        name: 'Views',
+        src: 'a.view_score',
+      },
+      {
+        name: 'Participations',
+        src: 'a.participate_score',
+      },
+      {
+        name: 'Last Access',
+        src: 'a.last_access',
+        fmt: 'date',
+      },
+      {
+        name: 'First Access',
+        src: 'a.created_at',
+        fmt: 'date',
+      },
+      {
+        name: 'Action',
+        src: 'a.action_level',
+      },
+      {
+        name: 'Code',
+        src: 'a.asset_code',
+      },
+      {
+        name: 'Group Code',
+        src: 'a.asset_group_code',
+      },
+      {
+        name: 'Context Type',
+        src: 'a.context_type',
+      },
+      {
+        name: 'Context ID',
+        src: 'a.context_id',
+      },
+      {
+        name: 'SIS Course ID',
+        src: 'c.sis_course_id',
+        sis: true,
+      },
+    ];
     var canSIS = false;
     for (var id in courseData) {
       if (courseData.hasOwnProperty(id)) {
-        if (typeof courseData[id].sis_course_id !== 'undefined' && courseData[id].sis_course_id) {
+        if (
+          typeof courseData[id].sis_course_id !== 'undefined' &&
+          courseData[id].sis_course_id
+        ) {
           canSIS = true;
           break;
         }
@@ -265,19 +293,13 @@
     }
     var CRLF = '\r\n';
     var hdr = [];
-    fields.map(function(e) {
+    fields.map(function (e) {
       if (typeof e.sis === 'undefined' || (e.sis && canSIS)) {
         hdr.push(e.name);
       }
     });
     var t = hdr.join(',') + CRLF;
-    var item,
-      user,
-      course,
-      userId,
-      fieldInfo,
-      value,
-      field;
+    var item, user, course, userId, fieldInfo, value, field;
     var fieldRegex = new RegExp('^([au])[.](.*)$');
     for (var i = 0; i < accessData.length; i++) {
       item = accessData[i].asset_user_access;
@@ -348,7 +370,18 @@
       if (typeof dt !== 'object') {
         return '';
       }
-      d = dt.getFullYear() + '-' + pad(1 + dt.getMonth()) + '-' + pad(dt.getDate()) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()) + ':' + pad(dt.getSeconds());
+      d =
+        dt.getFullYear() +
+        '-' +
+        pad(1 + dt.getMonth()) +
+        '-' +
+        pad(dt.getDate()) +
+        ' ' +
+        pad(dt.getHours()) +
+        ':' +
+        pad(dt.getMinutes()) +
+        ':' +
+        pad(dt.getSeconds());
     } catch (e) {
       errorHandler(e);
     }
