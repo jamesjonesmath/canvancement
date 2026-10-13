@@ -2,7 +2,7 @@
 // @name        IntraGroup Peer Reviews
 // @description Assign intra-group peer reviews
 // @namespace   https://github.com/jamesjonesmath/canvancement
-// @match       https://*.instructure.com/courses/*/assignments/*/peer_reviews
+// @match       https://*.instructure.com/courses/*/assignments/*/peer_reviews*
 // @require     https://cdn.jsdelivr.net/npm/bottleneck@2/light.min.js
 // @version     3
 // @grant       none
@@ -17,7 +17,7 @@
   let assignmentId = null;
   let groupSets = null;
   const pageRegex = new RegExp(
-    '^/courses/([0-9]+)/assignments/([0-9]+)/peer_reviews$'
+    '^/courses/([0-9]+)/assignments/([0-9]+)/peer_reviews.*$'
   );
   const pageMatches = pageRegex.exec(window.location.pathname);
 
@@ -88,6 +88,7 @@
     heading.textContent = 'Intra-Group Reviews';
     el.appendChild(heading);
     const intro = document.createElement('div');
+    intro.id = 'intra_group_reviews_text'
     intro.textContent =
       'This will assign reviews to other people in the same group.' +
       (reloadPageWhenFinished
@@ -126,6 +127,12 @@
     buttonDiv.appendChild(progress);
     el.appendChild(buttonDiv);
     parent.appendChild(el);
+  }
+
+  function reassignGroups() {
+    updateProgressBar(0);
+    document.getElementById('intra_group_reviews_text').textContent = 'Looking for reviews to re-assign';
+    assignGroups();
   }
 
   function assignGroups() {
@@ -190,9 +197,24 @@
       Promise.all(pl).then(() => {
         updateProgressBar(1);
         if (reloadPageWhenFinished && completed >= n) {
-          window.location.reload();
+            let nextPageLinks = document.getElementsByClassName('next_page')
+            if (nextPageLinks.length == 0 || nextPageLinks[0].tagName != 'A') {
+                window.location.reload();
+            }
+            else {
+                window.location.href = nextPageLinks[0].href
+            }
         }
       });
+    }
+    else {
+        updateProgressBar(1);
+        document.getElementById('intra_group_reviews_text').textContent = 'No reviews to update at this time';
+        const button = document.getElementById('jj_intragroup_button');
+        button.style.display = 'inline-block';
+        button.addEventListener('click', reassignGroups, {
+            once: true,
+        });
     }
   }
 
@@ -202,6 +224,7 @@
       if (typeof x !== 'undefined') {
         progress.value = x;
         progress.textContent = `${Math.round(x * 100)}%`;
+        progress.style.display = 'inline-block';
       }
       if (typeof x === 'undefined' || x === 0) {
         progress.style.display = 'inline-block';
@@ -224,7 +247,7 @@
         const existingReviews = existing[userId];
         const reviews = [];
         for (let k = 0; k < users.length; k++) {
-          if (j === k || typeof existing[users[k]] === 'undefined') {
+          if (j === k) { // || typeof existing[users[k]] === 'undefined') {
             continue;
           }
           const dstUser = users[k];
