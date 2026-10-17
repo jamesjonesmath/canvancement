@@ -56,9 +56,27 @@ var QuizWiz = function (config) {
     ) {
       isSG = true;
       checkSentryListener();
-      addObservers();
-      addNextComment();
-      addNextRubric();
+      // New Canvas is a React SPA — elements are rendered after document-end.
+      // Wait for comment_submit_button as a signal React has finished rendering.
+      var sgSetup = function () {
+        addObservers();
+        addNextComment();
+        addNextRubric();
+      };
+      if (document.getElementById('comment_submit_button')) {
+        sgSetup();
+      } else {
+        var sgReadyObserver = new MutationObserver(function () {
+          if (document.getElementById('comment_submit_button')) {
+            sgReadyObserver.disconnect();
+            sgSetup();
+          }
+        });
+        sgReadyObserver.observe(document.documentElement, {
+          childList: true,
+          subtree: true,
+        });
+      }
     } else if (
       /^\/courses\/[0-9]+\/quizzes\/[0-9]+\/history$/.test(
         window.location.pathname
@@ -144,17 +162,38 @@ var QuizWiz = function (config) {
       typeof config.nextAfterComment !== 'undefined' &&
       config.nextAfterComment
     ) {
+      // Old Canvas: #comments div
       var src = document.getElementById('comments');
+      var newCanvasComments = false;
       if (!src) {
-        return;
+        // New Canvas: walk up from submit button to find comment container
+        var btn = document.getElementById('comment_submit_button');
+        if (!btn) {
+          return;
+        }
+        src = btn;
+        while (src && src.tagName !== 'SECTION') {
+          src = src.parentElement;
+        }
+        if (src) {
+          src = src.parentElement;
+        }
+        if (!src) {
+          return;
+        }
+        newCanvasComments = true;
       }
       var observer = new MutationObserver(function (mutations) {
         var status = false;
         mutations.forEach(function (mutation) {
           if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-            for (var i = 0; i < mutation.addedNodes.length; i++) {
-              if (!mutation.addedNodes[i].classList.contains('draft')) {
-                status = true;
+            if (newCanvasComments) {
+              status = true;
+            } else {
+              for (var i = 0; i < mutation.addedNodes.length; i++) {
+                if (!mutation.addedNodes[i].classList.contains('draft')) {
+                  status = true;
+                }
               }
             }
           }
@@ -163,9 +202,10 @@ var QuizWiz = function (config) {
           nextUser();
         }
       });
-      observer.observe(src, {
-        childList: true,
-      });
+      observer.observe(src, newCanvasComments
+        ? { childList: true, subtree: true }
+        : { childList: true }
+      );
     }
     return;
   }
@@ -191,7 +231,8 @@ var QuizWiz = function (config) {
   }
 
   function getSubmissionComment() {
-    const rce = document.getElementById('comment_rce_textarea_ifr');
+    const rce = document.getElementById('comment_rce_textarea_ifr') ||
+      document.querySelector('#rce iframe[id$="_ifr"]');
     let comment = null;
     if (rce) {
       const el = rce.contentWindow.document.getElementById('tinymce');
@@ -365,20 +406,24 @@ var QuizWiz = function (config) {
     if (!isSG) {
       return;
     }
+    // Old Canvas: x_of_x_students_frd for navigation detection and rubric re-open
     var src = document.getElementById('x_of_x_students_frd');
-    var observer = new MutationObserver(function () {
-      if (
-        advanceSrc === 'rubric' &&
-        typeof config.nextRubricExpanded !== 'undefined' &&
-        config.nextRubricExpanded
-      ) {
-        openRubric();
-      }
-      advanceSrc = false;
-    });
-    observer.observe(src, {
-      childList: true,
-    });
+    if (src) {
+      var observer = new MutationObserver(function () {
+        if (
+          advanceSrc === 'rubric' &&
+          typeof config.nextRubricExpanded !== 'undefined' &&
+          config.nextRubricExpanded
+        ) {
+          openRubric();
+        }
+        advanceSrc = false;
+      });
+      observer.observe(src, {
+        childList: true,
+      });
+    }
+    // Old Canvas: iframe_holder / speedgrader_iframe
     var iframeHolder = document.getElementById('iframe_holder');
     if (iframeHolder) {
       var iframeObserver = new MutationObserver(function () {
@@ -391,6 +436,53 @@ var QuizWiz = function (config) {
         childList: true,
       });
     }
+    // New Canvas: submission-preview-iframe replaces iframe_holder/speedgrader_iframe
+    var attachPreviewIframe = function (iframe) {
+      qwAddEventListener(iframe, 'load', function (e) {
+        var srcWas = advanceSrc;
+        advanceSrc = false;
+        iframeLoaded(e);
+        if (advanceUser && srcWas === 'update') {
+          nextUser();
+          return;
+        }
+        if (
+          srcWas === 'rubric' &&
+          typeof config.nextRubricExpanded !== 'undefined' &&
+          config.nextRubricExpanded
+        ) {
+          openRubric();
+        }
+      }, false);
+    };
+    var previewIframe = document.getElementById('submission-preview-iframe');
+    if (previewIframe) {
+      attachPreviewIframe(previewIframe);
+      // Trigger quiz features if iframe is already loaded when script runs
+      if (
+        previewIframe.contentDocument &&
+        previewIframe.contentDocument.readyState === 'complete'
+      ) {
+        try {
+          iframeLoaded({ target: previewIframe });
+        } catch (err) {}
+      }
+    }
+    // Watch container for iframe replacement during student navigation
+    var iframeContainer =
+      (previewIframe && previewIframe.parentElement) ||
+      document.querySelector('.speedgrader-preview-frame');
+    if (iframeContainer) {
+      var containerObserver = new MutationObserver(function () {
+        var newIframe = document.getElementById('submission-preview-iframe');
+        if (newIframe) {
+          attachPreviewIframe(newIframe);
+        }
+      });
+      containerObserver.observe(iframeContainer, {
+        childList: true,
+      });
+    }
   }
 
   function openRubric() {
@@ -399,7 +491,7 @@ var QuizWiz = function (config) {
     }
     advanceRubric = true;
     var rubric = document.getElementById('rubric_full');
-    if (rubric.style.display === 'none') {
+    if (rubric && rubric.style.display === 'none') {
       showRubric();
     }
     return;
